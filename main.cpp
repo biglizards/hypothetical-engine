@@ -6,7 +6,8 @@
 #include <Python.h>
 
 #include <iostream>
-#include "bridge.h"
+#include "cy_stuff/cool_maths.h"
+#include "cy_stuff/heck.c"
 
 
 int main() {
@@ -14,11 +15,14 @@ int main() {
     // on windows the python distribution is supplied
     Py_SetPath(L"python36.zip");
 #endif
-    PyImport_AppendInittab("wrongname", PyInit_bridge);
+    PyImport_AppendInittab("cool_maths", PyInit_cool_maths);
+    PyImport_AppendInittab("very_cool_maths", PyInit_very_cool_maths);
     Py_Initialize();
-    PyImport_ImportModule("wrongname");
+    PyImport_ImportModule("cool_maths");
+    PyImport_ImportModule("very_cool_maths");
 
-    std::cout << add(3, 4) << std::endl;
+    std::cout << cool_add(3, 5) << std::endl;
+
     Py_Finalize();
     return 0;
 }
