@@ -9,3 +9,10 @@ compile_commands.json
 CTestTestfile.cmake
 cmake-build*/*
 build/*
+python_bit/build/*
+opengl_stuff/*
+cs_proj.cbp
+cs_proj.depend
+cs_proj.layout
+*.pyd
+.idea/*
