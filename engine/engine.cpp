@@ -42,30 +42,7 @@ const char* load_shader_file(const char* path)
     return buffer.str().c_str();
 
 }
-/*
-const char* shaderSource;
-    try
-    {
-        std::ifstream shaderFile;
-        std::string shaderSourceString;
-        
-        shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);  // raise exception on failure
 
-        shaderFile.open(path);
-        std::stringstream buffer;
-        buffer << shaderFile.rdbuf();
-
-        shaderSourceString = buffer.str();
-        shaderSource = shaderSourceString.c_str();
-    }
-    catch (std::ifstream::failure &e)
-    {
-        std::cerr << "SHADER ERROR: FAILED TO OPEN FILE \"" << path
-                  << "\n ERROR CODE: " << e.what() << std::endl;
-        return -1;
-    }
-    std::cout << shaderSource <<  std::endl;
-*/
 char* c_read_file(const char* path)
 {
     FILE* fp;
@@ -164,15 +141,6 @@ int demo(file_load_func foo)
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
     clock_t start_time = clock();
     int i = 0;
-
-    /*
-    auto fragSource = "#version 330 core\n"
-                      "out vec4 FragColor;\n"
-                      "void main()\n"
-                      "{\n"
-                      "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                      "}\n\0";*/
-
 
     char* shaderSource;
     shaderSource = foo("shaders/basic.frag");
