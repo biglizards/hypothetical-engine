@@ -12,17 +12,6 @@
 #include <unistd.h>
 
 
-int add_two_ints(int a, int b)
-{
-    return a+b+9;
-}
-
-int call_func(func some_func, int a, int b, void* f)
-{
-    std::cout << "pointless c++" << std::endl;
-    return some_func(a, b, f);
-}
-
 void framebuffer_size_callback(GLFWwindow*, int width, int height)
 {
     glViewport(0, 0, width, height);
