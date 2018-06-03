@@ -2,29 +2,53 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
+# get distutils to work properly >:|
+from distutils.command.build_ext import build_ext
+from distutils.sysconfig import customize_compiler
+import os
+os.environ["CC"] = "g++" 
+os.environ["CXX"] = "g++"
+
+class my_build_ext(build_ext):
+    def build_extensions(self):
+        customize_compiler(self.compiler)
+        try:
+            self.compiler.compiler_so.remove("-Wstrict-prototypes")
+        except (AttributeError, ValueError):
+            pass
+        build_ext.build_extensions(self)
+
 
 ext_modules = [Extension(name="engine.engine",
-                         sources=['engine/engine.pyx', '../opengl_stuff/GLAD/src/glad.c', '../engine/engine.cpp'],
-                         include_dirs=['C:/Users/pc/Documents/Code/opengl_stuff/GLAD/include',
-                                       'C:/Users/pc/Documents/Code/opengl_stuff/glfw/include'],
-                         library_dirs=['C:/Users/pc/Documents/Code/opengl_stuff/glfw/lib-vc2015/'],
+                         language='c++',
+                         sources=['engine/engine.pyx', '../opengl_stuff/glad/src/glad.c', '../engine/engine.cpp'],
+                         include_dirs=['../opengl_stuff/glad/include',
+                                       '../opengl_stuff/glfw/include', '.'],
+                         library_dirs=['../opengl_stuff/glfw/src/'],
                          libraries=['glfw3',
-                                    'opengl32',
-                                    'gdi32',
-                                    'user32',
-                                    'shell32'],
+                                    #'opengl32', 
+                                    'GL',
+                                    'X11', 'Xrandr', 'Xi', 'Xxf86vm', 'Xcursor', 'Xinerama',
+                                    #'gdi32',
+                                    #'user32',
+                                    #'shell32',
+                                    ],
+                         extra_compile_args=["-std=c++11"],
+                         extra_link_args=["-std=c++11"]
                          )]
 
 setup(
     name='engine',
     packages=['engine'],
+    cmdclass = {'build_ext': my_build_ext},
     ext_modules=cythonize(
         ext_modules,
         build_dir="build",
+        include_path=['engine'],
         compiler_directives={'embedsignature': True, 'language_level': 3}
       ),
 )
-
+input("tip dont press enter")
 # horrible debug thing
 from shutil import copyfile
 
