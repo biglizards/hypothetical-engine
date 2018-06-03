@@ -6,7 +6,11 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
+
+#include <unistd.h>
+
 
 int add_two_ints(int a, int b)
 {
@@ -19,6 +23,11 @@ int call_func(func some_func, int a, int b, void* f)
     return some_func(a, b, f);
 }
 
+void framebuffer_size_callback(GLFWwindow*, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
 const char* load_shader_file(const char* path)
 {
     std::string shaderSourceString;
@@ -27,34 +36,76 @@ const char* load_shader_file(const char* path)
     shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);  // raise exception on failure
 
     shaderFile.open(path);
-    shaderFile >> shaderSourceString;  // load source from file
+    std::stringstream buffer;
+    buffer << shaderFile.rdbuf();
 
-    return shaderSourceString.c_str();
+    return buffer.str().c_str();
 
 }
-
-GLuint load_shader(const char* path, GLenum shaderType)
-{
-    const char* shaderSource;
+/*
+const char* shaderSource;
     try
     {
-        std::string shaderSourceString;
-
         std::ifstream shaderFile;
+        std::string shaderSourceString;
+        
         shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);  // raise exception on failure
 
         shaderFile.open(path);
-        shaderFile >> shaderSourceString;  // load source from file
+        std::stringstream buffer;
+        buffer << shaderFile.rdbuf();
 
+        shaderSourceString = buffer.str();
         shaderSource = shaderSourceString.c_str();
     }
-    catch (std::basic_ios::clear &e)
+    catch (std::ifstream::failure &e)
     {
         std::cerr << "SHADER ERROR: FAILED TO OPEN FILE \"" << path
                   << "\n ERROR CODE: " << e.what() << std::endl;
         return -1;
     }
+    std::cout << shaderSource <<  std::endl;
+*/
+char* c_read_file(const char* path)
+{
+    FILE* fp;
+    long length;
+    char* content;
 
+    fp = fopen(path, "r");
+    if (fp == NULL)
+    {
+        perror("failed to open file");
+        return NULL;
+    }
+    // get lenght of file
+    fseek(fp, 0, SEEK_END);
+    length = ftell(fp);
+    rewind(fp);
+
+    // allocate memory for char array
+    content = (char*) malloc(length+1);
+    if (!content)
+    {
+        perror("failed to allocate memory");
+        fclose(fp);
+        return NULL;
+    }
+    if (fread(content, 1, length, fp) != 1)
+    {
+        perror("could not read file");
+        fclose(fp);
+        free(content);
+        return NULL;
+    }
+    content[length] = '\0';
+
+    fclose(fp);
+    return content;
+}
+
+GLuint load_shader(const char* shaderSource, GLenum shaderType)
+{
     GLuint shaderObject = glCreateShader(shaderType);
     glShaderSource(shaderObject, 1, &shaderSource, nullptr);
     glCompileShader(shaderObject);
@@ -84,9 +135,9 @@ GLuint load_shader(const char* path, GLenum shaderType)
 GLFWwindow* create_window(int width, int height, const char* name)
 {
     glfwInit();
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     GLFWwindow* window = glfwCreateWindow(width, height, name, NULL, NULL);
 
     if (window == nullptr)
@@ -107,56 +158,28 @@ GLFWwindow* create_window(int width, int height, const char* name)
     return window;
 }
 
-int main()
+int demo(file_load_func foo)
 {
     GLFWwindow* window = create_window(800, 600, "mr window");
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
     clock_t start_time = clock();
     int i = 0;
 
-    const char* shaderSource = "#version 330 core\n"
-                               "layout (location = 0) in vec3 aPos;\n"
-                               "void main()\n"
-                               "{\n"
-                               "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                               "}\0";
-
+    /*
     auto fragSource = "#version 330 core\n"
                       "out vec4 FragColor;\n"
                       "void main()\n"
                       "{\n"
                       "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                      "}\n\0";
-
-    GLuint vertexShader = load_shader("shaders/basic.vert", GL_VERTEX_SHADER);
-    /*
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &shaderSource, nullptr);
-    glCompileShader(vertexShader);
-
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-    if(!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    } */
-
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragSource, nullptr);
-    glCompileShader(fragmentShader);
-
-    int  success;
-    char infoLog[512];
+                      "}\n\0";*/
 
 
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    char* shaderSource;
+    shaderSource = foo("shaders/basic.frag");
+    GLuint fragmentShader = load_shader(shaderSource, GL_FRAGMENT_SHADER);
 
-    if(!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
+    shaderSource = foo("shaders/basic.vert");
+    GLuint vertexShader = load_shader(shaderSource, GL_VERTEX_SHADER);
 
     unsigned int shaderProgram;
     shaderProgram = glCreateProgram();
@@ -208,13 +231,14 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        if (++i == 16384)
+        if (++i > 128)
         {
             float total_time = (float)(clock() - start_time) / CLOCKS_PER_SEC;
-            std::cout << total_time << " " << 16384/total_time << " fps\n";
+            std::cout << total_time << " " << 128/total_time << " fps\n";
             start_time = clock();
             i = 0;
         }
 
     }
+    return 0;
 }
