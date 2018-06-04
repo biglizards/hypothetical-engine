@@ -47,4 +47,4 @@ with open('engine/__init__.py', 'w') as f:
     f.write('from .engine import *\n')
 
 copyfile('engine/__init__.py',
-         'D:/Users/***REMOVED***/AppData/Local/Programs/Python/Python36-32/Lib/site-packages/engine/__init__.py')
+         'D:/Users/[USER]/AppData/Local/Programs/Python/Python36-32/Lib/site-packages/engine/__init__.py')
