@@ -5,5 +5,7 @@ cdef extern from "../../engine/engine.h":
         pass
 
     GLFWwindow* create_window(int width, int height, const char* name)
+    unsigned int load_shader(const char* shaderSource, unsigned int shaderType)
+
     void glfwDestroyWindow(GLFWwindow* window)
     int demo(file_load_func)

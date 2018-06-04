@@ -127,7 +127,7 @@ GLFWwindow* create_window(int width, int height, const char* name)
 int demo(file_load_func foo)
 {
     GLFWwindow* window = create_window(800, 600, "mr window");
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); 
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     clock_t start_time = clock();
     int i = 0;
 
@@ -188,10 +188,10 @@ int demo(file_load_func foo)
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        if (++i > 128)
+        if (++i > 16384)
         {
             float total_time = (float)(clock() - start_time) / CLOCKS_PER_SEC;
-            std::cout << total_time << " " << 128/total_time << " fps\n";
+            std::cout << total_time << " " << 16384/total_time << " fps\n";
             start_time = clock();
             i = 0;
         }
