@@ -9,8 +9,6 @@
 #include <sstream>
 #include <string>
 
-#include <unistd.h>
-
 
 void framebuffer_size_callback(GLFWwindow*, int width, int height)
 {
@@ -84,9 +82,11 @@ GLuint load_shader(const char* shaderSource, GLenum shaderType)
     {
         GLint maxLength = 0;
         glGetShaderiv(shaderObject, GL_INFO_LOG_LENGTH, &maxLength);
+        if (1024 < maxLength)
+            std::cerr << "META-ERROR: the following error message was too long to be printed:\n";
 
-        char errorLog[maxLength];
-        glGetShaderInfoLog(shaderObject, maxLength, &maxLength, &errorLog[0]);
+        char errorLog[1024];
+        glGetShaderInfoLog(shaderObject, 1024, nullptr, &errorLog[0]);
 
         std::cerr << "SHADER ERROR: FAILED TO COMPILE: " << errorLog << std::endl;
 
