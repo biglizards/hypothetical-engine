@@ -3,17 +3,19 @@ from distutils.extension import Extension
 from Cython.Build import cythonize
 
 
-ext_modules = [Extension(name="engine.engine",
-                         sources=['engine/engine.pyx', '../opengl_stuff/GLAD/src/glad.c', '../engine/engine.cpp'],
+ext_modules = [Extension(name="engine.*",
+                         language='c++',
+                         sources=['engine/*.pyx', '../opengl_stuff/GLAD/src/glad.c', '../engine/engine.cpp'],
                          include_dirs=['C:/Users/pc/Documents/Code/opengl_stuff/GLAD/include',
-                                       'C:/Users/pc/Documents/Code/opengl_stuff/glfw/include'],
+                                       'C:/Users/pc/Documents/Code/opengl_stuff/glfw/include', '.'],
                          library_dirs=['C:/Users/pc/Documents/Code/opengl_stuff/glfw/lib-vc2015/'],
                          libraries=['glfw3',
                                     'opengl32',
                                     'gdi32',
                                     'user32',
                                     'shell32'],
-                         )]
+                         ),
+               ]
 
 setup(
     name='engine',
@@ -21,17 +23,24 @@ setup(
     ext_modules=cythonize(
         ext_modules,
         build_dir="build",
-        compiler_directives={'embedsignature': True, 'language_level': 3}
+        compiler_directives={'embedsignature': True, 'language_level': 3},
+        annotate=True
       ),
 )
 
+# i'm trying out a new thing where i don't RUIN EVERYTHING
+exit(0)
+# much better
+
 # horrible debug thing
 from shutil import copyfile
+import sys
 
-copyfile('build/lib.win32-3.6/engine/engine.cp36-win32.pyd', 'engine/engine.cp36-win32.pyd')
 with open('engine/__init__.py', 'w') as f:
     # by now, __init__.py is blank, so we can import it freely
+    sys.path.append('build/lib.win32-3.6/engine')
     import engine.engine
+
     exports = ', '.join(name for name in dir(engine.engine) if not name.startswith('__'))
 
     f.write('from .engine import {}\n'.format(exports))
