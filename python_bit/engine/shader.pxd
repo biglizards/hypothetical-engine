@@ -1,0 +1,1 @@
+cpdef unsigned int load_shader_from_file(path, unsigned int shader_type)
