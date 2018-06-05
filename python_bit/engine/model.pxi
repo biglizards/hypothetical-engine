@@ -24,6 +24,8 @@ cdef extern from "../../engine/engine.h":
     void glEnableVertexAttribArray(unsigned int)
 
 cdef class Model:
+    cdef unsigned int VAO, VBO
+
     def __cinit__(self, *args, **kwargs):
         self.VAO = 0
         self.VBO = 0
