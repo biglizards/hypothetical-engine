@@ -2,6 +2,7 @@
 
 cimport cengine
 from cengine cimport GLFWwindow
+import time
 
 include "shader.pxi"
 include "model.pxi"
@@ -18,12 +19,49 @@ cdef extern from *:
     int GL_COLOR_BUFFER_BIT  # haha yes this constant exists
     void glGenVertexArrays(int, unsigned int*)
 
+    # temp
+    void glUseProgram(unsigned int)
+    void glDrawArrays(unsigned int, int, int)
+    int GL_TRIANGLES
+
 
 cdef char* load_file(const char* path):
     return open(path, 'rb').read()
 
 cpdef int main():
     cengine.demo(load_file)
+
+cpdef demo():
+    cdef Window window = Window()
+    cdef Model model = Model()
+    cdef unsigned int i = 0
+
+    data = [-0.5, -0.5, 0.0, 0.0,
+             0.5, -0.5, 0.0, 0.0,
+             0.0,  0.5, 0.0, 0.0]
+    model.buffer_packed_data(data, 12, (3,1))
+    model.bind()
+
+    cdef unsigned int program = load_shader_program('shaders/basic.vert', 'shaders/basic.frag')
+    glUseProgram(program)
+
+    start_time = time.time()
+    while not window.should_close():
+        window.clear_colour(0.3, 0.5, 0.8, 1)
+
+        # draw triangle
+        glDrawArrays(GL_TRIANGLES, 0, 3)
+
+        window.swap_buffers()
+        poll_events()
+
+        i += 1
+        if i > 2**14:
+            duration = time.time() - start_time
+            print(duration, 2**14/duration, "fps")
+            start_time = time.time()
+            i = 0
+
 
 cdef class Window:
     cdef GLFWwindow* window
