@@ -25,6 +25,5 @@ while not window.should_close():
         print(duration, 2**14/duration, "fps")
         start_time = time.time()
         i = 0
-        myshader = engine.uuu('shaders/basic.frag', shader.FRAGMENT_SHADER)
 
 

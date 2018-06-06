@@ -33,13 +33,19 @@ cdef class Model:
     cdef buffer_packed_data(self, data_p, int length, data_format=None):
         """
         packed data is in the format specified in data_format
-        where the meta-format is (width1, width2, ...) 
+        where the meta-format is (width1, width2, ...)
+        eg, for a data format of (3, 1, 2) the data would look like
+        [a, a, a, b, c, c
+         a, a, a, b, c, c, 
+         ...
+         ]
         """
         # convert python list to array.array
         cdef array.array data = array.array('f', data_p)
         if data_format is None:
             data_format = (3, 2)
-        cdef int total_width = sum(width for width in data_format)
+
+        cdef int total_width = sum(data_format)
 
         # create and bind array/buffer objects
         glGenVertexArrays(1, &self.VAO)

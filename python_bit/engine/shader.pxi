@@ -24,7 +24,6 @@ GEOMETRY_SHADER = GL_GEOMETRY_SHADER
 
 cpdef unsigned int load_shader_from_file(path, unsigned int shader_type):
     shader_source = open(path, 'rb').read()
-    print("got shader program", shader_source)
     return c_load_shader(shader_source, shader_type)
 
 
