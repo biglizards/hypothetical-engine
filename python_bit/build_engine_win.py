@@ -2,6 +2,10 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
+debug = 0
+# in future, have this be set from command line or whatever
+with open('engine/config.pxi', 'w') as f:
+    f.write('DEF DEBUG = {}'.format(debug))
 
 ext_modules = [Extension(name="engine.*",
                          language='c++',
@@ -27,24 +31,3 @@ setup(
         annotate=True
       ),
 )
-
-# i'm trying out a new thing where i don't RUIN EVERYTHING
-exit(0)
-# much better
-
-# horrible debug thing
-from shutil import copyfile
-import sys
-
-with open('engine/__init__.py', 'w') as f:
-    # by now, __init__.py is blank, so we can import it freely
-    sys.path.append('build/lib.win32-3.6/engine')
-    import engine.engine
-
-    exports = ', '.join(name for name in dir(engine.engine) if not name.startswith('__'))
-
-    f.write('from .engine import {}\n'.format(exports))
-    f.write('from .engine import *\n')
-
-copyfile('engine/__init__.py',
-         'D:/Users/[USER]/AppData/Local/Programs/Python/Python36-32/Lib/site-packages/engine/__init__.py')

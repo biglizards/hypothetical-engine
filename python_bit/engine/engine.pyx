@@ -2,10 +2,11 @@
 
 cimport cengine
 from cengine cimport GLFWwindow
-import time
+from libc.time cimport clock, CLOCKS_PER_SEC
 
 include "shader.pxi"
 include "model.pxi"
+include "config.pxi"
 
 cdef extern from *:
     void glfwSwapBuffers(GLFWwindow* window)
@@ -31,35 +32,58 @@ cdef char* load_file(const char* path):
 cpdef int main():
     cengine.demo(load_file)
 
+cdef class Triangle(Model):
+    cdef unsigned int shader_program
+
+    def __cinit__(self, data):
+        self.buffer_packed_data(data, len(data), (3,))
+        self.shader_program = load_shader_program('shaders/basic.vert', 'shaders/basic.frag')
+
+    cdef void draw(self):
+        self.bind()
+        glUseProgram(self.shader_program)
+        glDrawArrays(GL_TRIANGLES, 0, 3)
+
+
+IF DEBUG == 1:
+    print("yes it's debug")
+ELSE:
+    print("not debug")
+
+
 cpdef demo():
     cdef Window window = Window()
-    cdef Model model = Model()
+    cdef Triangle triangle1, triangle2
+
+    data = [-0.75, -0.75, 0.0,
+            -0.25, -0.75, 0.0,
+            -0.5,  -0.25, 0.0,]
+    triangle1 = Triangle(data)
+
+    data = [0.75, 0.75, 0.0,
+            0.25, 0.75, 0.0,
+            0.5,  0.25, 0.0,]
+    triangle2 = Triangle(data)
+
     cdef unsigned int i = 0
+    cdef long duration
+    cdef long start_time = clock()
 
-    data = [-0.5, -0.5, 0.0, 0.0,
-             0.5, -0.5, 0.0, 0.0,
-             0.0,  0.5, 0.0, 0.0]
-    model.buffer_packed_data(data, 12, (3,1))
-    model.bind()
-
-    cdef unsigned int program = load_shader_program('shaders/basic.vert', 'shaders/basic.frag')
-    glUseProgram(program)
-
-    start_time = time.time()
     while not window.should_close():
         window.clear_colour(0.3, 0.5, 0.8, 1)
 
-        # draw triangle
-        glDrawArrays(GL_TRIANGLES, 0, 3)
+        # draw triangles
+        triangle1.draw()
+        triangle2.draw()
 
         window.swap_buffers()
         poll_events()
 
         i += 1
         if i > 2**14:
-            duration = time.time() - start_time
-            print(duration, 2**14/duration, "fps")
-            start_time = time.time()
+            duration = clock() - start_time
+            print(duration, (2**14 * CLOCKS_PER_SEC)/duration, "fps")
+            start_time = clock()
             i = 0
 
 
