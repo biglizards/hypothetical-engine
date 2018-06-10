@@ -9,7 +9,7 @@ a model has
 
 from cpython cimport array
 
-cdef extern from "../../engine/engine.h":
+cdef extern from *:
     void glGenVertexArrays(int, unsigned int*)
     void glGenBuffers(int count, unsigned int* buffer_array)
     void glBindVertexArray(unsigned int)
