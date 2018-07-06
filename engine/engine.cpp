@@ -4,11 +4,14 @@
 #include <GLFW/glfw3.h>
 #include <time.h>
 
+#include <nanogui/nanogui.h>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 
+nanogui::Screen* gl_screen = NULL;
 
 void framebuffer_size_callback(GLFWwindow*, int width, int height)
 {
@@ -27,45 +30,52 @@ const char* load_shader_file(const char* path)
     buffer << shaderFile.rdbuf();
 
     return buffer.str().c_str();
-
 }
 
-char* c_read_file(const char* path)
+void set_callbacks(nanogui::Screen* screen_, GLFWwindow* window)
 {
-    FILE* fp;
-    long length;
-    char* content;
+    gl_screen = screen_;
+    glfwSetCursorPosCallback(window,
+        [](GLFWwindow *, double x, double y) {
+            gl_screen->cursorPosCallbackEvent(x, y);
+        }
+    );
 
-    fp = fopen(path, "r");
-    if (fp == NULL)
-    {
-        perror("failed to open file");
-        return NULL;
-    }
-    // get lenght of file
-    fseek(fp, 0, SEEK_END);
-    length = ftell(fp);
-    rewind(fp);
+    glfwSetMouseButtonCallback(window,
+        [](GLFWwindow *, int button, int action, int modifiers) {
+            gl_screen->mouseButtonCallbackEvent(button, action, modifiers);
+        }
+    );
 
-    // allocate memory for char array
-    content = (char*) malloc(length+1);
-    if (!content)
-    {
-        perror("failed to allocate memory");
-        fclose(fp);
-        return NULL;
-    }
-    if (fread(content, 1, length, fp) != 1)
-    {
-        perror("could not read file");
-        fclose(fp);
-        free(content);
-        return NULL;
-    }
-    content[length] = '\0';
+    glfwSetKeyCallback(window,
+        [](GLFWwindow *, int key, int scancode, int action, int mods) {
+            gl_screen->keyCallbackEvent(key, scancode, action, mods);
+        }
+    );
 
-    fclose(fp);
-    return content;
+    glfwSetCharCallback(window,
+        [](GLFWwindow *, unsigned int codepoint) {
+            gl_screen->charCallbackEvent(codepoint);
+        }
+    );
+
+    glfwSetDropCallback(window,
+        [](GLFWwindow *, int count, const char **filenames) {
+            gl_screen->dropCallbackEvent(count, filenames);
+        }
+    );
+
+    glfwSetScrollCallback(window,
+        [](GLFWwindow *, double x, double y) {
+            gl_screen->scrollCallbackEvent(x, y);
+       }
+    );
+
+    glfwSetFramebufferSizeCallback(window,
+        [](GLFWwindow *, int width, int height) {
+            gl_screen->resizeCallbackEvent(width, height);
+        }
+    );
 }
 
 GLuint load_shader(const char* shaderSource, GLenum shaderType)

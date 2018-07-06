@@ -2,22 +2,29 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
 
+print("starting compile...")
+
 debug = 0
 # in future, have this be set from command line or whatever
-with open('engine/config.pxi', 'w') as f:
-    f.write('DEF DEBUG = {}'.format(debug))
+
+#with open('engine/config.pxi', 'w') as f:
+#    f.write('DEF DEBUG = {}'.format(debug))
+
 
 ext_modules = [Extension(name="engine.*",
                          language='c++',
-                         sources=['engine/*.pyx', '../opengl_stuff/GLAD/src/glad.c', '../engine/engine.cpp'],
-                         include_dirs=['C:/Users/pc/Documents/Code/opengl_stuff/GLAD/include',
-                                       'C:/Users/pc/Documents/Code/opengl_stuff/glfw/include', '.'],
-                         library_dirs=['C:/Users/pc/Documents/Code/opengl_stuff/glfw/lib-vc2015/'],
-                         libraries=['glfw3',
-                                    'opengl32',
+                         sources=['engine/*.pyx',
+                                  '../engine/engine.cpp'],
+                         include_dirs=['../ext/include',
+                                       '../ext/include/nanovg/src'  # grr
+                                       '.'],
+                         library_dirs=['../ext/lib'],
+                         libraries=['opengl32', 'nanogui', 'glfw3',
+                                    # the rest are windows libs that need to be included
                                     'gdi32',
                                     'user32',
-                                    'shell32'],
+                                    'shell32',
+                                    'Comdlg32'],
                          ),
                ]
 
@@ -28,6 +35,10 @@ setup(
         ext_modules,
         build_dir="build",
         compiler_directives={'embedsignature': True, 'language_level': 3},
-        annotate=True
-      ),
+        annotate=True,
+        quiet=True,
+        force=True,
+    ),
 )
+
+print("done")
