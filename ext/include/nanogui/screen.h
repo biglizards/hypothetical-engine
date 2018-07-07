@@ -136,12 +136,6 @@ public:
     /// Return a pointer to the underlying GLFW window data structure
     GLFWwindow *glfwWindow() { return mGLFWWindow; }
 	
-	/// fuck me
-	void* glfwWindow2() {
-		std::cout << (unsigned int)mGLFWWindow << std::endl;
-		return (void*)mGLFWWindow; 
-	}
-
     /// Return a pointer to the underlying nanoVG draw context
     NVGcontext *nvgContext() { return mNVGContext; }
 
