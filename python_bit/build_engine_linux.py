@@ -20,18 +20,24 @@ class my_build_ext(build_ext):
         build_ext.build_extensions(self)
 
 
+with open('engine/config.pxi', 'w') as f:
+    f.write('DEF DEBUG = 0')
+
 ext_modules = [Extension(name="engine.engine",
                          language='c++',
-                         sources=['engine/engine.pyx', '../opengl_stuff/glad/src/glad.c', '../engine/engine.cpp'],
-                         include_dirs=['../opengl_stuff/glad/include',
-                                       '../opengl_stuff/glfw/include', '.'],
-                         library_dirs=['../opengl_stuff/glfw/src/'],
-                         libraries=['glfw3',
+                         sources=['engine/engine.pyx', #'../opengl_stuff/glad/src/glad.c',
+                                  '../engine/engine.cpp'],
+                         include_dirs=[#'../opengl_stuff/glad/include',
+                                       #'../opengl_stuff/glfw/include', 
+                                       '.', '../ext/include', '../ext/include/nanovg/src'],
+                         library_dirs=[#'../opengl_stuff/glfw/src/', 
+                                       '../ext/lib'],
+                         libraries=['glfw3', 'nanogui',
                                     'GL',
                                     'X11', 'Xrandr', 'Xi', 'Xxf86vm', 'Xcursor', 'Xinerama',
                                     ],
-                         extra_compile_args=["-std=c++11"],
-                         extra_link_args=["-std=c++11"]
+                         extra_compile_args=["-std=c++11", '-fPIC'],
+                         extra_link_args=["-std=c++11", '-fPIC']
                          )]
 
 setup(
