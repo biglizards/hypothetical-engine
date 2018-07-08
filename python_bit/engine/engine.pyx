@@ -100,3 +100,4 @@ cpdef demo():
 
 cpdef poll_events():
     glfwPollEvents()
+
