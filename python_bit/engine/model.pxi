@@ -7,6 +7,7 @@ cdef extern from *:
     void glBindBuffer(unsigned int, unsigned int)
     unsigned int GL_ARRAY_BUFFER
     unsigned int GL_STATIC_DRAW
+    unsigned int GL_ELEMENT_ARRAY_BUFFER
     unsigned int GL_FLOAT
 
     void glBufferData(unsigned int target, ptrdiff_t size, const void* data, unsigned int usage)
@@ -23,13 +24,14 @@ cdef class Model:
       but REALLY all it has is
      - a VAO (with bound VBO)
     """
-    cdef unsigned int VAO, VBO
+    cdef unsigned int VAO, VBO, EBO
 
     def __cinit__(self, *args, **kwargs):
         self.VAO = 0
         self.VBO = 0
+        self.EBO = 0
 
-    cdef buffer_packed_data(self, data_p, data_format):
+    cdef buffer_packed_data(self, data_p, data_format, indices=None):
         """
         packed data is in the format specified in data_format
         where the meta-format is (width1, width2, ...)
@@ -41,6 +43,7 @@ cdef class Model:
         """
         # convert python list to array.array
         cdef array.array data = array.array('f', data_p)
+        cdef array.array index_array
         cdef int length = len(data)
         cdef int total_width = sum(data_format)
 
@@ -62,6 +65,13 @@ cdef class Model:
                                   stride=total_width*sizeof(float), pointer=<void*>(offset * sizeof(float)))
             glEnableVertexAttribArray(i)
             offset += width
+
+        if indices:
+            index_array = array.array('i', indices)
+            glGenBuffers(1, &self.EBO)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.EBO)
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, len(indices)*sizeof(int),
+                         index_array.data.as_ints, GL_STATIC_DRAW)
 
     cpdef void bind(self):
         glBindVertexArray(self.VAO)
