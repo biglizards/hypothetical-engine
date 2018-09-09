@@ -9,6 +9,7 @@ IF WINDOWS:
 cimport cengine
 from cengine cimport GLFWwindow, set_callbacks
 cimport nanogui
+import glm
 from libc.time cimport clock, CLOCKS_PER_SEC
 
 
@@ -106,6 +107,9 @@ cdef class Drawable:
         glDrawElements(GL_TRIANGLES, self.no_of_indices, GL_UNSIGNED_INT, NULL)
 
 
+cdef float* value_ptr(thing):
+    return <float*>(<int>glm.value_ptr(thing).value)
+
 cpdef demo():
     cdef Window window = Window()
 
@@ -153,6 +157,10 @@ cpdef demo():
 
     while not window.should_close():
         window.clear_colour(0.3, 0.5, 0.8, 1)
+
+        trans = glm.translate(glm.mat4(1), glm.vec3(.5, -.5, 0))
+        trans = glm.rotate(trans, glfwGetTime(), glm.vec3(0, 0, 1))
+        rect.shader_program.set_value("transform", trans)
 
         crate.bind_to_unit(unit=0)
         face.bind_to_unit(unit=1)
