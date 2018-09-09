@@ -7,8 +7,11 @@ print("starting compile...")
 debug = 0
 # in future, have this be set from command line or whatever
 
-#with open('engine/config.pxi', 'w') as f:
-#    f.write('DEF DEBUG = {}'.format(debug))
+with open('engine/config.pxi', 'w') as f:
+    f.write('DEF DEBUG = {}\n'
+            'DEF FALSE = 0  # used in code inspection hack\n'
+            'DEF WINDOWS = 1\n'
+            'DEF LINUX = 0\n'.format(debug))
 
 
 ext_modules = [Extension(name="engine.*",
@@ -24,7 +27,10 @@ ext_modules = [Extension(name="engine.*",
                                     'gdi32',
                                     'user32',
                                     'shell32',
-                                    'Comdlg32'],
+                                    'Comdlg32',
+                                    'Dbghelp'],
+                         extra_compile_args=['-Zi'],
+                         extra_link_args=['/DEBUG'],
                          ),
                ]
 
