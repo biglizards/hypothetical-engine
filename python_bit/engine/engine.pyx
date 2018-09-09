@@ -43,7 +43,7 @@ cdef extern from *:
     unsigned int GL_ONE_MINUS_SRC_ALPHA
     void glBlendFunc(unsigned int, unsigned int)
 
-
+RGBA = GL_RGBA
 
 cdef char* load_file(const char* path):
     return open(path, 'rb').read()
@@ -86,7 +86,7 @@ and anything built on top of that can do whatever
 
 cdef class Drawable:
     cdef Model model
-    cdef ShaderProgram shader_program
+    cdef public ShaderProgram shader_program
     cdef int no_of_indices
 
     def __cinit__(self, *args, **kwargs):
@@ -111,13 +111,16 @@ cdef class Drawable:
 cdef float* value_ptr(thing):
     return <float*>(<int>glm.value_ptr(thing).value)
 
+cpdef set_gui_callbacks(Screen screen, Window window):
+    cengine.set_callbacks(screen.screen, window.window)
+
 cpdef demo():
     cdef Window window = Window()
 
     cdef Screen screen = Screen(window)   # todo make name make more sense; "screen" is bad, maybe "gui_screen"
     cdef FormHelper gui = FormHelper(screen)
     gui.add_window(10, 10, b"GUI WINDOW (heck yeah)")
-    cengine.set_callbacks(screen.screen, window.window)
+    set_gui_callbacks(screen, window)
     screen.update_layout()
 
     cdef Triangle triangle1, triangle2
