@@ -104,6 +104,7 @@ cdef class Drawable:
             raise RuntimeError('Drawable was not properly init')
         self.model.bind()
         self.shader_program.use()
+        self.shader_program.bind_textures()
         glDrawElements(GL_TRIANGLES, self.no_of_indices, GL_UNSIGNED_INT, NULL)
 
 
@@ -143,17 +144,14 @@ cpdef demo():
                     vert_path='shaders/texture.vert',
                     frag_path='shaders/texture.frag')
 
-    cdef Texture crate = Texture('container.jpg')
-    cdef Texture face =  Texture('awesomeface.png', data_format=GL_RGBA)
-    rect.shader_program.set_value("texture1", 0)
-    rect.shader_program.set_value("texture2", 1)
+    cdef Texture crate = Texture('resources/container.jpg')
+    cdef Texture face =  Texture('resources/awesomeface.png', data_format=GL_RGBA)
+    rect.shader_program.add_texture(crate, "texture1", 0)
+    rect.shader_program.add_texture(face, "texture2", 1)
 
     cdef unsigned int i = 0
     cdef long duration
     cdef long start_time = clock()
-
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     while not window.should_close():
         window.clear_colour(0.3, 0.5, 0.8, 1)
@@ -162,8 +160,6 @@ cpdef demo():
         trans = glm.rotate(trans, glfwGetTime(), glm.vec3(0, 0, 1))
         rect.shader_program.set_value("transform", trans)
 
-        crate.bind_to_unit(unit=0)
-        face.bind_to_unit(unit=1)
         rect.draw()
 
         # draw gui yo
@@ -172,14 +168,12 @@ cpdef demo():
         window.swap_buffers()
         poll_events()
 
-
         i += 1
         if i > 2**14:
             duration = clock() - start_time
             print(duration, (2**14 * CLOCKS_PER_SEC)/duration, "fps")
             start_time = clock()
             i = 0
-
 
 cpdef poll_events():
     glfwPollEvents()
