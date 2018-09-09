@@ -23,6 +23,10 @@ cdef class Screen:
         self.screen.drawContents()
         self.screen.drawWidgets()
 
+        # fix transparancy, since nanogui disables it
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
     cpdef update_layout(self):
         self.screen.performLayout()
 

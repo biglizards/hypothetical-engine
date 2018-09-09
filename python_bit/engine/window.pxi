@@ -8,6 +8,7 @@ cdef extern from *:
     ctypedef void (*GLFWglproc)()
 
     void glfwInit()
+    double glfwGetTime()
     void glfwWindowHint(int hint, int value)
     GLFWwindow* glfwCreateWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share)
     void glfwMakeContextCurrent(GLFWwindow* window)
@@ -27,9 +28,9 @@ cdef extern from *:
     GLFWglproc glfwGetProcAddress(const char* procname)
 
 
-cdef GLFWwindow* create_window(int width, int height, const char* name):
+cdef GLFWwindow* create_window(int width, int height, const char* name, bint enable_transparency=True):
     glfwInit()
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
 
@@ -42,6 +43,9 @@ cdef GLFWwindow* create_window(int width, int height, const char* name):
 
     if not gladLoadGLLoader(<GLADloadproc>glfwGetProcAddress):
         print("ERROR: FAILED TO INIT GLAD")
+
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     return window
 
