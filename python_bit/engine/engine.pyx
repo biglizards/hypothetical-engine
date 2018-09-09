@@ -1,5 +1,11 @@
 # distutils: language = c++
 
+include "config.pxi"
+IF WINDOWS:
+    cdef extern from "windows.h":
+        pass  # force windows header to be included early
+include "crash_handler.pxi"
+
 cimport cengine
 from cengine cimport GLFWwindow, set_callbacks
 cimport nanogui
