@@ -12,6 +12,7 @@ from glfw_declarations cimport *
 cimport nanogui
 import glm
 from libc.time cimport clock, CLOCKS_PER_SEC
+from libc.stdint cimport uintptr_t
 
 include "crash_handler.pxi"
 include "gl_declarations.pxi"
@@ -88,7 +89,7 @@ cdef class Drawable:
 
 
 cdef float* value_ptr(thing):
-    return <float*>(<int>glm.value_ptr(thing).value)
+    return <float*>(<uintptr_t>glm.value_ptr(thing).value)
 
 cpdef set_gui_callbacks(Screen screen, Window window):
     cengine.set_callbacks(screen.screen, window.window)
