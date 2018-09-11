@@ -9,28 +9,6 @@ cdef extern from "stb_image.h":
     void stbi_image_free(void* data)
     void stbi_set_flip_vertically_on_load(bint flag)
 
-cdef extern from *:
-    void glGenTextures(int n, unsigned int* textures)
-    void glBindTexture(unsigned int target, unsigned int texture)  # eg glBindTexture(GL_TEXTURE_2D, texture)
-    void glTexImage2D(unsigned int target, int mipmap_level, int internal_format, int width, int height,
-                      int must_be_zero, unsigned int data_format, unsigned int data_type, const void* data)
-    # data_format: the format you pass in. internal_format: how the data is stored. they should probably be the same
-    # (https://stackoverflow.com/questions/34497195/difference-between-format-and-internalformat)
-    void glGenerateMipmap(unsigned int target)
-
-    void glActiveTexture(unsigned int unit)
-    void glUniform1i(int location, int value)
-    int glGetUniformLocation(unsigned int program, const char* name)
-    void glUseProgram(unsigned int program)
-
-
-    unsigned int GL_TEXTURE0
-    unsigned int GL_TEXTURE_2D
-    unsigned int GL_RGB
-    unsigned int GL_RGBA
-    unsigned int GL_UNSIGNED_BYTE
-    unsigned int glGetError()
-
 cpdef unsigned int load_texture_from_file(filename_str, data_format=GL_RGB, flip_on_load=True) except 0:
     """loads a texture from a file, returns 0 on failure"""
 

@@ -1,20 +1,5 @@
 from cpython cimport array
 
-cdef extern from *:
-    void glGenVertexArrays(int, unsigned int*)
-    void glGenBuffers(int count, unsigned int* buffer_array)
-    void glBindVertexArray(unsigned int)
-    void glBindBuffer(unsigned int, unsigned int)
-    unsigned int GL_ARRAY_BUFFER
-    unsigned int GL_STATIC_DRAW
-    unsigned int GL_ELEMENT_ARRAY_BUFFER
-    unsigned int GL_FLOAT
-
-    void glBufferData(unsigned int target, ptrdiff_t size, const void* data, unsigned int usage)
-    void glVertexAttribPointer(unsigned int index, int size, unsigned int type,
-                               unsigned char normalized, int stride, const void* pointer)
-    void glEnableVertexAttribArray(unsigned int)
-
 cdef class Model:
     """
     a model has

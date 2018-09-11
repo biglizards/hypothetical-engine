@@ -1,11 +1,21 @@
 cdef extern from *:
+    #*******
+    # TYPES
+    #*******
+
     ctypedef int GLint
     ctypedef unsigned int GLuint
     ctypedef unsigned int GLsizei
     ctypedef float GLfloat
     ctypedef char GLchar
     ctypedef unsigned char GLboolean
+    
 
+    #***********
+    # FUNCTIONS
+    #***********
+
+    # uniforms (whatever those are)
     void glUniform1f(GLint location, GLfloat v0)
     void glUniform2f(GLint location, GLfloat v0, GLfloat v1)
     void glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
@@ -39,5 +49,95 @@ cdef extern from *:
     void glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
     void glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
     void glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose, const GLfloat *value)
-
     GLint glGetUniformLocation(GLuint program, const GLchar* name)
+    
+    # window functions
+    void glClearColor(float, float, float, float)
+    void glClear(unsigned int)
+    void glScissor(int, int, int, int)
+    void glEnable(unsigned int)
+
+    # shader functions
+    unsigned int glCreateProgram()
+    void glAttachShader(unsigned int program, unsigned int shader)
+    void glLinkProgram(unsigned int program)
+    void glDeleteShader(unsigned int shader)
+    
+    # model functions
+    void glGenVertexArrays(int, unsigned int*)
+    void glGenBuffers(int count, unsigned int* buffer_array)
+    void glBindVertexArray(unsigned int)
+    void glBindBuffer(unsigned int, unsigned int)
+
+    void glBufferData(unsigned int target, ptrdiff_t size, const void* data, unsigned int usage)
+    void glVertexAttribPointer(unsigned int index, int size, unsigned int type,
+                               unsigned char normalized, int stride, const void* pointer)
+    void glEnableVertexAttribArray(unsigned int)
+
+    #  texture functions
+    void glGenTextures(int n, unsigned int* textures)
+    void glBindTexture(unsigned int target, unsigned int texture)  # eg glBindTexture(GL_TEXTURE_2D, texture)
+    void glTexImage2D(unsigned int target, int mipmap_level, int internal_format, int width, int height,
+                      int must_be_zero, unsigned int data_format, unsigned int data_type, const void* data)
+    # data_format: the format you pass in. internal_format: how the data is stored. They should probably be the same
+    # (more detail at https://stackoverflow.com/questions/34497195/difference-between-format-and-internalformat)
+    void glGenerateMipmap(unsigned int target)
+
+    void glActiveTexture(unsigned int unit)
+    void glUniform1i(int location, int value)
+    int glGetUniformLocation(unsigned int program, const char* name)
+    void glUseProgram(unsigned int program)
+
+    # engine functions
+    void glDrawArrays(unsigned int, int, int)
+    void glDrawElements(unsigned int mode, int count, unsigned int data_type, void* indices)  # let indices = 0 if EBO
+
+    # misc functions
+    void glfwSwapInterval(int)
+    void glBlendFunc(unsigned int, unsigned int)
+
+
+    #***********
+    # CONSTANTS
+    #***********
+
+    # window constants
+    unsigned int GL_SCISSOR_TEST
+    unsigned int GL_MULTISAMPLE
+    unsigned int GL_COLOR_BUFFER_BIT
+    unsigned int GL_DEPTH_BUFFER_BIT
+    
+    # model constants
+    unsigned int GL_ARRAY_BUFFER
+    unsigned int GL_STATIC_DRAW
+    unsigned int GL_ELEMENT_ARRAY_BUFFER
+
+    # shader constants
+    int GL_FRAGMENT_SHADER
+    int GL_VERTEX_SHADER
+    int GL_GEOMETRY_SHADER
+
+    # texture constants
+    unsigned int GL_TEXTURE0
+    unsigned int GL_TEXTURE_2D
+    unsigned int GL_RGB
+    unsigned int GL_RGBA
+
+    # engine constants
+    unsigned int GL_TRIANGLES
+
+    # misc constants
+    unsigned int GL_UNSIGNED_INT
+    unsigned int GL_FLOAT
+    unsigned int GL_UNSIGNED_BYTE
+    unsigned int GL_BLEND
+    unsigned int GL_SRC_ALPHA
+    unsigned int GL_ONE_MINUS_SRC_ALPHA
+    unsigned int GL_DEPTH_TEST
+
+
+    #******
+    # GLAD
+    #******
+    ctypedef void* (* GLADloadproc)(const char *name)
+    int gladLoadGLLoader(GLADloadproc)

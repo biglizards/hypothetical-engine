@@ -1,33 +1,3 @@
-cdef extern from *:
-    ctypedef struct GLFWwindow:
-        pass
-    ctypedef struct GLFWmonitor:
-        pass
-
-    ctypedef void* (* GLADloadproc)(const char *name)
-    ctypedef void (*GLFWglproc)()
-
-    void glfwInit()
-    double glfwGetTime()
-    void glfwWindowHint(int hint, int value)
-    GLFWwindow* glfwCreateWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share)
-    void glfwMakeContextCurrent(GLFWwindow* window)
-
-    void glClearColor(float, float, float, float)
-    void glClear(unsigned int)
-    void glScissor(int, int, int, int)
-    void glEnable(unsigned int)
-    unsigned int GL_SCISSOR_TEST
-
-    int GLFW_CONTEXT_VERSION_MAJOR
-    int GLFW_CONTEXT_VERSION_MINOR
-    int GLFW_OPENGL_PROFILE
-    int GLFW_OPENGL_CORE_PROFILE
-
-    int gladLoadGLLoader(GLADloadproc)
-    GLFWglproc glfwGetProcAddress(const char* procname)
-
-
 cdef GLFWwindow* create_window(int width, int height, const char* name):
     glfwInit()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)

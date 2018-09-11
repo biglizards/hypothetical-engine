@@ -1,8 +1,5 @@
 cimport nanogui
 
-cdef extern from *:
-    double glfwGetTime()
-
 cdef class Screen:
     cdef nanogui.Screen* screen
     cdef GLFWwindow* window
