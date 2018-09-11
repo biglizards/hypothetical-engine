@@ -1,7 +1,7 @@
 IF LINUX:
     from libc.stdio cimport printf, sprintf
     from libc.stdlib cimport system
-    from libc.signal cimport signal, SIGSEGV
+    from libc.signal cimport signal, SIGSEGV, sighandler_t
 ELIF WINDOWS:
     import datetime
     import sys
@@ -36,10 +36,12 @@ IF LINUX:
             if name.startswith(b'python'):
                 continue
             sprintf(command, "addr2line %s -e %s \n", addr, name)
-            system(command)
+            if not system(command):
+                print("call to addr2line failed, aborting")
+                break
 
         exit(1)
-    signal(SIGSEGV, handler)
+    signal(SIGSEGV, <sighandler_t>handler)
 
 ELIF WINDOWS:
     cdef extern from "windows.h":

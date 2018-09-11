@@ -22,8 +22,9 @@ class my_build_ext(build_ext):
 
 with open('engine/config.pxi', 'w') as f:
     f.write('DEF DEBUG = 0\n'
-            'DEF WINDOWS = 1\n'
-            'DEF LINUX = 0\n')
+            'DEF FALSE = 0\n'
+            'DEF WINDOWS = 0\n'
+            'DEF LINUX = 1\n')
 
 
 ext_modules = [Extension(name="engine.engine",
