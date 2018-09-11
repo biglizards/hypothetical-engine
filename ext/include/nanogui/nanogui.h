@@ -13,7 +13,9 @@
 
 // disable warnings for nanogui (added by biglizard, not the author,
 // because msvc 2015 (which i have to use) doesnt support -isystem) 
+#ifdef _WIN32
 #pragma warning( push, 0 )
+#endif
 
 #include <nanogui/common.h>
 #include <nanogui/widget.h>
@@ -44,4 +46,7 @@
 #include <nanogui/tabwidget.h>
 #include <nanogui/glcanvas.h>
 
+
+#ifdef _WIN32
 #pragma warning( pop ) 
+#endif
