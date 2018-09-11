@@ -13,17 +13,6 @@ IF FALSE:
 
 from cengine cimport load_shader as c_load_shader
 
-cdef extern from *:
-    unsigned int glCreateProgram()
-    void glAttachShader(unsigned int program, unsigned int shader)
-    void glLinkProgram(unsigned int program)
-    void glDeleteShader(unsigned int shader)
-
-    int GL_FRAGMENT_SHADER
-    int GL_VERTEX_SHADER
-    int GL_GEOMETRY_SHADER
-    void glfwInit()
-
 FRAGMENT_SHADER = GL_FRAGMENT_SHADER
 VERTEX_SHADER = GL_VERTEX_SHADER
 GEOMETRY_SHADER = GL_GEOMETRY_SHADER

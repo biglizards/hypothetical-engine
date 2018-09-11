@@ -8,10 +8,10 @@ IF WINDOWS:
 
 cimport cengine
 from cengine cimport GLFWwindow, set_callbacks
+from glfw_declarations cimport *
 cimport nanogui
 import glm
 from libc.time cimport clock, CLOCKS_PER_SEC
-
 
 include "crash_handler.pxi"
 include "gl_declarations.pxi"
@@ -21,27 +21,6 @@ include "model.pxi"
 include "window.pxi"
 include "texture.pxi"
 include "nanogui.pxi"
-
-
-cdef extern from *:
-    void glfwSwapBuffers(GLFWwindow* window)
-    void glfwPollEvents()
-    int glfwWindowShouldClose(GLFWwindow* window)
-
-    void glfwSwapInterval(int)
-
-    int GL_COLOR_BUFFER_BIT  # haha yes this constant exists
-    void glGenVertexArrays(int, unsigned int*)
-
-    # temp
-    void glDrawArrays(unsigned int, int, int)
-    void glDrawElements(unsigned int mode, int count, unsigned int data_type, void* indices)  # let indices = 0 if EBO
-    int GL_TRIANGLES
-    int GL_UNSIGNED_INT
-    unsigned int GL_BLEND
-    unsigned int GL_SRC_ALPHA
-    unsigned int GL_ONE_MINUS_SRC_ALPHA
-    void glBlendFunc(unsigned int, unsigned int)
 
 RGBA = GL_RGBA
 
