@@ -100,8 +100,8 @@ cdef class Drawable:
 cdef float* value_ptr(thing):
     return <float*>(<uintptr_t>glm.value_ptr(thing).value)
 
-cpdef set_gui_callbacks(Screen screen, Window window):
-    cengine.set_callbacks(screen.screen, window.window)
+cpdef set_gui_callbacks(Gui gui, Window window):
+    cengine.set_callbacks(gui.screen, window.window)
 
 cpdef poll_events():
     glfwPollEvents()
