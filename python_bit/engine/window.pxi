@@ -21,11 +21,20 @@ cdef GLFWwindow* create_window(int width, int height, const char* name):
 
     return window
 
+window_objects_by_pointer = {}
+
+cdef key_callback(GLFWwindow* window_ptr, int key, int scancode, int action, int mods):
+    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
+    if window.key_callback is None:
+        return
+    window.key_callback(window, key, scancode, action, mods)
+
 cdef class Window:
     cdef GLFWwindow* window
     cdef void *some_func
     cdef public int width
     cdef public int height
+    cdef object key_callback
 
     def __cinit__(self, int width=800, int height=600, name='window boi', *args, **kwargs):
         byte_str = name.encode()
@@ -34,6 +43,10 @@ cdef class Window:
         self.width = width
         self.height = height
         glfwSwapInterval(0)
+
+        self.key_callback = None
+        window_objects_by_pointer[<uintptr_t>self.window] = self
+        glfwSetKeyCallback(self.window, <GLFWkeyfun>key_callback)
 
     def __init__(self, int width=800, int height=600, name='window boi', *args, **kwargs):
         # included to force a valid signature
@@ -53,3 +66,7 @@ cdef class Window:
 
     cpdef bint should_close(self):
         return glfwWindowShouldClose(self.window)
+
+    cpdef set_key_callback(self, callback_function):
+        self.key_callback = callback_function
+        glfwSetKeyCallback(self.window, <GLFWkeyfun>key_callback)

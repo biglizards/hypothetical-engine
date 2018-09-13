@@ -7,7 +7,6 @@ IF WINDOWS:
 
 cimport cengine
 from cengine cimport GLFWwindow, set_callbacks
-from glfw_declarations cimport *
 cimport nanogui
 import glm
 from libc.time cimport clock, CLOCKS_PER_SEC
@@ -15,6 +14,7 @@ from libc.stdint cimport uintptr_t
 
 include "crash_handler.pxi"
 include "gl_declarations.pxi"
+include "glfw_declarations.pxd"
 include "util.pxi"
 include "shader.pxi"
 include "model.pxi"
