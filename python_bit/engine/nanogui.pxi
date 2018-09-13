@@ -1,6 +1,6 @@
 cimport nanogui
 
-cdef class Screen:
+cdef class Gui:
     cdef nanogui.Screen* screen
     cdef GLFWwindow* window
 
@@ -28,16 +28,27 @@ cdef class Screen:
     cpdef update_layout(self):
         self.screen.performLayout()
 
+    cpdef handle_key(self, int key, int scancode, int action, int mods):
+        self.screen.keyCallbackEvent(key, scancode, action, mods)
+
 cdef class FormHelper:
     cdef nanogui.FormHelper* gui
 
-    def __cinit__(self, Screen screen, *args, **kwargs):
-        # takes a cython Screen object
-        self.gui = new nanogui.FormHelper(screen.screen)
+    def __cinit__(self, Gui gui, *args, **kwargs):
+        # takes a cython Gui object
+        self.gui = new nanogui.FormHelper(gui.screen)
 
-    def __init__(self, Screen screen, *args, **kwargs):
+    def __init__(self, Gui gui, *args, **kwargs):
         pass
 
-    cpdef add_window(self, x, y, name):
-        self.gui.addWindow(nanogui.Vector2i(x, y), name)
+    cpdef GuiWindow add_window(self, x, y, name):
+        return GuiWindow(self, x, y, name)
 
+cdef class GuiWindow:
+    cdef nanogui.Window* window
+
+    def __cinit__(self, FormHelper form_helper, x, y, name):
+        self.window = form_helper.gui.addWindow(nanogui.Vector2i(x, y), name)
+
+    def focused(self):
+        return self.window.focused()
