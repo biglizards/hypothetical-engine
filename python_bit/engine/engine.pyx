@@ -5,7 +5,6 @@ IF WINDOWS:
     cdef extern from "windows.h":
         pass  # force windows header to be included early
 
-
 cimport cengine
 from cengine cimport GLFWwindow, set_callbacks
 from glfw_declarations cimport *
@@ -103,70 +102,6 @@ cdef float* value_ptr(thing):
 
 cpdef set_gui_callbacks(Screen screen, Window window):
     cengine.set_callbacks(screen.screen, window.window)
-
-cpdef demo():
-    cdef Window window = Window()
-
-    cdef Screen screen = Screen(window)   # todo make name make more sense; "screen" is bad, maybe "gui_screen"
-    cdef FormHelper gui = FormHelper(screen)
-    gui.add_window(10, 10, b"GUI WINDOW (heck yeah)")
-    set_gui_callbacks(screen, window)
-    screen.update_layout()
-
-    cdef Triangle triangle1, triangle2
-    cdef Drawable rect
-
-    data = [-0.75, -0.75, 0.0,
-            -0.25, -0.75, 0.0,
-            -0.5,  -0.25, 0.0,]
-    triangle1 = Triangle(data)
-
-    data = [0.75, 0.75, 0.0,
-            0.25, 0.75, 0.0,
-            0.5,  0.25, 0.0,]
-    triangle2 = Triangle(data)
-
-    data = [ # positions      colors           texture coords
-            0.5,  0.5, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0,   # top right
-            0.5, -0.5, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0,   # bottom right
-           -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0,   # bottom left
-           -0.5,  0.5, 0.0,   1.0, 1.0, 0.0,   0.0, 1.0    # top left
-    ]
-    indices = [0, 1, 3, 1, 2, 3]
-    rect = Drawable(data, indices, data_format=(3, 3, 2),
-                    vert_path='shaders/texture.vert',
-                    frag_path='shaders/texture.frag')
-
-    cdef Texture crate = Texture('resources/container.jpg')
-    cdef Texture face =  Texture('resources/awesomeface.png', data_format=GL_RGBA)
-    rect.shader_program.add_texture(crate, "texture1", 0)
-    rect.shader_program.add_texture(face, "texture2", 1)
-
-    cdef unsigned int i = 0
-    cdef long duration
-    cdef long start_time = clock()
-
-    while not window.should_close():
-        window.clear_colour(0.3, 0.5, 0.8, 1)
-
-        trans = glm.translate(glm.mat4(1), glm.vec3(.5, -.5, 0))
-        trans = glm.rotate(trans, glfwGetTime(), glm.vec3(0, 0, 1))
-        rect.shader_program.set_value("transform", trans)
-
-        rect.draw()
-
-        # draw gui yo
-        screen.draw()
-
-        window.swap_buffers()
-        poll_events()
-
-        i += 1
-        if i > 2**14:
-            duration = clock() - start_time
-            print(duration, (2**14 * CLOCKS_PER_SEC)/duration, "fps")
-            start_time = clock()
-            i = 0
 
 cpdef poll_events():
     glfwPollEvents()
