@@ -68,13 +68,20 @@ cdef class Drawable:
     cdef Model model
     cdef public ShaderProgram shader_program
     cdef int no_of_indices
+    cdef bint indexed
 
     def __cinit__(self, *args, **kwargs):
         pass
 
     def __init__(self, data, indices, data_format, vert_path, frag_path, geo_path=None):
+        if indices is None:
+            self.indexed = False
+            self.no_of_indices = len(data) / sum(data_format)
+        else:
+            self.indexed = True
+            self.no_of_indices = len(indices)
+
         self.model = Model()
-        self.no_of_indices = len(indices)
         self.shader_program = ShaderProgram(vert_path, frag_path, geo_path)
         self.model.buffer_packed_data(data, data_format, indices)
 
@@ -85,7 +92,10 @@ cdef class Drawable:
         self.model.bind()
         self.shader_program.use()
         self.shader_program.bind_textures()
-        glDrawElements(GL_TRIANGLES, self.no_of_indices, GL_UNSIGNED_INT, NULL)
+        if self.indexed:
+            glDrawElements(GL_TRIANGLES, self.no_of_indices, GL_UNSIGNED_INT, NULL)
+        else:
+            glDrawArrays(GL_TRIANGLES, 0, self.no_of_indices)
 
 
 cdef float* value_ptr(thing):
