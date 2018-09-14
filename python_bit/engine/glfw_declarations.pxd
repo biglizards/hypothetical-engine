@@ -6,6 +6,7 @@ cdef extern from *:
     ctypedef void (*GLFWglproc)()
     ctypedef void(* GLFWmousebuttonfun) (GLFWwindow* , int, int, int)
     ctypedef void(* GLFWkeyfun) (GLFWwindow* window, int key, int scancode, int action, int mods)
+    ctypedef void(* GLFWframebuffersizefun) (GLFWwindow* window, int width, int height)
 
     void glfwSwapBuffers(GLFWwindow* window)
     void glfwPollEvents()
@@ -22,6 +23,7 @@ cdef extern from *:
     # callback functions
     GLFWmousebuttonfun glfwSetMouseButtonCallback(GLFWwindow* window, GLFWmousebuttonfun cbfun)
     GLFWkeyfun glfwSetKeyCallback(GLFWwindow* window, GLFWkeyfun cbfun)
+    GLFWframebuffersizefun glfwSetFramebufferSizeCallback(GLFWwindow* window, GLFWframebuffersizefun cbfun)
 
     # constants
     unsigned int GLFW_CONTEXT_VERSION_MAJOR
