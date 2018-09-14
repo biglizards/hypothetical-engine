@@ -56,6 +56,7 @@ cdef extern from *:
     void glClear(unsigned int)
     void glScissor(int, int, int, int)
     void glEnable(unsigned int)
+    void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 
     # shader functions
     unsigned int glCreateProgram()

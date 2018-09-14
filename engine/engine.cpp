@@ -71,11 +71,11 @@ void set_callbacks(nanogui::Screen* screen_, GLFWwindow* window)
        }
     );
 
-    glfwSetFramebufferSizeCallback(window,
-        [](GLFWwindow *, int width, int height) {
-            gl_screen->resizeCallbackEvent(width, height);
-        }
-    );
+    //glfwSetFramebufferSizeCallback(window,
+    //    [](GLFWwindow *, int width, int height) {
+    //        gl_screen->resizeCallbackEvent(width, height);
+    //    }
+    //);
 }
 
 GLuint load_shader(const char* shaderSource, GLenum shaderType)

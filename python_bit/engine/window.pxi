@@ -18,6 +18,7 @@ cdef GLFWwindow* create_window(int width, int height, const char* name):
     glEnable(GL_MULTISAMPLE)
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback)
 
     return window
 
@@ -28,6 +29,12 @@ cdef void key_callback(GLFWwindow* window_ptr, int key, int scancode, int action
     if window.key_callback is None:
         return
     window.key_callback(window, key, scancode, action, mods)
+
+cdef void framebuffer_size_callback(GLFWwindow* window_ptr, int width, int height):
+    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
+    glViewport(0, 0, width, height)
+    window.width = width
+    window.height = height
 
 cdef class Window:
     cdef GLFWwindow* window
