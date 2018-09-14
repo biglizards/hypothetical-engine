@@ -22,48 +22,22 @@ include "window.pxi"
 include "texture.pxi"
 include "nanogui.pxi"
 
-RGBA = GL_RGBA
-
-cdef char* load_file(const char* path):
-    return open(path, 'rb').read()
-
-cpdef int main():
-    cengine.demo(load_file)
-
-cdef class Triangle(Model):
-    cdef unsigned int shader_program
-
-    def __cinit__(self, data):
-        self.buffer_packed_data(data, (3,))
-        self.shader_program = load_shader_program('shaders/basic.vert', 'shaders/basic.frag')
-
-    cdef void draw(self):
-        self.bind()
-        glUseProgram(self.shader_program)
-        glDrawArrays(GL_TRIANGLES, 0, 3)
-
-
 IF DEBUG == 1:
     print("yes it's debug")
 ELSE:
     print("not debug")
 
 
-"""
-thinking out loud for a bit here
-a drawable thing probably has textures
-and it needs to load those textures before it can be drawn
-so a drawable needs to manage the textures
-and since textures and shaders are pretty linked, it needs to manage both
-so maybe something like square -> drawable -> model
-i think the issue here is "model" isnt very well defined so i want to stick a load of functionality in it
-so i guess i need to be kinda strict about what its use is
-ok here it is: the `model` is a wrapper around the VAO (and VBO and EBO)
-A drawable has a model and shaders (and textures)
-and anything built on top of that can do whatever
-"""
-
 cdef class Drawable:
+    """
+    A drawable thing has
+     - a shader program
+     - a model
+     - textures
+    This was originally meant to be a base class for stuff which could be drawn,
+    but it became generic enough that i don't even need subclasses.
+    I guess stuff can still extend it though, if they want.
+    """
     cdef Model model
     cdef public ShaderProgram shader_program
     cdef int no_of_indices
@@ -87,7 +61,7 @@ cdef class Drawable:
 
     cpdef draw(self):
         if not self.model:
-            raise RuntimeError('Drawable was not properly init')
+            raise RuntimeError('Drawable was not properly init! Was super() called?')
         self.model.bind()
         self.shader_program.use()
         self.shader_program.bind_textures()
@@ -96,9 +70,6 @@ cdef class Drawable:
         else:
             glDrawArrays(GL_TRIANGLES, 0, self.no_of_indices)
 
-
-cdef float* value_ptr(thing):
-    return <float*>(<uintptr_t>glm.value_ptr(thing).value)
 
 cpdef set_gui_callbacks(Gui gui, Window window):
     cengine.set_callbacks(gui.screen, window.window)
