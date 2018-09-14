@@ -22,6 +22,9 @@ cpdef unsigned int load_shader_from_file(path, unsigned int shader_type):
     shader_source = open(path, 'rb').read()
     return c_load_shader(shader_source, shader_type)
 
+cdef float* value_ptr(thing):
+    return <float*>(<uintptr_t>glm.value_ptr(thing).value)
+
 cpdef load_shader_program(vert_path, frag_path, geometry_path=None):
     cdef unsigned int vert_shader, frag_shader, geometry_shader
     vert_shader = load_shader_from_file(vert_path, GL_VERTEX_SHADER)

@@ -141,3 +141,6 @@ cdef extern from *:
     #******
     ctypedef void* (* GLADloadproc)(const char *name)
     int gladLoadGLLoader(GLADloadproc)
+
+# python accessible constants
+RGBA = GL_RGBA
