@@ -43,6 +43,7 @@ cdef class Window:
 
     cdef public int width
     cdef public int height
+    cdef public Gui gui
 
     def __cinit__(self, int width=800, int height=600, name='window boi', *args, **kwargs):
         byte_str = name.encode()
@@ -55,6 +56,8 @@ cdef class Window:
         self.key_callback = None
         window_objects_by_pointer[<uintptr_t>self.window] = self
         glfwSetKeyCallback(self.window, key_callback)
+
+        self.gui = Gui(self)
 
     def __init__(self, int width=800, int height=600, name='window boi', *args, **kwargs):
         # included to force a valid signature
@@ -78,3 +81,6 @@ cdef class Window:
     cpdef set_key_callback(self, callback_function):
         self.key_callback = callback_function
         glfwSetKeyCallback(self.window, <GLFWkeyfun>key_callback)
+
+    cpdef bint is_pressed(self, key):
+        return glfwGetKey(self.window, key) == GLFW_PRESS

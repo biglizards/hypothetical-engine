@@ -3,6 +3,10 @@
 include "config.pxi"
 IF WINDOWS:
     cdef extern from "windows.h":
+        """
+        #undef max  // for some reason, windows.h defines these as macros,
+        #undef min  // which break nanogui
+        """
         pass  # force windows header to be included early
 
 cimport cengine

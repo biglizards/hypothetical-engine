@@ -20,6 +20,8 @@ cdef extern from *:
 
     GLFWglproc glfwGetProcAddress(const char* procname)
 
+    int glfwGetKey(GLFWwindow* window, int key)
+
     # callback functions
     GLFWmousebuttonfun glfwSetMouseButtonCallback(GLFWwindow* window, GLFWmousebuttonfun cbfun)
     GLFWkeyfun glfwSetKeyCallback(GLFWwindow* window, GLFWkeyfun cbfun)
@@ -31,6 +33,8 @@ cdef extern from *:
     unsigned int GLFW_OPENGL_PROFILE
     unsigned int GLFW_OPENGL_CORE_PROFILE
     unsigned int GLFW_SAMPLES
+    unsigned int GLFW_PRESS
+    unsigned int GLFW_RELEASE
 
     # keyboard keys (this is the last section)
     int GLFW_KEY_SPACE
@@ -276,3 +280,6 @@ KEY_RIGHT_CONTROL = GLFW_KEY_RIGHT_CONTROL
 KEY_RIGHT_ALT = GLFW_KEY_RIGHT_ALT
 KEY_RIGHT_SUPER = GLFW_KEY_RIGHT_SUPER
 KEY_MENU = GLFW_KEY_MENU
+
+KEY_PRESS = GLFW_PRESS
+KEY_RELEASE = GLFW_RELEASE

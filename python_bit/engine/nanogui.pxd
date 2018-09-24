@@ -1,4 +1,12 @@
 from libcpp.string cimport string
+from libcpp.functional cimport function
+from libcpp.vector cimport vector
+from libcpp cimport bool
+
+cdef extern from "nanogui/nanogui.h" namespace "nanogui::detail":
+    cpdef cppclass FormWidget[T]:
+        T value() except +
+        void setItems(const vector[string]& items) except +
 
 cdef extern from "nanogui/nanogui.h" namespace "nanogui":
     ctypedef struct GLFWwindow:
@@ -33,8 +41,16 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
     cpdef cppclass Window(Widget):
         pass
 
+    cdef cppclass Button(Widget):
+        pass
+
     cdef cppclass FormHelper:
         FormHelper(Screen*) except +
         Window* addWindow(const Vector2i& pos, const string& title) except +
 
+        #FormWidget[T] addVariable[T](const string& label, T& value) except +
+        #FormWidget[T] addVariable[T](const string& label, T& value, bint editable) except +
+
+        void addGroup(const string&) except +
+        Button* addButton(const string&, const function[void()])
 
