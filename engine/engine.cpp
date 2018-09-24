@@ -13,6 +13,11 @@
 
 nanogui::Screen* gl_screen = NULL;
 
+nanogui::Button* add_button_(nanogui::FormHelper* helper, const char* name, void* self, void(*callback)(void* self))
+{
+    return helper->addButton(name, [callback, self]() {callback(self);});
+}
+
 void framebuffer_size_callback(GLFWwindow*, int width, int height)
 {
     glViewport(0, 0, width, height);
