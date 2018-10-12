@@ -4,13 +4,21 @@ cdef extern from *:
     ctypedef struct GLFWmonitor:
         pass
     ctypedef void (*GLFWglproc)()
-    ctypedef void(* GLFWmousebuttonfun) (GLFWwindow* , int, int, int)
+
+    # callback function types
+    ctypedef void(* GLFWcharfun) (GLFWwindow *, unsigned int codepoint)
+    ctypedef void(* GLFWcursorenterfun) (GLFWwindow *, int)
+    ctypedef void(* GLFWcursorposfun) (GLFWwindow *, double, double)
+    ctypedef void(* GLFWdropfun) (GLFWwindow *, int, const char **)
     ctypedef void(* GLFWkeyfun) (GLFWwindow* window, int key, int scancode, int action, int mods)
+    ctypedef void(* GLFWmousebuttonfun) (GLFWwindow* , int, int, int)
+    ctypedef void(* GLFWscrollfun) (GLFWwindow *, double, double)
     ctypedef void(* GLFWframebuffersizefun) (GLFWwindow* window, int width, int height)
 
     void glfwSwapBuffers(GLFWwindow* window)
     void glfwPollEvents()
     int glfwWindowShouldClose(GLFWwindow* window)
+    void glfwSetWindowShouldClose(GLFWwindow* window, int value)
 
     void glfwInit()
     double glfwGetTime()
@@ -22,9 +30,16 @@ cdef extern from *:
 
     int glfwGetKey(GLFWwindow* window, int key)
 
+    void glfwSetInputMode(GLFWwindow* window, int mode, int value)
+
     # callback functions
-    GLFWmousebuttonfun glfwSetMouseButtonCallback(GLFWwindow* window, GLFWmousebuttonfun cbfun)
+    GLFWcharfun glfwSetCharCallback(GLFWwindow* window, GLFWcharfun cbfun)
+    GLFWcursorenterfun glfwSetCursorEnterCallback(GLFWwindow* window, GLFWcursorenterfun cbfun)
+    GLFWcursorposfun glfwSetCursorPosCallback(GLFWwindow* window, GLFWcursorposfun cbfun)
+    GLFWdropfun glfwSetDropCallback(GLFWwindow* window, GLFWdropfun cbfun)
     GLFWkeyfun glfwSetKeyCallback(GLFWwindow* window, GLFWkeyfun cbfun)
+    GLFWmousebuttonfun glfwSetMouseButtonCallback(GLFWwindow* window, GLFWmousebuttonfun cbfun)
+    GLFWscrollfun glfwSetScrollCallback(GLFWwindow* window, GLFWscrollfun cbfun)
     GLFWframebuffersizefun glfwSetFramebufferSizeCallback(GLFWwindow* window, GLFWframebuffersizefun cbfun)
 
     # constants
@@ -35,6 +50,7 @@ cdef extern from *:
     unsigned int GLFW_SAMPLES
     unsigned int GLFW_PRESS
     unsigned int GLFW_RELEASE
+    unsigned int GLFW_CURSOR, GLFW_CURSOR_NORMAL, GLFW_CURSOR_HIDDEN, GLFW_CURSOR_DISABLED
 
     # keyboard keys (this is the last section)
     int GLFW_KEY_SPACE
@@ -159,6 +175,8 @@ cdef extern from *:
     int GLFW_KEY_RIGHT_ALT
     int GLFW_KEY_RIGHT_SUPER
     int GLFW_KEY_MENU
+
+# make sure all the constants are also available in python
 
 KEY_SPACE = GLFW_KEY_SPACE
 KEY_APOSTROPHE = GLFW_KEY_APOSTROPHE
