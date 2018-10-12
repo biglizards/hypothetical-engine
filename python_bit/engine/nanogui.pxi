@@ -3,12 +3,16 @@ from nanogui cimport FormWidget
 from libcpp cimport bool as c_bool
 from libcpp.string cimport string
 import inspect
+from cpython cimport array
+import array
 
 cdef class Gui:
     cdef nanogui.Screen* screen
     cdef GLFWwindow* window
+    cdef object windows
 
     def __cinit__(self, Window window, *args, **kwargs):
+        self.windows = []
         self.screen = new nanogui.Screen()
         self.screen.initialize(window.window, False)
 
@@ -24,21 +28,41 @@ cdef class Gui:
         self.screen.drawContents()
         self.screen.drawWidgets()
 
-        # fix transparancy, since nanogui disables it
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnable(GL_DEPTH_TEST)
+        # restore gl settings that changed
+        set_gl_enables()
 
     cpdef update_layout(self):
         self.screen.performLayout()
 
+    # handler shims (tbh only one of them actually changes the arguments)
+    cpdef handle_cursor_pos(self, double x, double y):
+        self.screen.cursorPosCallbackEvent(x, y)
+    cpdef handle_mouse_button(self, int button, int action, int modifiers):
+        self.screen.mouseButtonCallbackEvent(button, action, modifiers)
     cpdef handle_key(self, int key, int scancode, int action, int mods):
+        print("[GUI] handling key", scancode, action)
         self.screen.keyCallbackEvent(key, scancode, action, mods)
+    cpdef handle_char(self, unsigned int codepoint):
+        self.screen.charCallbackEvent(codepoint)
+    cpdef handle_drop(self, int count, list filenames):
+        cdef const char** filename_array = to_c_array(filenames)
+        self.screen.dropCallbackEvent(count, filename_array)
+        free(filename_array)
+    cpdef handle_scroll(self, double x, double y):
+        self.screen.scrollCallbackEvent(x, y)
+    cpdef handle_resize(self, int width, int height):
+        self.screen.resizeCallbackEvent(width, height)
+
+    def focused(self):
+        cdef GuiWindow window
+        return any(window.focused() for window in self.windows)
+
 
 cdef class GuiWindow:
     cdef nanogui.Window* window
 
     def __cinit__(self, FormHelper form_helper, x, y, name):
+        form_helper.gui.windows.append(self)
         self.window = form_helper.helper.addWindow(nanogui.Vector2i(x, y), name)
 
     def focused(self):
@@ -49,9 +73,11 @@ cdef class GuiWindow:
 cdef class FormHelper:
     cdef nanogui.FormHelper* helper
     cdef readonly int myint
+    cdef Gui gui
 
     def __cinit__(self, Gui gui, *args, **kwargs):
         # takes a cython Gui object
+        self.gui = gui
         self.helper = new nanogui.FormHelper(gui.screen)
         myint = 1
 
@@ -108,7 +134,11 @@ cdef class Button:
 widgets = {}  # <uintptr_t>&Widget : Widget
 
 def get_locals():
-    return inspect.stack()[0][0].f_locals
+    # TODO change name from locals to globals
+    # for, uhh, reasons, locals() is only sometimes mutable
+    # as in, it's only mutable when it returns module level vars
+    # which is the same thing globals() returns - so i'm just using that instead
+    return inspect.stack()[0][0].f_globals
 
 cdef class IntWidget:
     cdef readonly int value
