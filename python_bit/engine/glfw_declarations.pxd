@@ -29,8 +29,10 @@ cdef extern from *:
     GLFWglproc glfwGetProcAddress(const char* procname)
 
     int glfwGetKey(GLFWwindow* window, int key)
+    void glfwGetCursorPos(GLFWwindow* window, double* xpos, double* ypos)
 
     void glfwSetInputMode(GLFWwindow* window, int mode, int value)
+    int glfwGetInputMode(GLFWwindow* window, int mode)
 
     # callback functions
     GLFWcharfun glfwSetCharCallback(GLFWwindow* window, GLFWcharfun cbfun)

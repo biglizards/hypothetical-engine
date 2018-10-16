@@ -303,6 +303,7 @@ cdef class BoolWidget:
             self.setter(self, new_value, old_value)
 
 cdef extern from *:
+    """enum DummyEnum { };"""
     cdef enum DummyEnum:
         pass
 
