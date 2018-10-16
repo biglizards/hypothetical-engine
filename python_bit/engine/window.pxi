@@ -1,3 +1,7 @@
+cursor_caputre_modes = {'normal': GLFW_CURSOR_NORMAL, 'hidden': GLFW_CURSOR_HIDDEN,
+                        'disabled': GLFW_CURSOR_DISABLED}
+inv_capture_modes = {v: k for k, v in cursor_caputre_modes.items()}
+
 cdef GLFWwindow* create_window(int width, int height, const char* name):
     glfwInit()
     glfwWindowHint(GLFW_SAMPLES, 4)
@@ -94,13 +98,23 @@ cdef class Window:
     cpdef bint is_pressed(self, key):
         return glfwGetKey(self.window, key) == GLFW_PRESS
 
-    cpdef void set_cursor_capture(self, mode: str):
-        cdef unsigned int cursor_mode = {'normal': GLFW_CURSOR_NORMAL, 'hidden': GLFW_CURSOR_HIDDEN,
-                                         'disabled': GLFW_CURSOR_DISABLED}[mode]
-        glfwSetInputMode(self.window, GLFW_CURSOR, cursor_mode)
-
     cpdef void close(self):
         glfwSetWindowShouldClose(self.window, True)
+
+    cpdef void set_cursor_capture(self, mode: str):
+        cdef unsigned int cursor_mode = cursor_caputre_modes[mode]
+        glfwSetInputMode(self.window, GLFW_CURSOR, cursor_mode)
+
+    @property
+    def cursor_mode(self):
+        cdef int mode = glfwGetInputMode(self.window, GLFW_CURSOR)
+        return inv_capture_modes[mode]
+
+    @property
+    def cursor_location(self):
+        cdef double x, y
+        glfwGetCursorPos(self.window, &x, &y)
+        return x, y
 
 
 # instead of creating a custom wrapper in c++ using lambdas (which i very well could, like
@@ -139,7 +153,7 @@ cdef void char_callback(GLFWwindow* window_ptr, unsigned int codepoint):
         window.char_callback(codepoint)
     else:  # default
         window.gui.handle_char(codepoint)
-'''
+
 cdef void cursor_pos_callback(GLFWwindow* window_ptr, double x, double y):
     cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
     if window.cursor_pos_callback is not None:
@@ -150,7 +164,7 @@ cdef void cursor_pos_callback(GLFWwindow* window_ptr, double x, double y):
 cdef void cursor_pos_callback(GLFWwindow* window_ptr, double x, double y):
     cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
     abstract_callback(window, window.cursor_pos_callback, window.gui.handle_cursor_pos, x, y)
-
+'''
 
 
 cdef void drop_file_callback(GLFWwindow* window_ptr, int count, const char** filenames):
