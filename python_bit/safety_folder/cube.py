@@ -1,3 +1,4 @@
+import glm
 
 # NOTE/TODO: this data will eventually be generated dynamically or from a file or something
 data = [
@@ -43,3 +44,6 @@ data = [
     -0.5, 0.5, 0.5, 0.0, 0.0,
     -0.5, 0.5, -0.5, 0.0, 1.0
 ]
+
+aabb_min = glm.vec3(-.5, -.5, -.5)
+aabb_max = glm.vec3(.5, .5, .5)

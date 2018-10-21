@@ -1,164 +1,146 @@
 import glm
-import math
-import time
 
 import engine
-from camera import Camera
+
+import cube
 from cube import data
+from game import Game, Entity
+
+game = Game()
+
+# create cube data/attributes
+cube_positions = [
+    glm.vec3(0.0, 0.0, 0.0),
+    glm.vec3(2.0, 5.0, -15.0),
+    glm.vec3(-1.5, -2.2, -2.33),
+    glm.vec3(-3.8, -2.0, -12.3),
+    glm.vec3(2.4, -0.4, -3.5),
+    glm.vec3(-1.7, 3.0, -7.5),
+    glm.vec3(1.3, -2.0, -2.3),
+    glm.vec3(1.5, 2.0, -2.6),
+    glm.vec3(1.5, 0.2, -1.4),
+    glm.vec3(-1.3, 1.0, -1.7)
+]
+
+crate_attributes = {
+    'data': data, 'indices': None, 'data_format': (3, 2),
+    'textures': [('resources/container.jpg', 'container'), ('resources/duck.png', 'face')],
+    'vert_path': 'shaders/perspective.vert', 'frag_path': 'shaders/perspective.frag'
+}
 
 
-
-
+# @@@@@
+# gui
 def reset_camera(*args, **kwargs):
     print("reset", args, kwargs)
-    camera.position = glm.vec3(0, 0, 3)
-    camera.front = glm.vec3(0, 0, -1)
-    camera.up = glm.vec3(0, 1, 0)
+    game.camera.position = glm.vec3(0, 0, 3)
+    game.camera.front = glm.vec3(0, 0, -1)
+    game.camera.up = glm.vec3(0, 1, 0)
 
-window = engine.Window(name="game demo")
-
-
-## gui
 
 # variables altered by the gui
 box_speed = 1
-name = "not chris"
 gravity_enabled = False
 bounce_enabled = False
 
 # create the gui
-helper = engine.FormHelper(window.gui)
+helper = engine.FormHelper(game.gui)
 gui_window = helper.add_window(10, 10, b"GUI WINDOW (heck yeah)")
 
 helper.add_group("box control")
-
 speed_widget = helper.add_variable(b'speed', float, linked_var="box_speed")
-name_w = helper.add_variable(b'name', str, linked_var="name", getter=lambda x: "chris", setter=print)
 helper.add_group("gravity")
 gravity_switch = helper.add_variable(b'enable gravity', bool, linked_var='gravity_enabled')
 bounce_switch = helper.add_variable(b'enable bouncing', bool, linked_var='bounce_enabled')
 button = helper.add_button(b'reset', reset_camera)
 
+game.gui.update_layout()
 
 
-#engine.set_gui_callbacks(window.gui, window)
-window.gui.update_layout()
-#window.set_cursor_capture('disabled')
-
-
-# create objects
-
-cube_positions = [
-    glm.vec3(0.0, 0.0, 0.0),
-    glm.vec3(2.0, 5.0, -15.0),
-    glm.vec3(-1.5, -2.2, -2.5),
-    glm.vec3(-3.8, -2.0, -12.3),
-    glm.vec3(2.4, -0.4, -3.5),
-    glm.vec3(-1.7, 3.0, -7.5),
-    glm.vec3(1.3, -2.0, -2.5),
-    glm.vec3(1.5, 2.0, -2.5),
-    glm.vec3(1.5, 0.2, -1.5),
-    glm.vec3(-1.3, 1.0, -1.5)
-]
-
-
-# TODO remove data, data_format once model loading is added
-class Entity(engine.Drawable):
-    def __init__(self, data, indices, data_format, textures, vert_path, frag_path, geo_path=None, location=None, orientation=None, scaler=None):
-        super().__init__(data, indices, data_format, vert_path, frag_path, geo_path)
-        for i, (texture, texture_name) in enumerate(textures):
-            self.shader_program.add_texture(texture, texture_name, i)
-        self.location = location if location is not None else glm.vec3(0, 0, 0)
-        self.orientation = orientation if orientation is not None else glm.quat(1, 0, 0, 0)
-        self.scaler = scaler
-
-    def set_model(self):
-        # model = local->world
-        model = glm.translate(glm.mat4(1), self.location)
-        #model = glm.rotate(model, box_speed * time.time() * glm.radians(15 * (i + 1) + (i/5)**1.5), glm.vec3(0.5, 1, 0))
-        model = model * glm.mat4_cast(self.orientation) # rotate by orientation
-        if self.scaler is not None:
-            model = glm.scale(model, self.scaler)
-        self.shader_program.set_value("model", model)
-
-
-crate_texture = engine.Texture('resources/container.jpg')
-face_texture = engine.Texture('resources/duck.png', data_format=engine.RGBA)
-
-crates = []
-for pos in cube_positions:
-    crate = Entity(data, indices=None, data_format=(3, 2), textures=((crate_texture, 'container'),(face_texture, 'face')),
-                   vert_path='shaders/perspective.vert', frag_path='shaders/perspective.frag', location=pos)
-    crates.append(crate)
-
-# add key callback
-def custom_key_callback(window, key, scancode, action, mods):
+# @@@@@
+# callbacks
+def custom_key_callback(game, key, scancode, action, mods):
     if key == engine.KEY_Z:
-        window.close()
+        game.close()
     if key == engine.KEY_X:
-        window.set_cursor_capture('disabled')
-        camera.first_frame = True  # prevent the camera from jumping when switching between
-                                   # normal and disabled without moving the mouse
+        game.set_cursor_capture('disabled')
+        game.camera.first_frame = True  # prevent the camera from jumping when switching between
+        # normal and disabled without moving the mouse
     if key == engine.KEY_C:
-        window.set_cursor_capture('normal')
+        game.set_cursor_capture('normal')
 
     if key == engine.KEY_V:
-        print(camera.up, camera.front)
+        print(game.camera.up, game.camera.front)
 
 
-window.key_callback = custom_key_callback
+game.key_callback = custom_key_callback
+
+# @@@@@
+# create crates
+crates = []
+for pos in cube_positions:
+    crate = game.create_entity(**crate_attributes, position=pos, has_gravity=True)
+    crates.append(crate)
+floor_crate = game.create_entity(**crate_attributes, position=glm.vec3(0, -10, 0), scalar=glm.vec3(10, 1, 10),
+                                 has_gravity=False)
 
 
+# @@@@@
+# on_frame callbacks
+def spin_crates(delta_t):
+    for i, crate in enumerate(crates):
+        crate.orientation = glm.rotate(crate.orientation, box_speed * delta_t * glm.radians(15 * (i + 1)),
+                                       glm.vec3(0.5, 1, 0))
 
-# main loop
-st = time.time()
-frame_count = 0
-start_time = time.time()
-camera = Camera(window)
-
-last_frame_time = time.time()
-
-# view = world->camera
-view = camera.view_matrix()
-
-# projection = camera->clip (adds perspective)
-projection = glm.perspective(glm.radians(75), window.width / window.height, 0.1, 10)
-
-while not window.should_close():
-    delta_t = time.time() - last_frame_time
-    last_frame_time = time.time()
-    window.clear_colour(0.3, 0.5, 0.8, 1)
+'''
+def do_gravity(delta_t):
+    if not gravity_enabled:
+        return
+    game.camera.velocity += glm.vec3(0, -9.8, 0) * delta_t
+    game.camera.position += game.camera.velocity * delta_t
+    if game.camera.position.y < -8.5:
+        game.camera.position.y = -8.5
+        game.camera.velocity = glm.vec3(0, 10, 0) if bounce_enabled else glm.vec3(0, 0, 0)
+'''
+gravity = glm.vec3(0, -1, 0)
 
 
-    #for i, crate in enumerate(crates):
-    #    crate.shader_program.set_value('view', view)
-    #    crate.shader_program.set_value("projection", projection)
-    #    crate.orientation = glm.rotate(crate.orientation, box_speed * delta_t * glm.radians(15 * (i+1)), glm.vec3(0.5, 1, 0))
-    #    crate.set_model()
-    #    crate.draw()
+def do_gravity(delta_t):
+    if not gravity_enabled:
+        return
+    entity: Entity
+    other_entity: Entity
+    for entity in game.entities:
+        if not entity.has_gravity:
+            continue
+        entity.velocity += gravity * delta_t
+        entity.position += entity.velocity * delta_t
 
-    #model = glm.translate(glm.mat4(1), glm.vec3(0, -10, 0))
-    #model = glm.scale(model, glm.vec3(10, 1, 10))
-    #crate.shader_program.set_value("model", model)
-    #crate.draw()
+        aabb_min, aabb_max = generate_aabb(entity)
+        for other_entity in game.entities:
+            if other_entity is entity:
+                continue
+            other_aabb_min, other_aabb_max = generate_aabb(other_entity)
+            if aabb_intersect(aabb_min, aabb_max, other_aabb_min, other_aabb_max):
+                # don't
+                entity.position -= entity.velocity * delta_t
+                entity.velocity = glm.vec3(0, 0, 0)
 
-    #window.gui.draw()
 
-    #window.swap_buffers()
-    #engine.poll_events()
-    #camera.handle_input()
+def generate_aabb(entity: Entity):
+    model = entity.generate_model(ignore_orientation=True)
+    aabb_min = model * glm.vec4(cube.aabb_min, 1)
+    aabb_max = model * glm.vec4(cube.aabb_max, 1)
+    return aabb_min, aabb_max
 
-    # physics engine
-    if gravity_enabled:
-        camera.velocity += glm.vec3(0, -9.8, 0) * delta_t
-        camera.position += camera.velocity * delta_t
-        if camera.position.y < -8.5:
-            camera.position.y = -8.5
-            camera.velocity = glm.vec3(0, 10, 0) if bounce_enabled else glm.vec3(0, 0, 0)
 
-    frame_count += 1
-    if frame_count > 2**10:
-        duration = time.time() - start_time
-        print(duration, 2**10/duration, "fps", name)
-        start_time = time.time()
-        frame_count = 0
+def aabb_intersect(min1, max1, min2, max2):
+    return min1.x <= max2.x and max1.x >= min2.x and \
+           min1.y <= max2.y and max1.y >= min2.y and \
+           min1.z <= max2.z and max1.z >= min2.z
+
+
+#game.add_callback('on_frame', spin_crates)
+game.add_callback('on_frame', do_gravity)
+
+game.run(True)
