@@ -1,11 +1,12 @@
-from distutils.core import setup
-from distutils.extension import Extension
-from Cython.Build import cythonize
-
-# get distutils to work properly >:|
-from distutils.command.build_ext import build_ext
-from distutils.sysconfig import customize_compiler
 import os
+from distutils.sysconfig import customize_compiler
+
+from Cython.Build import cythonize
+from setuptools import setup
+# get distutils to work properly >:|
+from setuptools.command.build_ext import build_ext
+from setuptools.extension import Extension
+
 os.environ["CC"] = "g++"
 os.environ["CXX"] = "g++"
 
@@ -32,7 +33,7 @@ ext_modules = [Extension(name="engine.engine",
                          sources=['engine/engine.pyx', #'../opengl_stuff/glad/src/glad.c',
                                   '../engine/engine.cpp'],
                          include_dirs=[#'../opengl_stuff/glad/include',
-                                       #'../opengl_stuff/glfw/include',
+                                       #'../opengl_stuff/build2/',
                                        '.', '../ext/include', '../ext/include/nanovg/src'],
                          library_dirs=[#'../opengl_stuff/glfw/src/',
                                        '../ext/lib'],
@@ -40,7 +41,7 @@ ext_modules = [Extension(name="engine.engine",
                                     'GL',
                                     'X11', 'Xrandr', 'Xi', 'Xxf86vm', 'Xcursor', 'Xinerama',
                                     ],
-                         extra_compile_args=["-std=c++11", '-fPIC'],
+                         extra_compile_args=["-std=c++11", '-fPIC', '-Wno-int-in-bool-context'],
                          extra_link_args=["-std=c++11", '-fPIC']
                          )]
 
@@ -48,6 +49,7 @@ setup(
     name='engine',
     packages=['engine'],
     cmdclass={'build_ext': my_build_ext},
+    install_requires=['pyglm'],
     ext_modules=cythonize(
         ext_modules,
         build_dir="build",

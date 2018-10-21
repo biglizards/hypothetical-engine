@@ -40,7 +40,6 @@ cdef class Gui:
     cpdef handle_mouse_button(self, int button, int action, int modifiers):
         self.screen.mouseButtonCallbackEvent(button, action, modifiers)
     cpdef handle_key(self, int key, int scancode, int action, int mods):
-        print("[GUI] handling key", scancode, action)
         self.screen.keyCallbackEvent(key, scancode, action, mods)
     cpdef handle_char(self, unsigned int codepoint):
         self.screen.charCallbackEvent(codepoint)
@@ -120,13 +119,11 @@ cdef class Button:
 
     def __cinit__(self, FormHelper helper, name, callback, *args, **kwargs):
         self.button_ptr = cengine.add_button_(helper.helper, name, <void*>self, self._callback)
-        print("callback init to", callback)
         self.callback = callback
 
     @staticmethod
     cdef void _callback(void* _self):
         cdef Button self = <Button>_self
-        print(self.callback)
         self.callback()
 
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
