@@ -6,7 +6,7 @@ from Cython.Build import cythonize
 from distutils.command.build_ext import build_ext
 from distutils.sysconfig import customize_compiler
 import os
-os.environ["CC"] = "g++" 
+os.environ["CC"] = "g++"
 os.environ["CXX"] = "g++"
 
 
@@ -32,9 +32,9 @@ ext_modules = [Extension(name="engine.engine",
                          sources=['engine/engine.pyx', #'../opengl_stuff/glad/src/glad.c',
                                   '../engine/engine.cpp'],
                          include_dirs=[#'../opengl_stuff/glad/include',
-                                       #'../opengl_stuff/glfw/include', 
+                                       #'../opengl_stuff/glfw/include',
                                        '.', '../ext/include', '../ext/include/nanovg/src'],
-                         library_dirs=[#'../opengl_stuff/glfw/src/', 
+                         library_dirs=[#'../opengl_stuff/glfw/src/',
                                        '../ext/lib'],
                          libraries=['glfw3', 'nanogui',
                                     'GL',

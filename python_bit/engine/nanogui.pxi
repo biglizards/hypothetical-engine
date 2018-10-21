@@ -120,11 +120,13 @@ cdef class Button:
 
     def __cinit__(self, FormHelper helper, name, callback, *args, **kwargs):
         self.button_ptr = cengine.add_button_(helper.helper, name, <void*>self, self._callback)
+        print("callback init to", callback)
         self.callback = callback
 
     @staticmethod
     cdef void _callback(void* _self):
         cdef Button self = <Button>_self
+        print(self.callback)
         self.callback()
 
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
