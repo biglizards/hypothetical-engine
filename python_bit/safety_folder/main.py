@@ -14,7 +14,7 @@ game = Game()
 # create cube data/attributes
 cube_positions = [
     glm.vec3(0.0, 0.0, 0.0),
-    glm.vec3(0.1, 0.1, 0.1),
+    #glm.vec3(0.1, 0.1, 0.1),
     glm.vec3(2.0, 5.0, -15.0),
     glm.vec3(-1.5, -2.2, -2.33),
     glm.vec3(-3.8, -2.0, -12.3),
@@ -36,27 +36,41 @@ crate_attributes = {
 # @@@@@
 # gui
 def reset_camera(*args, **kwargs):
-    print("reset", args, kwargs)
     game.camera.position = glm.vec3(0, 0, 3)
     game.camera.front = glm.vec3(0, 0, -1)
     game.camera.up = glm.vec3(0, 1, 0)
+
+
+def draw_dots_on_corners(*args):
+    if not draw_dots:
+        return
+    for box in game.entities[1:]:
+        corners = box.get_corners()
+        for corner in corners:
+            dot.position = corner
+            dot.set_model()
+            dot.draw()
 
 
 # variables altered by the gui
 box_speed = 0
 gravity_enabled = False
 bounce_enabled = False
+draw_dots = False
+dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1))
 
 # create the gui
 helper = engine.FormHelper(game.gui)
 gui_window = helper.add_window(10, 10, b"GUI WINDOW (heck yeah)")
 
+# todo make you not have to declare everything as a variable (ie save a reference in helper and/or gui
 helper.add_group("box control")
 speed_widget = helper.add_variable(b'speed', float, linked_var="box_speed")
 helper.add_group("gravity")
 gravity_switch = helper.add_variable(b'enable gravity', bool, linked_var='gravity_enabled')
 bounce_switch = helper.add_variable(b'enable bouncing', bool, linked_var='bounce_enabled')
-button = helper.add_button(b'reset', reset_camera)
+dot_switch = helper.add_variable(b'draw dots', bool, linked_var='draw_dots')
+reset_button = helper.add_button(b'reset', reset_camera)
 
 game.gui.update_layout()
 
@@ -107,11 +121,21 @@ def do_gravity(delta_t):
         game.camera.velocity = glm.vec3(0, 10, 0) if bounce_enabled else glm.vec3(0, 0, 0)
 '''
 gravity = glm.vec3(0, -1, 0)
+physics_delta_t = 0
 
 
 def do_gravity(delta_t):
+    global physics_delta_t
     if not gravity_enabled:
         return
+
+    # only run every 1/60th of a second or so
+    global physics_delta_t
+    physics_delta_t += delta_t
+    if physics_delta_t < (1/60):
+        return
+    delta_t, physics_delta_t = physics_delta_t, 0
+
     entity: Entity
     other_entity: Entity
     for entity in game.entities:
@@ -119,6 +143,7 @@ def do_gravity(delta_t):
             continue
         entity.velocity += gravity * delta_t
         entity.position += entity.velocity * delta_t
+        entity.set_model()
 
         for other_entity in game.entities:
             if other_entity is entity:
@@ -143,8 +168,10 @@ def aabb_intersect(min1, max1, min2, max2):
 
 
 def two_cubes_intersect(cube1, cube2):
-    corners1 = cube.gen_corners(cube1.model)
-    corners2 = cube.gen_corners(cube2.model)
+    # if glm.length(cube1.position - cube2.position) > 6:  # obtained by pythag, todo use bounding spheres
+    #    return False
+    corners1 = cube1.get_corners()
+    corners2 = cube2.get_corners()
     return unaligned_intersect(corners1, cube1.model, corners2, cube2.model)
 
 
@@ -183,7 +210,7 @@ def intersects_on_projection(corners1, corners2, axis):
     # if they overlap, the sum of the two lengths will be less than the length between the biggest and the smallest
     total_length = max(max1, max2) - min(min1, min2)
     sum_of_both = (max1 - min1) + (max2 - min2)
-    return total_length < sum_of_both   # can change to =< if you want touching to count as overlapping
+    return total_length <= sum_of_both   # can change to <= if you want touching to count as overlapping
 
 
 def get_min_and_max(corners, axis):
@@ -196,12 +223,11 @@ def get_min_and_max(corners, axis):
             min_val = dist
         elif dist > max_val:
             max_val = dist
-        min_val = min(min_val, dist)
-        max_val = max(max_val, dist)
     return min_val, max_val
 
 
 game.add_callback('on_frame', spin_crates)
 game.add_callback('on_frame', do_gravity)
+game.add_callback('on_frame', draw_dots_on_corners)
 
 game.run(True)

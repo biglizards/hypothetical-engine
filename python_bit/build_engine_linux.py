@@ -54,6 +54,8 @@ setup(
         ext_modules,
         build_dir="build",
         include_path=['engine'],
-        compiler_directives={'embedsignature': True, 'language_level': 3}
+        compiler_directives={'embedsignature': True, 'language_level': 3},
+        annotate=True,
+        quiet=True,
       ),
 )

@@ -138,7 +138,7 @@ def abstract_callback(Window window, object callback_func, object gui_callback_f
     if window.handle_gui_callbacks or callback_func is None:
         gui_callback_func(*args)
     if callback_func is not None and not (window.handle_gui_callbacks and window.gui.focused()):
-        callback_func(window, *args)
+        callback_func(*args)
 
 cdef void key_callback(GLFWwindow* window_ptr, int key, int scancode, int action, int mods):
     cdef Window window = get_window(window_ptr)
@@ -153,7 +153,7 @@ cdef void char_callback(GLFWwindow* window_ptr, unsigned int codepoint):
         window.char_callback(codepoint)
     else:  # default
         window.gui.handle_char(codepoint)
-
+'''
 cdef void cursor_pos_callback(GLFWwindow* window_ptr, double x, double y):
     cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
     if window.cursor_pos_callback is not None:
@@ -164,7 +164,7 @@ cdef void cursor_pos_callback(GLFWwindow* window_ptr, double x, double y):
 cdef void cursor_pos_callback(GLFWwindow* window_ptr, double x, double y):
     cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
     abstract_callback(window, window.cursor_pos_callback, window.gui.handle_cursor_pos, x, y)
-'''
+
 
 
 cdef void drop_file_callback(GLFWwindow* window_ptr, int count, const char** filenames):

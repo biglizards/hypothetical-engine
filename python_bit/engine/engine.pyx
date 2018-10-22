@@ -1,4 +1,5 @@
 # distutils: language = c++
+# cython: profile=True
 
 include "config.pxi"
 IF WINDOWS:
@@ -25,6 +26,7 @@ include "model.pxi"
 include "window.pxi"
 include "texture.pxi"
 include "nanogui.pxi"
+include "physics.pxi"
 
 IF DEBUG == 1:
     print("yes it's debug")
