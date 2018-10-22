@@ -109,7 +109,7 @@ class Game(engine.Window):
         last_frame_time = time.time()
 
         while not self.should_close():
-            delta_t = time.time() - last_frame_time
+            delta_t = (time.time() - last_frame_time) % 0.1  # if the game freezes, just ignore it
             last_frame_time = time.time()
 
             # draw everything
