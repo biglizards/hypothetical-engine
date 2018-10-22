@@ -1,6 +1,8 @@
 import glm
 
 # NOTE/TODO: this data will eventually be generated dynamically or from a file or something
+from util import multiply_vec3
+
 data = [
     -0.5, -0.5, -0.5, 0.0, 0.0,
     0.5, -0.5, -0.5, 1.0, 0.0,
@@ -45,5 +47,16 @@ data = [
     -0.5, 0.5, -0.5, 0.0, 1.0
 ]
 
-aabb_min = glm.vec3(-.5, -.5, -.5)
-aabb_max = glm.vec3(.5, .5, .5)
+corner_min = glm.vec3(-.5, -.5, -.5)
+corner_max = glm.vec3(.5, .5, .5)
+
+
+def gen_corners_from_min_max(a, b):
+    """returns the corners given the maximum and minimum values of a cuboid"""
+    return ((a[0], a[1], a[2]), (b[0], a[1], a[2]), (a[0], b[1], a[2]),
+            (b[0], b[1], a[2]), (a[0], a[1], b[2]), (b[0], a[1], b[2]),
+            (a[0], b[1], b[2]), (b[0], b[1], b[2]))
+
+
+def gen_corners(model):
+    return gen_corners_from_min_max(multiply_vec3(corner_min, model), multiply_vec3(corner_max, model))
