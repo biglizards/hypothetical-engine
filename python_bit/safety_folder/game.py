@@ -24,10 +24,11 @@ class Entity(engine.Drawable):
         self.scalar = scalar
         self.velocity = velocity or glm.vec3(0, 0, 0)
         self.has_gravity = has_gravity
+        self.model = None
 
     def set_model(self, model=None):
-        model = model or self.generate_model()
-        self.shader_program.set_value("model", model)
+        self.model = model or self.generate_model()
+        self.shader_program.set_value("model", self.model)
 
     def generate_model(self, ignore_orientation=False):
         # model = local->world
@@ -98,8 +99,8 @@ class Game(engine.Window):
             # fps printer
             if print_fps:
                 frame_count += 1
-                if frame_count > 2**13:
+                if frame_count > 2**10:
                     duration = time.time() - time_since_last_fps_print
-                    print("current fps:", round(2**13/duration))
+                    print("current fps:", round(2**10/duration))
                     time_since_last_fps_print = time.time()
                     frame_count = 0
