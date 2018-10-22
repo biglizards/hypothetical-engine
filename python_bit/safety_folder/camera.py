@@ -4,6 +4,7 @@ import time
 import math
 from util import rotate_vec3
 
+
 class Camera:
     def __init__(self, window: engine.Window):
         self.window = window
@@ -88,5 +89,3 @@ class Camera:
     def view_matrix(self):
         target = self.position + self.front  # target is just in front of the camera
         return glm.lookAt(self.position, target, self.up)
-
-
