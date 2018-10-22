@@ -3,8 +3,6 @@ from nanogui cimport FormWidget
 from libcpp cimport bool as c_bool
 from libcpp.string cimport string
 import inspect
-from cpython cimport array
-import array
 
 cdef class Gui:
     cdef nanogui.Screen* screen
@@ -68,17 +66,16 @@ cdef class GuiWindow:
         return self.window.focused()
 
 
-
 cdef class FormHelper:
     cdef nanogui.FormHelper* helper
-    cdef readonly int myint
     cdef Gui gui
+    cdef object widgets
 
     def __cinit__(self, Gui gui, *args, **kwargs):
         # takes a cython Gui object
         self.gui = gui
         self.helper = new nanogui.FormHelper(gui.screen)
-        myint = 1
+        self.widgets = []
 
     def __init__(self, Gui gui, *args, **kwargs):
         pass
@@ -90,23 +87,31 @@ cdef class FormHelper:
         """
         a wrapper function for creating the [Type]Widget class
         """
+        name = to_bytes(name)
+        widget = None
         if not isinstance(linked_var, str):
             raise ValueError("linked_var must be of type str (you probably passed the variable directly)")
         if variable_type is int:
-            return IntWidget(self, name, getter, setter, linked_var)
+            widget = IntWidget(self, name, getter, setter, linked_var)
         elif variable_type is bool:
-            return BoolWidget(self, name, getter, setter, linked_var)
+            widget = BoolWidget(self, name, getter, setter, linked_var)
         elif variable_type is float:
             ext_locals = get_locals()
-            return FloatWidget(self, name, getter, setter, linked_var)
+            widget = FloatWidget(self, name, getter, setter, linked_var)
         elif variable_type is str:
-            return StringWidget(self, name, getter, setter, linked_var)
+            widget = StringWidget(self, name, getter, setter, linked_var)
+        self.widgets.append(widget)
+        return widget
 
     cpdef add_combobox(self, name, items, linked_var=None, getter=None, setter=None):
-        return ComboBoxWidget(self, name, list(map(to_bytes, items)), getter, setter, linked_var)
+        widget = ComboBoxWidget(self, name, list(map(to_bytes, items)), getter, setter, linked_var)
+        self.widgets.append(widget)
+        return widget
 
     cpdef add_button(self, name, callback):
-        return Button(self, name, callback)
+        button = Button(self, name, callback)
+        self.widgets.append(button)
+        return button
 
     cpdef add_group(self, name):
         self.helper.addGroup(to_bytes(name))
