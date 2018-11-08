@@ -83,3 +83,7 @@ cpdef set_gui_callbacks(Gui gui, Window window):
 cpdef poll_events():
     glfwPollEvents()
 
+cpdef wait_until_finished():
+    glFlush()
+    glFinish()
+

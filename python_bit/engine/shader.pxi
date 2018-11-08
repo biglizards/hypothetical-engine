@@ -49,10 +49,12 @@ cpdef load_shader_program(vert_path, frag_path, geometry_path=None):
 cdef class ShaderProgram:
     cdef unsigned int program
     cdef public dict textures
+    cdef public list paths
 
     def __init__(self, vert_path, frag_path, geo_path=None):
         self.program = load_shader_program(vert_path, frag_path, geo_path)
         self.textures = {}   # unit : texture
+        self.paths = [vert_path, frag_path, geo_path]
 
     cpdef use(self):
         glUseProgram(self.program)
@@ -70,6 +72,7 @@ cdef class ShaderProgram:
             raise ValueError("Unit {} already has associated texture".format(unit))
         self.textures[unit] = texture
         self.set_value(name, unit)
+        texture.bind_to_unit(unit)
 
     cpdef bint set_value(self, name, value) except False:  # i _think_ this means on error return false
         self.use()
@@ -78,8 +81,12 @@ cdef class ShaderProgram:
 
         if isinstance(value, int):  # also returns true for bools, but that's fine here
             glUniform1i(location, value)
+        elif isinstance(value, float):
+            glUniform1f(location, value)
         elif isinstance(value, glm.mat4):
             glUniformMatrix4fv(location, 1, False, value_ptr(value))
+        elif isinstance(value, glm.vec4):
+            glUniform4fv(location, 1, value_ptr(value))
         else:
             raise TypeError("invalid type and/or type not yet implemented")
 

@@ -116,6 +116,13 @@ cdef class Window:
         glfwGetCursorPos(self.window, &x, &y)
         return x, y
 
+    cpdef read_pixel(self, int x, int y):
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)  # i have no idea why this is needed
+        cdef unsigned char data[4]
+        glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data)
+        return data[0], data[1], data[2], data[3]
+
+
 
 # instead of creating a custom wrapper in c++ using lambdas (which i very well could, like
 # in the nanogui wrapper), since every glfw function returns a pointer to the window, and there
@@ -138,62 +145,64 @@ def abstract_callback(Window window, object callback_func, object gui_callback_f
     if window.handle_gui_callbacks or callback_func is None:
         gui_callback_func(*args)
     if callback_func is not None and not (window.handle_gui_callbacks and window.gui.focused()):
-        callback_func(*args)
+        callback_func(window, *args)
 
 cdef void key_callback(GLFWwindow* window_ptr, int key, int scancode, int action, int mods):
     cdef Window window = get_window(window_ptr)
-    if window.handle_gui_callbacks or window.key_callback is None:
-        window.gui.handle_key(key, scancode, action, mods)
-    if window.key_callback is not None and not (window.handle_gui_callbacks and window.gui.focused()):
-        window.key_callback(window, key, scancode, action, mods)
+    abstract_callback(window, window.key_callback, window.gui.handle_key, key, scancode, action, mods)
 
 cdef void char_callback(GLFWwindow* window_ptr, unsigned int codepoint):
-    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
-    if window.char_callback is not None:
-        window.char_callback(codepoint)
-    else:  # default
-        window.gui.handle_char(codepoint)
-'''
+    cdef Window window = get_window(window_ptr)
+    abstract_callback(window, window.char_callback, window.gui.handle_char, codepoint)
+
 cdef void cursor_pos_callback(GLFWwindow* window_ptr, double x, double y):
-    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
-    if window.cursor_pos_callback is not None:
-        window.cursor_pos_callback(x, y)
-    else:  # default
-        window.gui.handle_cursor_pos(x, y)
-'''
-cdef void cursor_pos_callback(GLFWwindow* window_ptr, double x, double y):
-    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
+    cdef Window window = get_window(window_ptr)
     abstract_callback(window, window.cursor_pos_callback, window.gui.handle_cursor_pos, x, y)
 
-
-
 cdef void drop_file_callback(GLFWwindow* window_ptr, int count, const char** filenames):
-    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
+    # this one has different from default behavior - that is, if a file is dropped, always tell the user,
+    # and call the gui unless the "i'll handle it manually" flag is set
+    cdef Window window = get_window(window_ptr)
     if window.handle_gui_callbacks:
         window.gui.handle_drop(count, to_list(count, filenames))
     if window.drop_file_callback is not None:
-        window.drop_file_callback(to_list(count, filenames))
-
+        window.drop_file_callback(window, to_list(count, filenames))
 
 cdef void scroll_callback(GLFWwindow* window_ptr, double x, double y):
-    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
-    if window.scroll_callback is not None:
-        window.scroll_callback(x, y)
-    else:  # default
-        window.gui.handle_scroll(x, y)
+    cdef Window window = get_window(window_ptr)
+    abstract_callback(window, window.scroll_callback, window.gui.handle_scroll, x, y)
+
+'''
+cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, int modifiers):
+    # this one also has different from default behaviour - obviously you can click anywhere if the gui is focused,
+    # since that's how you de-focus the gui.
+    # todo think about making this style an abstract callback as well (and letting the user chose?)
+    cdef Window window = get_window(window_ptr)
+    if window.handle_gui_callbacks:
+        window.gui.handle_mouse_button(button, action, modifiers)
+    if window.mouse_button_callback is not None:
+        window.mouse_button_callback(window, button, action, modifiers)
+'''
 
 cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, int modifiers):
-    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
-    if window.mouse_button_callback is not None:
-        window.mouse_button_callback(button, action, modifiers)
-    else:  # default
-        window.gui.handle_mouse_button(button, action, modifiers)
+    cdef Window window = get_window(window_ptr)
+    abstract_callback(window, window.mouse_button_callback, window.gui.handle_mouse_button, button, action, modifiers)
+
+
 
 cdef void resize_callback(GLFWwindow* window_ptr, int width, int height):
-    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
+    cdef Window window = get_window(window_ptr)
+    # always handle resize changes
+    old_width, old_height = window.width, window.height
     glViewport(0, 0, width, height)
     window.width = width
     window.height = height
+    if window.resize_callback is not None:
+        window.resize_callback(window, old_width, old_height)
+    else:
+        window.gui.handle_resize(width, height)
+
+
 
 cdef set_gl_enables():
     """

@@ -32,6 +32,9 @@ class Camera:
         self.last_frame_time = time.time()
         speed = 5 * delta_t
 
+        if self.window.is_pressed(engine.KEY_LEFT_SHIFT):
+            speed /= 10
+
         if self.window.is_pressed(engine.KEY_W):
             self.position += self.front * speed  # move forward slightly
         if self.window.is_pressed(engine.KEY_S):
@@ -53,7 +56,7 @@ class Camera:
             self.up = glm.vec3(glm.vec4(self.up, 1) * glm.rotate(glm.mat4(1), -speed/4, self.front))
             self.right = glm.normalize(glm.cross(self.front, self.up))
 
-    def handle_cursor_pos(self, x, y):
+    def handle_cursor_pos(self, _, x, y):
         if self.first_frame:  # prevent jump in camera position when initialising the last positions
             self.first_frame = False
             self.last_cursor_x = x

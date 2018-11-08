@@ -57,13 +57,35 @@ cdef class Gui:
 
 cdef class GuiWindow:
     cdef nanogui.Window* window
+    cdef Gui gui
 
-    def __cinit__(self, FormHelper form_helper, x, y, name):
+    def __cinit__(self, FormHelper form_helper, int x, int y, name):
         form_helper.gui.windows.append(self)
+        self.gui = form_helper.gui
         self.window = form_helper.helper.addWindow(nanogui.Vector2i(x, y), name)
 
     def focused(self):
-        return self.window.focused()
+        if self.window != NULL:
+            return self.window.focused()
+
+    def dispose(self):
+        self.gui.windows.remove(self)  # delete references to this window
+        self.window.dispose()
+        self.window = NULL
+
+    def set_fixed_width(self, int width):
+        self.window.setFixedWidth(width)
+
+    @property
+    def width(self):
+        return self.window.width()
+
+    @property
+    def height(self):
+        return self.window.height()
+
+    def set_position(self, int x, int y):
+        self.window.setPosition(nanogui.Vector2i(x, y))
 
 
 cdef class FormHelper:
@@ -83,13 +105,23 @@ cdef class FormHelper:
     cpdef GuiWindow add_window(self, x, y, name):
         return GuiWindow(self, x, y, name)
 
+    cpdef set_window(self, GuiWindow window):
+        self.helper.setWindow(window.window)
+
+    cpdef GuiWindow window(self):
+        cdef nanogui.Window* window = self.helper.window()
+        cdef GuiWindow gui_window
+        for gui_window in self.gui.windows:
+            if gui_window.window is window:
+                return gui_window
+
     cpdef add_variable(self, name, variable_type, linked_var=None, getter=None, setter=None):
         """
         a wrapper function for creating the [Type]Widget class
         """
         name = to_bytes(name)
         widget = None
-        if not isinstance(linked_var, str):
+        if linked_var is not None and not isinstance(linked_var, str):
             raise ValueError("linked_var must be of type str (you probably passed the variable directly)")
         if variable_type is int:
             widget = IntWidget(self, name, getter, setter, linked_var)
@@ -115,6 +147,9 @@ cdef class FormHelper:
 
     cpdef add_group(self, name):
         self.helper.addGroup(to_bytes(name))
+
+    cpdef refresh(self):
+        self.helper.refresh()
 
 buttons = {}  #
 
@@ -169,7 +204,7 @@ cdef class IntWidget:
     cdef int getter_callback(uintptr_t self_ptr):
         cdef IntWidget self = widgets[self_ptr]
         if self.getter is not None:
-            self.value = self.getter(self)
+            self.value = self.getter()
         return self.value
 
     @staticmethod
@@ -180,7 +215,7 @@ cdef class IntWidget:
         if self.linked_var:
             self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
-            self.setter(self, new_value, old_value)
+            self.setter(new_value, old_value)
 
 cdef class FloatWidget:
     cdef readonly double value
@@ -208,7 +243,7 @@ cdef class FloatWidget:
     cdef double getter_callback(uintptr_t self_ptr):
         cdef FloatWidget self = widgets[self_ptr]
         if self.getter is not None:
-            self.value = self.getter(self)
+            self.value = self.getter()
         return self.value
 
     @staticmethod
@@ -219,7 +254,7 @@ cdef class FloatWidget:
         if self.linked_var:
             self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
-            self.setter(self, new_value, old_value)
+            self.setter(new_value, old_value)
 
 cdef class StringWidget:
     cdef string c_value
@@ -246,7 +281,7 @@ cdef class StringWidget:
     cdef string getter_callback(uintptr_t self_ptr):
         cdef StringWidget self = widgets[self_ptr]
         if self.getter is not None:
-            self.value = self.getter(self)
+            self.value = self.getter()
         return self.c_value
 
     @staticmethod
@@ -257,7 +292,7 @@ cdef class StringWidget:
         if self.linked_var:
             self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
-            self.setter(self, self.value, old_value)
+            self.setter(self.value, old_value)
 
     @property
     def value(self):
@@ -293,7 +328,7 @@ cdef class BoolWidget:
     cdef c_bool getter_callback(uintptr_t self_ptr):
         cdef BoolWidget self = widgets[self_ptr]
         if self.getter is not None:
-            self.value = self.getter(self)
+            self.value = self.getter()
         return self.value
 
     @staticmethod
@@ -304,7 +339,7 @@ cdef class BoolWidget:
         if self.linked_var:
             self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
-            self.setter(self, new_value, old_value)
+            self.setter(new_value, old_value)
 
 cdef extern from *:
     """enum DummyEnum { };"""
@@ -340,7 +375,7 @@ cdef class ComboBoxWidget:
     cdef DummyEnum getter_callback(uintptr_t self_ptr):
         cdef ComboBoxWidget self = widgets[self_ptr]
         if self.getter is not None:
-            getter_result = self.getter(self)
+            getter_result = self.getter()
             if isinstance(getter_result, int):
                 self.index = getter_result
             else:
@@ -355,7 +390,7 @@ cdef class ComboBoxWidget:
         if self.linked_var:
             self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
-            self.setter(self, self.value, old_value)
+            self.setter(self.value, old_value)
 
     @property
     def value(self):

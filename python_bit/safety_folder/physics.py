@@ -20,6 +20,8 @@ def aabb_intersect(min1, max1, min2, max2):
 def two_cubes_intersect(cube1, cube2):
     # if glm.length(cube1.position - cube2.position) > 6:  # obtained by pythag, todo use bounding spheres
     #    return False
+    if not all(cube.do_collisions for cube in (cube1, cube2)):
+        return False
     corners1 = cube1.get_corners()
     corners2 = cube2.get_corners()
     return unaligned_intersect(corners1, cube1.model, corners2, cube2.model)

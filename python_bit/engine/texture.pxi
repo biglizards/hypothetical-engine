@@ -38,6 +38,8 @@ cpdef unsigned int load_texture_from_file(filename_str, data_format=None, flip_o
 
     return texture
 
+texture_cache = {}
+
 cdef class Texture:
     """
     a super thin wrapper around texture objects
@@ -47,7 +49,11 @@ cdef class Texture:
     cdef unsigned int texture
 
     def __init__(self, texture_path, data_format=None):
-        self.texture = load_texture_from_file(texture_path, data_format)
+        if texture_path in texture_cache:
+            self.texture = texture_cache[texture_path]
+        else:
+            self.texture = load_texture_from_file(texture_path, data_format)
+            texture_cache[texture_path] = self.texture
 
     cpdef bind(self):
         glBindTexture(GL_TEXTURE_2D, self.texture)
