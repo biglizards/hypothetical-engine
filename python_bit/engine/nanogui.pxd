@@ -17,7 +17,10 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
 
     cdef cppclass Widget:
         bint focused() except +
-        pass
+        void setFixedWidth(int width) except +
+        int width() except +
+        int height() except +
+        void setPosition(const Vector2i& pos) except +
 
     cdef cppclass Screen(Widget):
         Screen() except +
@@ -39,7 +42,7 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         double mLastInteraction
 
     cpdef cppclass Window(Widget):
-        pass
+        void dispose() except +
 
     cdef cppclass Button(Widget):
         pass
@@ -52,5 +55,8 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         #FormWidget[T] addVariable[T](const string& label, T& value, bint editable) except +
 
         void addGroup(const string&) except +
-        Button* addButton(const string&, const function[void()])
+        Button* addButton(const string&, const function[void()]) except +
+        void setWindow(Window* window) except +
+        Window* window() except +
+        void refresh() except +
 

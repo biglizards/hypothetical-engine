@@ -58,4 +58,5 @@ setup(
         annotate=True,
         quiet=True,
       ),
+    zip_safe=False,
 )

@@ -15,7 +15,8 @@ from util import multiply_vec3
 
 class Entity(engine.Drawable):
     def __init__(self, data, indices, data_format, textures, vert_path, frag_path, geo_path=None, position=None,
-                 orientation=None, scalar=None, velocity=None, has_gravity=False):
+                 orientation=None, scalar=None, velocity=None, do_gravity=False, do_collisions=False,
+                 should_render=True):
         super().__init__(data, indices, data_format, vert_path, frag_path, geo_path)
 
         for i, (texture, texture_name) in enumerate(textures):
@@ -27,21 +28,33 @@ class Entity(engine.Drawable):
         self.orientation = orientation if orientation is not None else glm.quat(1, 0, 0, 0)
         self.scalar = scalar or glm.vec3(1, 1, 1)
         self.velocity = velocity or glm.vec3(0, 0, 0)
-        self.has_gravity = has_gravity
+        self.do_gravity = do_gravity
+        self.do_collisions = do_collisions
         self.model = None
+        self._ignore_this = 34
+        self.should_render = should_render
 
-    def set_model(self, model=None):
-        self.model = model or self.generate_model()
-        self.shader_program.set_value("model", self.model)
+        self._click_shader = engine.ShaderProgram(vert_path, 'shaders/clickHack.frag')
 
-    def generate_model(self, ignore_orientation=False):
-        # model = local->world
+    def generate_model(self, ignore_orientation=False, store_model=True):
+        """generates and returns the model matrix for this entity, and by default caches it (for the physics engine)"""
         model = glm.translate(glm.mat4(1), self.position)
-        if not ignore_orientation:
+        if not (self.orientation == glm.quat(1, 0, 0, 0) or ignore_orientation):
             model = model * glm.mat4_cast(self.orientation)  # rotate by orientation
-        if self.scalar is not None:
+        if self.scalar != glm.vec3(1, 1, 1):
             model = glm.scale(model, self.scalar)
+        if store_model:
+            self.model = model
         return model
+
+    def set_transform_matrix(self, game):
+        """this is especially the "prepare your shaders" function, so if the vertex shaders change,
+        (eg the transformMat is renamed to mvp) then this function can be updated accordingly.
+        A user would only need to care about this if they were modifying shaders"""
+        projection_times_view = game.projection * game.camera.view_matrix()
+        transformation_matrix = projection_times_view * self.generate_model()
+        self.shader_program.set_value("transformMat", transformation_matrix)
+        return transformation_matrix
 
     def get_corners(self):
         # todo have the corner not be hard-coded
@@ -88,11 +101,13 @@ class Game(engine.Window):
         return new_entity
 
     def draw_entities(self):
-        view = self.camera.view_matrix()
+        proj_times_view = self.projection * self.camera.view_matrix()
+        # transformation_matrix = projection * view * model
         for entity in self.entities:
-            entity.shader_program.set_value('view', view)
-            entity.shader_program.set_value("projection", self.projection)
-            entity.set_model()
+            if not entity.should_render:
+                continue
+            transformation_matrix = proj_times_view * entity.generate_model()
+            entity.shader_program.set_value("transformMat", transformation_matrix)
             entity.draw()
 
     def dispatch(self, name, *args):

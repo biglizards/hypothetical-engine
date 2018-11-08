@@ -6,16 +6,18 @@ cdef extern from *:
     ctypedef int GLint
     ctypedef unsigned int GLuint
     ctypedef unsigned int GLsizei
+    ctypedef unsigned int GLenum
     ctypedef float GLfloat
     ctypedef char GLchar
     ctypedef unsigned char GLboolean
-    
+    ctypedef void GLvoid
+
 
     #***********
     # FUNCTIONS
     #***********
 
-    # uniforms (whatever those are)
+    # uniforms
     void glUniform1f(GLint location, GLfloat v0)
     void glUniform2f(GLint location, GLfloat v0, GLfloat v1)
     void glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
@@ -57,6 +59,11 @@ cdef extern from *:
     void glScissor(int, int, int, int)
     void glEnable(unsigned int)
     void glViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+    void glFlush()
+    void glFinish()
+    void glPixelStorei(GLenum pname, GLint param)
+    void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, GLvoid * data)
+
 
     # shader functions
     unsigned int glCreateProgram()
@@ -107,6 +114,7 @@ cdef extern from *:
     unsigned int GL_MULTISAMPLE
     unsigned int GL_COLOR_BUFFER_BIT
     unsigned int GL_DEPTH_BUFFER_BIT
+    unsigned int GL_UNPACK_ALIGNMENT
     
     # model constants
     unsigned int GL_ARRAY_BUFFER

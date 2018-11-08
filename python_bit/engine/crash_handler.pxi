@@ -1,7 +1,9 @@
 IF LINUX:
     from libc.stdio cimport printf, sprintf
     from libc.stdlib cimport system
-    from libc.signal cimport signal, SIGSEGV, sighandler_t
+    from libc.signal cimport signal, SIGSEGV, sighandler_t, SIG_DFL
+    from posix.unistd cimport getpid
+    from posix.signal cimport kill
 ELIF WINDOWS:
     import datetime
     import sys
@@ -14,8 +16,8 @@ IF LINUX:
         void backtrace_symbols_fd (void* const *buffer, int size, int fd)
 
 
-    cdef void handler(int value):
-        print("oh no a segfault (value is", value, "btw)")
+    cdef void handler(int signum):
+        print("oh no a segfault (value is", signum, "btw)")
         cdef:
             void* traces[10]
             int size
@@ -24,6 +26,7 @@ IF LINUX:
             char command[256]
         size = backtrace(traces, 10)
         messages = backtrace_symbols(traces, size)
+        print(size, [message for message in messages[:size]])
 
         for i in range(2, size):
             printf("[bt] %s\n", messages[i])
@@ -36,12 +39,17 @@ IF LINUX:
             if name.startswith(b'python'):
                 continue
             sprintf(command, "addr2line %s -e %s \n", addr, name)
-            if not system(command):
+            if system(command) != 0:
                 print("call to addr2line failed, aborting")
                 break
 
-        exit(1)
-    signal(SIGSEGV, <sighandler_t>handler)
+        # remove the handler and re-raise the exception (to dump the core)
+        signal(signum, SIG_DFL)
+        kill(getpid(), signum)
+    # end of handler function
+    # un-comment this line to enable the segfault handler
+    # hint: dont do that its not very good
+    #signal(SIGSEGV, <sighandler_t>handler)
 
 ELIF WINDOWS:
     cdef extern from "windows.h":
