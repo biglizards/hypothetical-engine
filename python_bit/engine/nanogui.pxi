@@ -103,6 +103,7 @@ cdef class FormHelper:
         pass
 
     cpdef GuiWindow add_window(self, x, y, name):
+        name = to_bytes(name)
         return GuiWindow(self, x, y, name)
 
     cpdef set_window(self, GuiWindow window):
@@ -158,6 +159,7 @@ cdef class Button:
     cdef object callback
 
     def __cinit__(self, FormHelper helper, name, callback, *args, **kwargs):
+        name = to_bytes(name)
         self.button_ptr = cengine.add_button_(helper.helper, name, <void*>self, self._callback)
         self.callback = callback
 
@@ -343,6 +345,7 @@ cdef class BoolWidget:
 
 cdef extern from *:
     """enum DummyEnum { };"""
+    # pycharm things this is a syntax error; its not, it compiles fine, and needs this here
     cdef enum DummyEnum:
         pass
 
