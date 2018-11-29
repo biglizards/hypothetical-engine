@@ -129,6 +129,7 @@ class Game(engine.Window):
 
             # draw everything
             self.clear_colour(*self.background_colour)
+            self.dispatch('before_frame', delta_t)
             self.draw_entities()
             # call user-defined functions
             self.dispatch('on_frame', delta_t)
@@ -142,8 +143,8 @@ class Game(engine.Window):
             # fps printer
             if print_fps:
                 frame_count += 1
-                if frame_count > 2**12:
+                if frame_count > 2**8:
                     duration = time.time() - time_since_last_fps_print
-                    print("current fps:", round(2**12/duration))
+                    print("current fps:", round(2**8/duration))
                     time_since_last_fps_print = time.time()
                     frame_count = 0

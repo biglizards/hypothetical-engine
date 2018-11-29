@@ -116,6 +116,12 @@ cdef class Window:
         glfwGetCursorPos(self.window, &x, &y)
         return x, y
 
+    @property
+    def cursor_location_ndc(self):
+        cdef double x, y
+        glfwGetCursorPos(self.window, &x, &y)
+        return ((x/self.width)-0.5)*2, ((y/self.height)-0.5)*-2
+
     cpdef read_pixel(self, int x, int y):
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)  # i have no idea why this is needed
         cdef unsigned char data[4]
