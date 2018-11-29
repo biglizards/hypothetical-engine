@@ -16,3 +16,4 @@ cs_proj.depend
 cs_proj.layout
 *.pyd
 .idea/*
+ext/lib/*

@@ -1,21 +1,18 @@
 import glm
-import random
-import time
-import math
-
 import engine
 
+import util
 from cube import data
 from game import Game, Entity
 from physics import two_cubes_intersect
 
-proj = glm.frustum(-1.0, 1.0, -1.0, 1.0, 1.0, 100.0);
+proj = glm.frustum(-1.0, 1.0, -1.0, 1.0, 1.0, 100.0)
 game = Game()
 
 # create cube data/attributes
 cube_positions = [
     glm.vec3(0.0, 0.0, 0.0),
-    #glm.vec3(0.1, 0.1, 0.1),
+    # glm.vec3(0.1, 0.1, 0.1),
     glm.vec3(2.0, 5.0, -15.0),
     glm.vec3(-1.5, -2.2, -2.33),
     glm.vec3(-3.8, -2.0, -12.3),
@@ -27,8 +24,8 @@ cube_positions = [
     glm.vec3(-1.3, 1.0, -1.7)
 ]
 
-#for x in range(15):
-#    cube_positions.append(glm.vec3((random.random()-0.5)*40, (random.random()-0.5)*40, (random.random()-0.5)*40))
+# for x in range(15):
+#     cube_positions.append(glm.vec3((random.random()-0.5)*40, (random.random()-0.5)*40, (random.random()-0.5)*40))
 
 crate_attributes = {
     'data': data, 'indices': None, 'data_format': (3, 2),
@@ -39,13 +36,13 @@ crate_attributes = {
 
 # @@@@@
 # gui
-def reset_camera(*args, **kwargs):
+def reset_camera(*_args, **_kwargs):
     game.camera.position = glm.vec3(0, 0, 3)
     game.camera.front = glm.vec3(0, 0, -1)
     game.camera.up = glm.vec3(0, 1, 0)
 
 
-def draw_dots_on_corners(*args):
+def draw_dots_on_corners(*_args):
     if not draw_dots:
         return
     proj_times_view = game.projection * game.camera.view_matrix()  # i'm unpacking it for performance reasons
@@ -54,34 +51,9 @@ def draw_dots_on_corners(*args):
         for corner in corners:
             dot.position = corner
             transformation_matrix = proj_times_view * dot.generate_model()
-            dot.shader_program.set_value("transformMat", transformation_matrix)
+            dot.shader_program.set_value('transformMat', transformation_matrix)
             dot.draw()
 
-def solve(pc, c, pb, a):
-    """solves simultanious equations in the form:
-       a: pc + {lambda}c
-       b: pb + {mu}a
-       where {lambda} and {mu} are variables
-       returns the point where they intersect, assuming they do.
-       Currently unsure what happens if they dont intersect - from the looks of it it gives you the point where they're closest to each other
-         (if there's more than one of those points, they must have the same direction vector, and it raises a division by zero error)
-       formula taken from stack overflow, adapted to use python: [https://math.stackexchange.com/questions/270767/find-intersection-of-two-3d-lines]
-       """
-    k = (glm.length(glm.cross(a, (pb-pc))))/(glm.length(glm.cross(a, c)))*c
-    if glm.dot(glm.cross(a, (pb-pc)), glm.cross(a, c)) > 0:
-        return pc + k
-    return pc - k
-
-def screen_to_world_pos_and_vec(game, pos_on_screen):
-
-    old_pos = game.camera.position
-    game.camera.position = glm.vec3(0, 0, 0)
-    vector = glm.inverse(game.projection * game.camera.view_matrix()) * glm.vec4(pos_on_screen, 1, 1)
-    vector = glm.normalize(vector)
-    game.camera.position = old_pos
-
-    pos_in_world_space = game.camera.position + vector.xyz
-    return vector, pos_in_world_space
 
 def draw_axes(entity: Entity):  # as in, the plural of axis
     w = (entity.set_transform_matrix(game) * glm.vec4(0, 0, 0, 1)).w * 0.3
@@ -98,42 +70,31 @@ def draw_axes(entity: Entity):  # as in, the plural of axis
         axis.position = entity.position + (0.5 * vector * entity.scalar) + (0.5 * length * vector)
         axis.orientation = entity.orientation
 
-
-        # # # anything below this is shit i added to test dragging; feel free to delete later (apart from the axis.should_render bit)
+        # # # anything below this is shit i added to test dragging; feel free to delete later
+        # # # (apart from the axis.should_render bit)
 
         # put dot at where 0, 0 is in screen space
-        #dot.generate_model()
-        #dot.model = glm.translate(dot.model, game.camera.position)
-        # thinggorithm:
+        # algorithm:
         #  - take vector, project onto screen
         #  - also project box + vector*2 onto screen to get the direction vector
         #  - normalize the direction vector, then {move 0.1 units that direction}{move however much is specified by the mouse}
         #  - project the final location back into world space by:
         #    - set the camera pos to (0, 0, 0) [i dont know why i need to do this, but i do]
         #    - take the final_direction_vector = (proj * view)^-1 * screenSpaceLocation
-        #    - solve simultantiously (camera_pos + lambda*final_dir) and (box_pos + mu*vector_dir) to get the point of intersection
+        #    - solve simultaneously (camera_pos + lambda*final_dir) and (box_pos + mu*vector_dir) to get the point of intersection
         #  - {print it out}{move the box there}
         # TODO move this out of the draw routine, what's it even doing here smh
-
-        viewport = glm.vec4(0, 0, game.width, game.height)
-        screen_vector, pos_in_world_space = screen_to_world_pos_and_vec(game, game.cursor_location_ndc)
+        '''
+        screen_vector, pos_in_world_space = get_world_space_vector(game, game.cursor_location_ndc)
 
         point_of_intersection = solve(axis.position, vector, game.camera.position, screen_vector.xyz)
         print(game.camera.position, screen_vector.xyz)
-        #print(point_of_intersection)
 
-        #dot.position = pos_in_world_space + (screen_vector.xyz * (1.5+ math.sin(time.time())))
         dot.position = point_of_intersection
         dot.should_render = True
+        '''
 
-        # mock render dot to get screen space co-ords (just to check)
-        #if dot.model is not None:
-        #    pos_on_screen = game.projection * game.camera.view_matrix() * dot.model * glm.vec4(0, 0, 0, 1)
-        #    print(pos_on_screen.xy / pos_on_screen.w)
-
-        # # # this is the end of the shit i added to test dragging
         axis.should_render = True
-        break
 
 
 def change_highlighted_object(entity: Entity):
@@ -162,7 +123,7 @@ def create_object_gui(entity: Entity):
         return
 
     helper = engine.FormHelper(game.gui)
-    new_gui = helper.add_window(640, 10, b"entity properties")
+    new_gui = helper.add_window(640, 10, 'entity properties')
 
     for key, item in entity.__dict__.items():
         if key.startswith('_'):
@@ -170,8 +131,8 @@ def create_object_gui(entity: Entity):
         if isinstance(item, glm.vec3):
             helper.add_group(key)
             for i in range(3):
-                def setter(new_val, old_val, i=i, item=item):  # the keyword args save the value (otherwise all
-                    item[i] = new_val                          # functions would use the last value in the loop)
+                def setter(new_val, _old_val, i=i, item=item):  # the keyword args save the value (otherwise all
+                    item[i] = new_val                           # functions would use the last value in the loop)
 
                 def getter(i=i, key=key, entity=entity):
                     return entity.__dict__[key][i]
@@ -181,7 +142,7 @@ def create_object_gui(entity: Entity):
         elif isinstance(item, (int, float, bool, str)):
             helper.add_group(key)
 
-            def setter(new_val, old_val, key=key, entity=entity):
+            def setter(new_val, _old_val, key=key, entity=entity):
                 entity.__dict__[key] = new_val
 
             def getter(key=key, entity=entity):
@@ -213,24 +174,24 @@ dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1), sho
 
 # create the gui
 helper = engine.FormHelper(game.gui)
-gui_window = helper.add_window(10, 10, b"GUI WINDOW (heck yeah)")
+gui_window = helper.add_window(10, 10, 'GUI WINDOW (heck yeah)')
 
-# todo make you not have to declare everything as a variable (ie save a reference in helper and/or gui
-helper.add_group("box control")
-helper.add_variable(b'speed', float, linked_var="box_speed")
+# todo make you not have to declare everything as a variable (ie save a reference in helper and/or gui)
+helper.add_group('box control')
+helper.add_variable('speed', float, linked_var='box_speed')
 
-helper.add_group("gravity")
-helper.add_variable(b'enable gravity', bool, linked_var='gravity_enabled')
-helper.add_variable(b'enable bouncing', bool, linked_var='bounce_enabled')
-helper.add_variable(b'draw dots', bool, linked_var='draw_dots')
-helper.add_button(b'reset', reset_camera)
+helper.add_group('gravity')
+helper.add_variable('enable gravity', bool, linked_var='gravity_enabled')
+helper.add_variable('enable bouncing', bool, linked_var='bounce_enabled')
+helper.add_variable('draw dots', bool, linked_var='draw_dots')
+helper.add_button('reset', reset_camera)
 
 game.gui.update_layout()
 
 
 # @@@@@
 # callbacks
-def custom_key_callback(game, key, scancode, action, mods):
+def custom_key_callback(game, key, _scancode, action, _mods):
     if action != engine.KEY_PRESS:
         return
 
@@ -245,57 +206,14 @@ def custom_key_callback(game, key, scancode, action, mods):
     if key == engine.KEY_ESCAPE:
         select_entity(None)
 
-    if key == engine.KEY_V:
-        draw_axes(selected_object)
 
-
-def to_rgb(i):
-    return glm.vec4(((i & 0x000000FF) >> 0) / 255,
-                    ((i & 0x0000FF00) >> 8) / 255,
-                    ((i & 0x00FF0000) >> 16) / 255,
-                    1.0)
-
-
-def rbg_to_id(r, g, b):
-    return r + g*256 + b*256**2
-
-
-def on_click(game, button, action, *args, **kwargs):
+def on_click(game, button, action, *_args, **_kwargs):
     if not (button == engine.MOUSE_LEFT and action == engine.MOUSE_PRESS):
         return
 
-    # draw everything in a unique colour
-    game.clear_colour(1, 1, 1, 1)
-    for i, entity in enumerate(game.entities):
-        if not entity.should_render:
-            continue
-        # ensure both shader programs use the same vertex shader
-        if entity.shader_program.paths[0] != entity._click_shader.paths[0]:
-            entity.__click_shader = engine.ShaderProgram(entity.shader_program.paths[0], 'shaders/clickHack.frag')
-        # swap shader programs
-        entity.shader_program, entity._click_shader = entity._click_shader, entity.shader_program
-        # render
-        entity.shader_program.set_value('entityColour', to_rgb(i))
-        entity.set_transform_matrix(game)
-        entity.draw()
-    # apparently the next bit is super slow - rip
-    engine.wait_until_finished()
-
-    # swap shaders back to normal
-    for entity in game.entities:
-        if not entity.should_render:
-            continue
-        entity.shader_program, entity._click_shader = entity._click_shader, entity.shader_program
-
-    # read pixel value and covert it back to id
-    x, y = game.cursor_location
-    r, g, b, a = game.read_pixel(x, game.height - y)
-    index = rbg_to_id(r, g, b)
-    # select object and highlight it
-    if index >= len(game.entities):
-        return
-    entity = game.entities[index]
-    select_entity(entity)
+    entity = util.get_entity_at_pos(game, *game.cursor_location)
+    if entity not in axes:  # todo have separate logic for this kind of thing. Maybe entity.on_click_in_editor()
+        select_entity(entity)
 
 
 def on_resize(game, *args):
@@ -372,7 +290,7 @@ def do_gravity(delta_t):
         property_window_helper.refresh()
 
 
-def on_frame_draw_axes(*args):
+def on_frame_draw_axes(*_args):
     if selected_object is not None:
         draw_axes(selected_object)
 
