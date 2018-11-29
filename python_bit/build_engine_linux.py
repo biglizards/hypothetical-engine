@@ -56,7 +56,8 @@ setup(
         include_path=['engine'],
         compiler_directives={'embedsignature': True, 'language_level': 3},
         annotate=True,
-        quiet=True,
+        quiet=False,
+        force=True,
       ),
     zip_safe=False,
 )

@@ -1,6 +1,7 @@
 import glm
 import random
 import time
+import math
 
 import engine
 
@@ -8,6 +9,7 @@ from cube import data
 from game import Game, Entity
 from physics import two_cubes_intersect
 
+proj = glm.frustum(-1.0, 1.0, -1.0, 1.0, 1.0, 100.0);
 game = Game()
 
 # create cube data/attributes
@@ -55,13 +57,39 @@ def draw_dots_on_corners(*args):
             dot.shader_program.set_value("transformMat", transformation_matrix)
             dot.draw()
 
+def solve(pc, c, pb, a):
+    """solves simultanious equations in the form:
+       a: pc + {lambda}c
+       b: pb + {mu}a
+       where {lambda} and {mu} are variables
+       returns the point where they intersect, assuming they do.
+       Currently unsure what happens if they dont intersect - from the looks of it it gives you the point where they're closest to each other
+         (if there's more than one of those points, they must have the same direction vector, and it raises a division by zero error)
+       formula taken from stack overflow, adapted to use python: [https://math.stackexchange.com/questions/270767/find-intersection-of-two-3d-lines]
+       """
+    k = (glm.length(glm.cross(a, (pb-pc))))/(glm.length(glm.cross(a, c)))*c
+    if glm.dot(glm.cross(a, (pb-pc)), glm.cross(a, c)) > 0:
+        return pc + k
+    return pc - k
+
+def screen_to_world_pos_and_vec(game, pos_on_screen):
+
+    old_pos = game.camera.position
+    game.camera.position = glm.vec3(0, 0, 0)
+    vector = glm.inverse(game.projection * game.camera.view_matrix()) * glm.vec4(pos_on_screen, 1, 1)
+    vector = glm.normalize(vector)
+    game.camera.position = old_pos
+
+    pos_in_world_space = game.camera.position + vector.xyz
+    return vector, pos_in_world_space
 
 def draw_axes(entity: Entity):  # as in, the plural of axis
     w = (entity.set_transform_matrix(game) * glm.vec4(0, 0, 0, 1)).w * 0.3
+    world_axes = [glm.vec3(1, 0, 0), glm.vec3(0, 1, 0), glm.vec3(0, 0, 1)]
 
-    for vector, axis in zip(entity.local_unit_vectors(), axes):
+    for world_axis, vector, axis in zip(world_axes, entity.local_unit_vectors(), axes):
         vector = glm.normalize(vector)
-        axis.scalar = glm.vec3(0.10, 0.10, 0.10) + vector  # make the axis the right shape
+        axis.scalar = glm.vec3(0.10, 0.10, 0.10) + world_axis  # make the axis the right shape
 
         # calculate the length of the axis
         axis.position = entity.position
@@ -70,7 +98,42 @@ def draw_axes(entity: Entity):  # as in, the plural of axis
         axis.position = entity.position + (0.5 * vector * entity.scalar) + (0.5 * length * vector)
         axis.orientation = entity.orientation
 
+
+        # # # anything below this is shit i added to test dragging; feel free to delete later (apart from the axis.should_render bit)
+
+        # put dot at where 0, 0 is in screen space
+        #dot.generate_model()
+        #dot.model = glm.translate(dot.model, game.camera.position)
+        # thinggorithm:
+        #  - take vector, project onto screen
+        #  - also project box + vector*2 onto screen to get the direction vector
+        #  - normalize the direction vector, then {move 0.1 units that direction}{move however much is specified by the mouse}
+        #  - project the final location back into world space by:
+        #    - set the camera pos to (0, 0, 0) [i dont know why i need to do this, but i do]
+        #    - take the final_direction_vector = (proj * view)^-1 * screenSpaceLocation
+        #    - solve simultantiously (camera_pos + lambda*final_dir) and (box_pos + mu*vector_dir) to get the point of intersection
+        #  - {print it out}{move the box there}
+        # TODO move this out of the draw routine, what's it even doing here smh
+
+        viewport = glm.vec4(0, 0, game.width, game.height)
+        screen_vector, pos_in_world_space = screen_to_world_pos_and_vec(game, game.cursor_location_ndc)
+
+        point_of_intersection = solve(axis.position, vector, game.camera.position, screen_vector.xyz)
+        print(game.camera.position, screen_vector.xyz)
+        #print(point_of_intersection)
+
+        #dot.position = pos_in_world_space + (screen_vector.xyz * (1.5+ math.sin(time.time())))
+        dot.position = point_of_intersection
+        dot.should_render = True
+
+        # mock render dot to get screen space co-ords (just to check)
+        #if dot.model is not None:
+        #    pos_on_screen = game.projection * game.camera.view_matrix() * dot.model * glm.vec4(0, 0, 0, 1)
+        #    print(pos_on_screen.xy / pos_on_screen.w)
+
+        # # # this is the end of the shit i added to test dragging
         axis.should_render = True
+        break
 
 
 def change_highlighted_object(entity: Entity):
@@ -317,6 +380,6 @@ def on_frame_draw_axes(*args):
 game.add_callback('on_frame', spin_crates)
 game.add_callback('on_frame', do_gravity)
 game.add_callback('on_frame', draw_dots_on_corners)
-game.add_callback('on_frame', on_frame_draw_axes)
+game.add_callback('before_frame', on_frame_draw_axes)
 
 game.run(True)
