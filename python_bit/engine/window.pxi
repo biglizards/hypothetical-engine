@@ -57,12 +57,12 @@ cdef class Window:
         glfwSwapInterval(0)
 
         # set callbacks
-        self.key_callback = None
+        self.key_callback = None  # todo why is this here, either remove it or add all the others. dont be inconsistent
         window_objects_by_pointer[<uintptr_t>self.window] = self
 
         glfwSetCharCallback(self.window, char_callback)
         #glfwSetCursorEnterCallback(self.window, cursor_enter_callback)  # this doesnt exist yet
-        glfwSetCursorPosCallback(self.window, cursor_pos_callback)
+        #glfwSetCursorPosCallback(self.window, cursor_pos_callback)
         glfwSetDropCallback(self.window, drop_file_callback)
         glfwSetKeyCallback(self.window, key_callback)
         glfwSetMouseButtonCallback(self.window, mouse_button_callback)

@@ -6,8 +6,8 @@ from util import rotate_vec3
 
 
 class Camera:
-    def __init__(self, window: engine.Window):
-        self.window = window
+    def __init__(self, game):
+        self.game = game
 
         self.position = glm.vec3(0, 0, 3)
         self.velocity = glm.vec3(0, 0, 0)
@@ -21,10 +21,10 @@ class Camera:
         self.sensitivity = 0.01
 
         self.last_frame_time = time.time()
-        self.window.cursor_pos_callback = self.handle_cursor_pos
+        self.game.add_callback('on_cursor_pos_update', self.handle_cursor_pos)
 
     def handle_input(self):
-        if self.window.gui.focused():
+        if self.game.gui.focused():
             # don't handle input if the gui is focused
             return
 
@@ -32,39 +32,39 @@ class Camera:
         self.last_frame_time = time.time()
         speed = 5 * delta_t
 
-        if self.window.is_pressed(engine.KEY_LEFT_SHIFT):
+        if self.game.is_pressed(engine.KEY_LEFT_SHIFT):
             speed /= 10
 
-        if self.window.is_pressed(engine.KEY_W):
+        if self.game.is_pressed(engine.KEY_W):
             self.position += self.front * speed  # move forward slightly
-        if self.window.is_pressed(engine.KEY_S):
+        if self.game.is_pressed(engine.KEY_S):
             self.position -= self.front * speed  # move backwards slightly
-        if self.window.is_pressed(engine.KEY_A):
+        if self.game.is_pressed(engine.KEY_A):
             self.position -= self.right * speed
-        if self.window.is_pressed(engine.KEY_D):
+        if self.game.is_pressed(engine.KEY_D):
             self.position += self.right * speed
 
-        if self.window.is_pressed(engine.KEY_SPACE):
+        if self.game.is_pressed(engine.KEY_SPACE):
             self.position += self.up * speed
-        if self.window.is_pressed(engine.KEY_LEFT_CONTROL):
+        if self.game.is_pressed(engine.KEY_LEFT_CONTROL):
             self.position -= self.up * speed
 
-        if self.window.is_pressed(engine.KEY_E):
+        if self.game.is_pressed(engine.KEY_E):
             self.up = glm.vec3(glm.vec4(self.up, 1) * glm.rotate(glm.mat4(1), speed/4, self.front))
             self.right = glm.normalize(glm.cross(self.front, self.up))
-        if self.window.is_pressed(engine.KEY_Q):
+        if self.game.is_pressed(engine.KEY_Q):
             self.up = glm.vec3(glm.vec4(self.up, 1) * glm.rotate(glm.mat4(1), -speed/4, self.front))
             self.right = glm.normalize(glm.cross(self.front, self.up))
 
-    def handle_cursor_pos(self, _, x, y):
+    def handle_cursor_pos(self, x, y):
         if self.first_frame:  # prevent jump in camera position when initialising the last positions
             self.first_frame = False
             self.last_cursor_x = x
             self.last_cursor_y = y
 
-        self.window.gui.handle_cursor_pos(x, y)
+        self.game.gui.handle_cursor_pos(x, y)
 
-        if self.window.cursor_mode == 'normal':
+        if self.game.cursor_mode == 'normal':
             return
 
         delta_x = (self.last_cursor_x - x) * self.sensitivity

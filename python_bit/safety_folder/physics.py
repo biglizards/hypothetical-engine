@@ -4,6 +4,7 @@ from math import inf
 from game import Entity
 import cube
 
+
 def generate_aabb(entity: Entity):
     model = entity.generate_model(ignore_orientation=True)
     aabb_min = model * glm.vec4(cube.aabb_min, 1)
@@ -66,7 +67,7 @@ def intersects_on_projection(corners1, corners2, axis):
 
 
 def get_min_and_max(corners, axis):
-    # declare min and max as the wrong infinities so any the first data overwrites it
+    # declare min and max as the wrong infinities so any (ie the first) data overwrites it
     min_val = inf
     max_val = -inf
     for corner in corners:
