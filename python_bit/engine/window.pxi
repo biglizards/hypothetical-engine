@@ -62,7 +62,7 @@ cdef class Window:
 
         glfwSetCharCallback(self.window, char_callback)
         #glfwSetCursorEnterCallback(self.window, cursor_enter_callback)  # this doesnt exist yet
-        #glfwSetCursorPosCallback(self.window, cursor_pos_callback)
+        glfwSetCursorPosCallback(self.window, cursor_pos_callback)
         glfwSetDropCallback(self.window, drop_file_callback)
         glfwSetKeyCallback(self.window, key_callback)
         glfwSetMouseButtonCallback(self.window, mouse_button_callback)
