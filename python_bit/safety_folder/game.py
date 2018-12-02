@@ -147,8 +147,9 @@ class Game(engine.Window):
         last_frame_time = time.time()
 
         while not self.should_close():
-            delta_t = (time.time() - last_frame_time) % 0.1  # if the game freezes, just ignore it
-            last_frame_time = time.time()
+            time_time = time.time()
+            delta_t = (time_time - last_frame_time) % 0.1  # if the game freezes, just ignore it
+            last_frame_time = time_time
 
             # draw everything
             self.clear_colour(*self.background_colour)
@@ -166,8 +167,8 @@ class Game(engine.Window):
             # fps printer
             if print_fps:
                 frame_count += 1
-                if frame_count > 2**12:
-                    duration = time.time() - time_since_last_fps_print
-                    print("current fps:", round(2**12/duration))
-                    time_since_last_fps_print = time.time()
+                if time_time > time_since_last_fps_print + 5:
+                    duration = time_time - time_since_last_fps_print
+                    print("current fps:", round(frame_count/duration))
+                    time_since_last_fps_print = time_time
                     frame_count = 0
