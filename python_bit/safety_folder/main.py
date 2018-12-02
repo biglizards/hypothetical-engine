@@ -3,11 +3,62 @@ import engine
 
 import util
 from cube import data
-from game import Game, Entity
+from game import Entity
+from editor import Editor, Drag
 from physics import two_cubes_intersect
 
-proj = glm.frustum(-1.0, 1.0, -1.0, 1.0, 1.0, 100.0)
-game = Game()
+
+class CustomEditor(Editor, Drag):
+    pass
+
+
+class Axis(Entity):
+    parent: Entity
+    clickable = False
+
+    def __init__(self, *args, game,  unit_vector, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.game = game
+        self.unit_vector = unit_vector
+        self.parent = None
+        self.offset = None
+        self.parent_start_pos = None
+        self.is_dragging = False
+        # set callbacks
+        game.add_callback('on_drag_update', self.move_axis)
+        game.add_callback('on_click_entity', self.set_drag_start_pos)
+        game.add_callback('on_drag', self.reset_variables)  # once the drag finishes, reset everything to none
+
+    def reset_variables(self, *_args):
+        self.offset = None
+        self.parent_start_pos = None
+        self.is_dragging = False
+
+    def set_drag_start_pos(self, entity):
+        if entity is self:
+            self.is_dragging = True
+            drag_start_pos = util.get_point_closest_to_cursor(game, self.position,
+                                                              self.vector(), self.game.cursor_location)
+            self.offset = self.parent.position - drag_start_pos
+            self.parent_start_pos = self.parent.position
+        elif util.is_clickable(entity):  # todo maybe replace with entity is game.selected_object
+            self.parent = entity
+        if entity is None:
+            self.should_render = False
+
+    def vector(self):
+        return glm.normalize(glm.vec3(self.parent.model * self.unit_vector))
+
+    def move_axis(self, *mouse_pos):
+        if not self.is_dragging:
+            return None
+        target = util.get_point_closest_to_cursor(game, self.parent_start_pos, self.vector(), mouse_pos)
+
+        true_target = target + self.offset
+        self.parent.position = true_target
+
+
+game = CustomEditor()
 
 # create cube data/attributes
 cube_positions = [
@@ -69,97 +120,7 @@ def draw_axes(entity: Entity):  # as in, the plural of axis
         length = glm.length(thing.xyz)
         axis.position = entity.position + (0.5 * vector * entity.scalar) + (0.5 * length * vector)
         axis.orientation = entity.orientation
-
-        # # # anything below this is shit i added to test dragging; feel free to delete later
-        # # # (apart from the axis.should_render bit)
-
-        # put dot at where 0, 0 is in screen space
-        # algorithm:
-        #  - take vector, project onto screen
-        #  - also project box + vector*2 onto screen to get the direction vector
-        #  - normalize the direction vector, then {move 0.1 units that direction}{move however much is specified by the mouse}
-        #  - project the final location back into world space by:
-        #    - set the camera pos to (0, 0, 0) [i dont know why i need to do this, but i do]
-        #    - take the final_direction_vector = (proj * view)^-1 * screenSpaceLocation
-        #    - solve simultaneously (camera_pos + lambda*final_dir) and (box_pos + mu*vector_dir) to get the point of intersection
-        #  - {print it out}{move the box there}
-        # TODO move this out of the draw routine, what's it even doing here smh
-        '''
-        screen_vector, pos_in_world_space = get_world_space_vector(game, game.cursor_location_ndc)
-
-        point_of_intersection = solve(axis.position, vector, game.camera.position, screen_vector.xyz)
-        print(game.camera.position, screen_vector.xyz)
-
-        dot.position = point_of_intersection
-        dot.should_render = True
-        '''
-
         axis.should_render = True
-
-
-def change_highlighted_object(entity: Entity):
-    global selected_object
-    if selected_object is not None:
-        selected_object.shader_program.set_value('highlightAmount', 0.0)
-    if entity is not None:
-        entity.shader_program.set_value('highlightAmount', 0.3)
-    selected_object = entity
-
-
-def select_entity(entity: Entity or None):
-    target_entity = entity
-    change_highlighted_object(target_entity)
-    create_object_gui(target_entity)
-
-
-def create_object_gui(entity: Entity):
-    # todo wrap and use advanced grid layout to get the x, y, z things all on one line
-    # https://nanogui.readthedocs.io/en/latest/api/class_nanogui__AdvancedGridLayout.html#class-nanogui-advancedgridlayout
-    global selected_gui
-    if selected_gui is not None:
-        selected_gui.dispose()
-        selected_gui = None
-    if entity is None:
-        return
-
-    helper = engine.FormHelper(game.gui)
-    new_gui = helper.add_window(640, 10, 'entity properties')
-
-    for key, item in entity.__dict__.items():
-        if key.startswith('_'):
-            continue
-        if isinstance(item, glm.vec3):
-            helper.add_group(key)
-            for i in range(3):
-                def setter(new_val, _old_val, i=i, item=item):  # the keyword args save the value (otherwise all
-                    item[i] = new_val                           # functions would use the last value in the loop)
-
-                def getter(i=i, key=key, entity=entity):
-                    return entity.__dict__[key][i]
-                letter = ['x', 'y', 'z'][i]
-                helper.add_variable(letter, float, setter=setter, getter=getter)
-
-        elif isinstance(item, (int, float, bool, str)):
-            helper.add_group(key)
-
-            def setter(new_val, _old_val, key=key, entity=entity):
-                entity.__dict__[key] = new_val
-
-            def getter(key=key, entity=entity):
-                return entity.__dict__[key]
-            helper.add_variable(key, type(item), setter=setter, getter=getter)
-
-        elif isinstance(item, (glm.mat4, glm.quat)):
-            pass
-        else:
-            print('warning: unknown variable type {}'.format(type(item)))
-
-    selected_gui = new_gui
-    game.gui.update_layout()
-    new_gui.set_position(game.width - new_gui.width - 10, 10)
-
-    global property_window_helper
-    property_window_helper = helper
 
 
 # variables altered by the gui
@@ -167,9 +128,6 @@ box_speed = 0
 gravity_enabled = False
 bounce_enabled = False
 draw_dots = False
-selected_object = None
-selected_gui = None
-property_window_helper = None
 dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1), should_render=False)
 
 # create the gui
@@ -191,7 +149,7 @@ game.gui.update_layout()
 
 # @@@@@
 # callbacks
-def custom_key_callback(game, key, _scancode, action, _mods):
+def custom_key_callback(key, _scancode, action, _mods, game=game):
     if action != engine.KEY_PRESS:
         return
 
@@ -204,25 +162,15 @@ def custom_key_callback(game, key, _scancode, action, _mods):
     if key == engine.KEY_C:
         game.set_cursor_capture('normal')
     if key == engine.KEY_ESCAPE:
-        select_entity(None)
+        game.select_entity(None)
 
 
-def on_click(game, button, action, *_args, **_kwargs):
-    if not (button == engine.MOUSE_LEFT and action == engine.MOUSE_PRESS):
-        return
-
-    entity = util.get_entity_at_pos(game, *game.cursor_location)
-    if entity not in axes:  # todo have separate logic for this kind of thing. Maybe entity.on_click_in_editor()
-        select_entity(entity)
-
-
-def on_resize(game, *args):
+def on_resize(*_args, game=game):
     game.projection = glm.perspective(glm.radians(75), game.width / game.height, 0.01, 100)
 
 
-game.resize_callback = on_resize
-game.key_callback = custom_key_callback
-game.mouse_button_callback = on_click
+game.add_callback('on_resize', on_resize)
+game.add_callback('on_key_press', custom_key_callback)
 
 # @@@@@
 # create crates
@@ -235,8 +183,11 @@ floor_crate = game.create_entity(**crate_attributes, position=glm.vec3(0, -10, 0
 
 # axes crates
 crate_attributes['vert_path'] = 'shaders/axes.vert'
+unit_vectors = [glm.vec4(1, 0, 0, 0), glm.vec4(0, 1, 0, 0), glm.vec4(0, 0, 1, 0)]
+
 axes = [
-    game.create_entity(**crate_attributes, should_render=False) for _ in range(3)
+    game.create_entity(**crate_attributes, should_render=False, entity_class=Axis, game=game,
+                       unit_vector=unit_vector) for unit_vector in unit_vectors
 ]
 
 
@@ -279,20 +230,22 @@ def do_gravity(delta_t):
                 # don't
                 entity.position -= entity.velocity * delta_t
                 entity.velocity = glm.vec3(0, 0, 0)
-                if entity is selected_object:
+                if entity is game.selected_object:
                     entity.shader_program.set_value('highlightAmount', 0.6)
                 break
         else:
-            if entity is selected_object:
-                selected_object.shader_program.set_value('highlightAmount', 0.3)
+            if entity is game.selected_object:
+                game.selected_object.shader_program.set_value('highlightAmount', 0.3)
 
-    if property_window_helper is not None:
-        property_window_helper.refresh()
+    try:
+        game.property_window_helper.refresh()
+    except AttributeError:
+        pass
 
 
 def on_frame_draw_axes(*_args):
-    if selected_object is not None:
-        draw_axes(selected_object)
+    if game.selected_object is not None:
+        draw_axes(game.selected_object)
 
 
 game.add_callback('on_frame', spin_crates)

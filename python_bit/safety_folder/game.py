@@ -3,6 +3,7 @@ import itertools
 import time
 from collections import defaultdict
 from functools import wraps
+from typing import Tuple
 
 import engine
 
@@ -91,12 +92,20 @@ class Game(engine.Window):
         self.background_colour = background_colour or (0.3, 0.5, 0.8, 1)
         self.projection = projection or glm.perspective(glm.radians(75), self.width / self.height, 0.1, 100)
 
+        self._set_default_callbacks({'on_cursor_pos_update': 'cursor_pos_callback',
+                                     ('on_mouse_button_press', 'on_click'): 'mouse_button_callback',
+                                     'on_key_press': 'key_callback',
+                                     'on_char': 'char_callback',
+                                     'on_file_drop': 'drop_file_callback',
+                                     'on_scroll': 'scroll_callback',
+                                     'on_resize': 'resize_callback'})
+
     def add_entity(self, entity):
         self.entities.append(entity)
 
     @wraps(Entity)
-    def create_entity(self, *args, **kwargs):
-        new_entity = Entity(*args, **kwargs)
+    def create_entity(self, *args, entity_class=Entity, **kwargs):
+        new_entity = entity_class(*args, **kwargs)
         self.add_entity(new_entity)
         return new_entity
 
@@ -110,13 +119,27 @@ class Game(engine.Window):
             entity.shader_program.set_value("transformMat", transformation_matrix)
             entity.draw()
 
-    def dispatch(self, name, *args):
-        funcs = self.dispatches.get(name, [])
-        for func in funcs:
-            func(*args)
+    def dispatch(self, names: str or Tuple[str], *args):
+        # if the input isn't a tuple, make it one so we can iterate over it
+        if isinstance(names, str):
+            names = (names,)
+
+        for name in names:
+            funcs = self.dispatches.get(name, [])
+            for func in funcs:
+                func(*args)
 
     def add_callback(self, name, func):
         self.dispatches[name].append(func)
+
+    def _set_default_callbacks(self, events):
+        """sets the default callbacks for events, given a dict in the format
+            {'on_x': 'x_callback', ...}, where on_x is the dispatch name and x_callback is the attribute
+        """
+        for name, event in events.items():
+            def dispatch_event(*args, _name=name):
+                self.dispatch(_name, *args[1:])  # these callbacks have the first arg be `self`, so ignore that
+            setattr(self, event, dispatch_event)
 
     def run(self, print_fps=False):
         frame_count = 0
@@ -143,8 +166,8 @@ class Game(engine.Window):
             # fps printer
             if print_fps:
                 frame_count += 1
-                if frame_count > 2**8:
+                if frame_count > 2**12:
                     duration = time.time() - time_since_last_fps_print
-                    print("current fps:", round(2**8/duration))
+                    print("current fps:", round(2**12/duration))
                     time_since_last_fps_print = time.time()
                     frame_count = 0

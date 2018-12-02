@@ -88,3 +88,27 @@ def solve_simultaneous(point1, vec1, point2, vec2):
     if glm.dot(glm.cross(vec2, (point2 - point1)), glm.cross(vec2, vec1)) > 0:
         return point1 + k
     return point1 - k
+
+
+def to_ndc(game, x, y):
+    return ((x / game.width) - 0.5) * 2, ((y / game.height) - 0.5) * -2
+
+
+def get_point_closest_to_cursor(game, position, vector, cursor_pos=None):
+    """projects a line from the cursor into the world and returns the point of intersection
+       with another line in world space.
+       created for the draggable local axes in the editor
+       """
+    if cursor_pos is None:
+        cursor_pos = game.cursor_location_ndc
+    else:
+        cursor_pos = to_ndc(game, *cursor_pos)
+
+    screen_vector, pos_in_world_space = get_world_space_vector(game, cursor_pos)
+    point_of_intersection = solve_simultaneous(position, vector,
+                                               game.camera.position, screen_vector.xyz)
+    return point_of_intersection
+
+
+def is_clickable(entity):
+    return not (hasattr(entity, 'clickable') and entity.clickable is False)
