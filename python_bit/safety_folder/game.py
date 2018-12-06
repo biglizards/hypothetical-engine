@@ -20,7 +20,7 @@ class Entity(engine.Drawable):
                  should_render=True):
         super().__init__(data, indices, data_format, vert_path, frag_path, geo_path)
 
-        for i, (texture, texture_name) in enumerate(textures):
+        for i, (texture, texture_name) in enumerate(textures):  # todo raise error if too many textures (either 8 or 16)
             if isinstance(texture, str):
                 texture = engine.Texture(texture)
             self.shader_program.add_texture(texture, texture_name, i)
@@ -90,7 +90,7 @@ class Game(engine.Window):
 
         self.camera = camera or Camera(self)
         self.background_colour = background_colour or (0.3, 0.5, 0.8, 1)
-        self.projection = projection or glm.perspective(glm.radians(75), self.width / self.height, 0.1, 100)
+        self.projection = projection or glm.perspective(glm.radians(75), self.width / self.height, 0.1, 1000)
 
         self._set_default_callbacks({'on_cursor_pos_update': 'cursor_pos_callback',
                                      ('on_mouse_button_press', 'on_click'): 'mouse_button_callback',
