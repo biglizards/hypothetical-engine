@@ -134,6 +134,8 @@ cdef extern from *:
 
     # engine constants
     unsigned int GL_TRIANGLES
+    unsigned int GL_POINTS
+    unsigned int GL_LINES
 
     # misc constants
     unsigned int GL_UNSIGNED_INT
@@ -153,3 +155,6 @@ cdef extern from *:
 
 # python accessible constants
 RGBA = GL_RGBA
+TRIANGLES = GL_TRIANGLES
+POINTS = GL_POINTS
+LINES = GL_LINES

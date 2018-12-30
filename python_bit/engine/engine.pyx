@@ -38,7 +38,7 @@ cdef class Drawable:
     """
     A drawable thing has
      - a shader program
-     - a model
+     - a model (which consists of multiple meshes?)
      - textures
     This was originally meant to be a base class for stuff which could be drawn,
     but it became generic enough that i don't even need subclasses.
@@ -65,16 +65,16 @@ cdef class Drawable:
         self.model.buffer_packed_data(data, data_format, indices)
 
 
-    cpdef draw(self):
+    cpdef draw(self, unsigned int mode=GL_TRIANGLES):
         if not self.model:
             raise RuntimeError('Drawable was not properly init! Was super() called?')
         self.model.bind()
         self.shader_program.use()
         self.shader_program.bind_textures()
         if self.indexed:
-            glDrawElements(GL_TRIANGLES, self.no_of_indices, GL_UNSIGNED_INT, NULL)
+            glDrawElements(mode, self.no_of_indices, GL_UNSIGNED_INT, NULL)
         else:
-            glDrawArrays(GL_TRIANGLES, 0, self.no_of_indices)
+            glDrawArrays(mode, 0, self.no_of_indices)
 
 
 cpdef set_gui_callbacks(Gui gui, Window window):

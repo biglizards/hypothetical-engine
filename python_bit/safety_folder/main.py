@@ -1,11 +1,13 @@
 import glm
+import random
+
 import engine
 
 import script
 import util
 from cube import data
-from game import Entity
 from editor import Editor, Drag
+from game import Entity
 from physics import two_cubes_intersect
 import scripts.keys
 
@@ -17,9 +19,20 @@ class CustomEditor(Editor, Drag, script.ScriptGame):
 class Axis(Entity):
     clickable = False
 
+<<<<<<< HEAD
     def __init__(self, *args,  unit_vector, **kwargs):
         super().__init__(*args, **kwargs)
+=======
+    def __init__(self, *args, game, unit_vector, data, **kwargs):
+        # awful hack to set the origin in the right place, todo fix
+        index = int(glm.length(glm.vec4(0, 1, 2, 1) * unit_vector))
+        data = [d + (0.5 if i % 5 == index else 0) for i, d in enumerate(data)]
+
+        super().__init__(*args, data, **kwargs)
+        self.game = game
+>>>>>>> aa0427a7417c78cbecb9819fed41e3c500b94425
         self.unit_vector = unit_vector
+        self.scalar = glm.vec3(0.10, 0.10, 0.10) + (unit_vector.xyz * 0.9)
         self.parent = None
         self.offset = None
         self.parent_start_pos = None
@@ -28,11 +41,18 @@ class Axis(Entity):
         game.add_callback('on_drag_update', self.move_axis)
         game.add_callback('on_click_entity', self.set_drag_start_pos)
         game.add_callback('on_drag', self.reset_variables)  # once the drag finishes, reset everything to none
+        game.add_callback('before_frame', self.update_variables)
 
     def reset_variables(self, *_args):
         self.offset = None
         self.parent_start_pos = None
         self.is_dragging = False
+
+    def update_variables(self, *_args):
+        if self.parent is not None:
+            self.position = self.parent.position
+            self.orientation = self.parent.orientation
+            self.should_render = True
 
     def set_drag_start_pos(self, entity):
         if entity is self:
@@ -60,30 +80,6 @@ class Axis(Entity):
 
 game = CustomEditor()
 
-# create cube data/attributes
-cube_positions = [
-    glm.vec3(0.0, 0.0, 0.0),
-    # glm.vec3(0.1, 0.1, 0.1),
-    glm.vec3(2.0, 5.0, -15.0),
-    glm.vec3(-1.5, -2.2, -2.33),
-    glm.vec3(-3.8, -2.0, -12.3),
-    glm.vec3(2.4, -0.4, -3.5),
-    glm.vec3(-1.7, 3.0, -7.5),
-    glm.vec3(1.3, -2.0, -2.3),
-    glm.vec3(1.5, 2.0, -2.6),
-    glm.vec3(1.5, 0.2, -1.4),
-    glm.vec3(-1.3, 1.0, -1.7)
-]
-
-# for x in range(15):
-#     cube_positions.append(glm.vec3((random.random()-0.5)*40, (random.random()-0.5)*40, (random.random()-0.5)*40))
-
-crate_attributes = {
-    'data': data, 'indices': None, 'data_format': (3, 2),
-    'textures': [('resources/container.jpg', 'container'), ('resources/duck.png', 'face')],
-    'vert_path': 'shaders/perspective.vert', 'frag_path': 'shaders/highlight.frag'
-}
-
 
 # @@@@@
 # gui
@@ -106,29 +102,11 @@ def draw_dots_on_corners(*_args):
             dot.draw()
 
 
-def draw_axes(entity: Entity):  # as in, the plural of axis
-    w = (entity.set_transform_matrix(game) * glm.vec4(0, 0, 0, 1)).w * 0.3
-    world_axes = [glm.vec3(1, 0, 0), glm.vec3(0, 1, 0), glm.vec3(0, 0, 1)]
-
-    for world_axis, vector, axis in zip(world_axes, entity.local_unit_vectors(), axes):
-        vector = glm.normalize(vector)
-        axis.scalar = glm.vec3(0.10, 0.10, 0.10) + world_axis  # make the axis the right shape
-
-        # calculate the length of the axis
-        axis.position = entity.position
-        thing = (axis.generate_model() * glm.vec4(w * vector, 1)) - glm.vec4(entity.position, 0)
-        length = glm.length(thing.xyz)
-        axis.position = entity.position + (0.5 * vector * entity.scalar) + (0.5 * length * vector)
-        axis.orientation = entity.orientation
-        axis.should_render = True
-
-
 # variables altered by the gui
 box_speed = 0
 gravity_enabled = False
 bounce_enabled = False
 draw_dots = False
-dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1), should_render=False)
 
 # create the gui
 helper = engine.FormHelper(game.gui)
@@ -160,6 +138,28 @@ game.add_global_script(scripts.keys.CustomKeyPresses)
 
 # @@@@@
 # create crates
+cube_positions = [
+    glm.vec3(0.0, 0.0, 0.0),
+    # glm.vec3(0.1, 0.1, 0.1),
+    glm.vec3(2.0, 5.0, -15.0),
+    glm.vec3(-1.5, -2.2, -2.33),
+    glm.vec3(-3.8, -2.0, -12.3),
+    glm.vec3(2.4, -0.4, -3.5),
+    glm.vec3(-1.7, 3.0, -7.5),
+    glm.vec3(1.3, -2.0, -2.3),
+    glm.vec3(1.5, 2.0, -2.6),
+    glm.vec3(1.5, 0.2, -1.4),
+    glm.vec3(-1.3, 1.0, -1.7)
+]
+crate_attributes = {
+    'data': data, 'indices': None, 'data_format': (3, 2),
+    'textures': [('resources/container.jpg', 'container'), ('resources/duck.png', 'face')],
+    'vert_path': 'shaders/perspective.vert', 'frag_path': 'shaders/highlight.frag'
+}
+
+# for x in range(200):
+#     cube_positions.append(glm.vec3((random.random()-0.5)*400, (random.random()-0.5)*400, (random.random()-0.5)*400))
+
 crates = []
 for pos in cube_positions:
     crate = game.create_entity(**crate_attributes, position=pos, do_gravity=True, do_collisions=True)
@@ -175,6 +175,9 @@ axes = [
     game.create_entity(**crate_attributes, should_render=False, entity_class=Axis,
                        unit_vector=unit_vector) for unit_vector in unit_vectors
 ]
+
+dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1), should_render=False)
+
 
 
 # @@@@@
@@ -229,14 +232,8 @@ def do_gravity(delta_t):
         pass
 
 
-def on_frame_draw_axes(*_args):
-    if game.selected_object is not None:
-        draw_axes(game.selected_object)
-
-
 game.add_callback('on_frame', spin_crates)
 game.add_callback('on_frame', do_gravity)
 game.add_callback('on_frame', draw_dots_on_corners)
-game.add_callback('before_frame', on_frame_draw_axes)
 
 game.run(True)
