@@ -19,18 +19,13 @@ class CustomEditor(Editor, Drag, script.ScriptGame):
 class Axis(Entity):
     clickable = False
 
-<<<<<<< HEAD
-    def __init__(self, *args,  unit_vector, **kwargs):
-        super().__init__(*args, **kwargs)
-=======
-    def __init__(self, *args, game, unit_vector, data, **kwargs):
+    def __init__(self, *args, game, data, unit_vector, **kwargs):
         # awful hack to set the origin in the right place, todo fix
         index = int(glm.length(glm.vec4(0, 1, 2, 1) * unit_vector))
         data = [d + (0.5 if i % 5 == index else 0) for i, d in enumerate(data)]
 
-        super().__init__(*args, data, **kwargs)
+        super().__init__(*args, game, data, **kwargs)
         self.game = game
->>>>>>> aa0427a7417c78cbecb9819fed41e3c500b94425
         self.unit_vector = unit_vector
         self.scalar = glm.vec3(0.10, 0.10, 0.10) + (unit_vector.xyz * 0.9)
         self.parent = None
