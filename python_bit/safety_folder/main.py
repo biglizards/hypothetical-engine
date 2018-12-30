@@ -1,24 +1,24 @@
 import glm
 import engine
 
+import script
 import util
 from cube import data
 from game import Entity
 from editor import Editor, Drag
 from physics import two_cubes_intersect
+import scripts.keys
 
 
-class CustomEditor(Editor, Drag):
+class CustomEditor(Editor, Drag, script.ScriptGame):
     pass
 
 
 class Axis(Entity):
-    parent: Entity
     clickable = False
 
-    def __init__(self, *args, game,  unit_vector, **kwargs):
+    def __init__(self, *args,  unit_vector, **kwargs):
         super().__init__(*args, **kwargs)
-        self.game = game
         self.unit_vector = unit_vector
         self.parent = None
         self.offset = None
@@ -149,28 +149,14 @@ game.gui.update_layout()
 
 # @@@@@
 # callbacks
-def custom_key_callback(key, _scancode, action, _mods, game=game):
-    if action != engine.KEY_PRESS:
-        return
-
-    if key == engine.KEY_Z:
-        game.close()
-    if key == engine.KEY_X:
-        game.set_cursor_capture('disabled')
-        game.camera.first_frame = True  # prevent the camera from jumping when switching between
-        # normal and disabled without moving the mouse
-    if key == engine.KEY_C:
-        game.set_cursor_capture('normal')
-    if key == engine.KEY_ESCAPE:
-        game.select_entity(None)
-
-
+# todo make this standard (but overridable/configurable ofc)
 def on_resize(*_args, game=game):
     game.projection = glm.perspective(glm.radians(75), game.width / game.height, 0.01, 100)
 
 
 game.add_callback('on_resize', on_resize)
-game.add_callback('on_key_press', custom_key_callback)
+game.add_global_script(scripts.keys.CustomKeyPresses)
+game.add_global_script(scripts.keys.CustomKeyPresses)
 
 # @@@@@
 # create crates
@@ -186,7 +172,7 @@ crate_attributes['vert_path'] = 'shaders/axes.vert'
 unit_vectors = [glm.vec4(1, 0, 0, 0), glm.vec4(0, 1, 0, 0), glm.vec4(0, 0, 1, 0)]
 
 axes = [
-    game.create_entity(**crate_attributes, should_render=False, entity_class=Axis, game=game,
+    game.create_entity(**crate_attributes, should_render=False, entity_class=Axis,
                        unit_vector=unit_vector) for unit_vector in unit_vectors
 ]
 
