@@ -15,9 +15,9 @@ from util import multiply_vec3
 
 
 class Entity(engine.Drawable):
-    def __init__(self, data, indices, data_format, textures, vert_path, frag_path, geo_path=None, position=None,
+    def __init__(self, game, data, indices, data_format, textures, vert_path, frag_path, geo_path=None, position=None,
                  orientation=None, scalar=None, velocity=None, do_gravity=False, do_collisions=False,
-                 should_render=True):
+                 should_render=True, scripts=None):
         super().__init__(data, indices, data_format, vert_path, frag_path, geo_path)
 
         for i, (texture, texture_name) in enumerate(textures):
@@ -25,6 +25,7 @@ class Entity(engine.Drawable):
                 texture = engine.Texture(texture)
             self.shader_program.add_texture(texture, texture_name, i)
 
+        self.game = game
         self.position = position if position is not None else glm.vec3(0, 0, 0)
         self.orientation = orientation if orientation is not None else glm.quat(1, 0, 0, 0)
         self.scalar = scalar or glm.vec3(1, 1, 1)
@@ -34,6 +35,10 @@ class Entity(engine.Drawable):
         self.model = None
         self._ignore_this = 34
         self.should_render = should_render
+
+        if scripts is None:
+            scripts = []
+        self.scripts = [script(parent=self, game=game) for script in scripts]
 
         self._click_shader = engine.ShaderProgram(vert_path, 'shaders/clickHack.frag')
 
@@ -49,8 +54,8 @@ class Entity(engine.Drawable):
         return model
 
     def set_transform_matrix(self, game):
-        """this is especially the "prepare your shaders" function, so if the vertex shaders change,
-        (eg the transformMat is renamed to mvp) then this function can be updated accordingly.
+        """this is essentially the "prepare your shaders" function, so if the vertex shaders change,
+        (eg the transformMat is renamed to mvp, etc) then this function can be updated accordingly.
         A user would only need to care about this if they were modifying shaders"""
         projection_times_view = game.projection * game.camera.view_matrix()
         transformation_matrix = projection_times_view * self.generate_model()
@@ -105,7 +110,7 @@ class Game(engine.Window):
 
     @wraps(Entity)
     def create_entity(self, *args, entity_class=Entity, **kwargs):
-        new_entity = entity_class(*args, **kwargs)
+        new_entity = entity_class(game=self, *args, **kwargs)
         self.add_entity(new_entity)
         return new_entity
 
@@ -166,8 +171,8 @@ class Game(engine.Window):
             # fps printer
             if print_fps:
                 frame_count += 1
-                if frame_count > 2**12:
+                if frame_count > 2**8:
                     duration = time.time() - time_since_last_fps_print
-                    print("current fps:", round(2**12/duration))
+                    print("current fps:", round(2**8/duration))
                     time_since_last_fps_print = time.time()
                     frame_count = 0
