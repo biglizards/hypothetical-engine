@@ -20,7 +20,7 @@ class Entity(engine.Drawable):
                  should_render=True, scripts=None):
         super().__init__(data, indices, data_format, vert_path, frag_path, geo_path)
 
-        for i, (texture, texture_name) in enumerate(textures):
+        for i, (texture, texture_name) in enumerate(textures):  # todo raise error if too many textures (either 8 or 16)
             if isinstance(texture, str):
                 texture = engine.Texture(texture)
             self.shader_program.add_texture(texture, texture_name, i)
@@ -95,7 +95,7 @@ class Game(engine.Window):
 
         self.camera = camera or Camera(self)
         self.background_colour = background_colour or (0.3, 0.5, 0.8, 1)
-        self.projection = projection or glm.perspective(glm.radians(75), self.width / self.height, 0.1, 100)
+        self.projection = projection or glm.perspective(glm.radians(75), self.width / self.height, 0.1, 1000)
 
         self._set_default_callbacks({'on_cursor_pos_update': 'cursor_pos_callback',
                                      ('on_mouse_button_press', 'on_click'): 'mouse_button_callback',
@@ -152,8 +152,9 @@ class Game(engine.Window):
         last_frame_time = time.time()
 
         while not self.should_close():
-            delta_t = (time.time() - last_frame_time) % 0.1  # if the game freezes, just ignore it
-            last_frame_time = time.time()
+            time_time = time.time()
+            delta_t = (time_time - last_frame_time) % 0.1  # if the game freezes, just ignore it
+            last_frame_time = time_time
 
             # draw everything
             self.clear_colour(*self.background_colour)
@@ -171,8 +172,8 @@ class Game(engine.Window):
             # fps printer
             if print_fps:
                 frame_count += 1
-                if frame_count > 2**8:
-                    duration = time.time() - time_since_last_fps_print
-                    print("current fps:", round(2**8/duration))
-                    time_since_last_fps_print = time.time()
+                if time_time > time_since_last_fps_print + 5:
+                    duration = time_time - time_since_last_fps_print
+                    print("current fps:", round(frame_count/duration))
+                    time_since_last_fps_print = time_time
                     frame_count = 0

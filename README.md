@@ -11,3 +11,4 @@ if you aren't me (or even if you are), feel free to ask me how it works, but if 
 - you need a static build of nanogui on windows (but not in linux?). 
   i have no idea why this happens.
 - terry the cockroach (pretty cool dude)
+- on my pc moving the mouse causes lag, but not when it's captured
