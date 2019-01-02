@@ -58,5 +58,5 @@ def gen_corners_from_min_max(a, b):
             (a[0], b[1], b[2]), (b[0], b[1], b[2]))
 
 
-def gen_corners(model):
-    return gen_corners_from_min_max(multiply_vec3(corner_min, model), multiply_vec3(corner_max, model))
+def gen_corners(model_mat):
+    return gen_corners_from_min_max(multiply_vec3(corner_min, model_mat), multiply_vec3(corner_max, model_mat))
