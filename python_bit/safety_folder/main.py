@@ -20,8 +20,10 @@ class Axis(Entity):
     clickable = False
 
     def __init__(self, *args, game, data, unit_vector, **kwargs):
-        # awful hack to set the origin in the right place, todo fix
+        # awful hack to set the origin in the right place, todo remove when you add model loading
+        # convert the unit vector into an index (ie x: 0, y:1, z:2)
         index = int(glm.length(glm.vec4(0, 1, 2, 1) * unit_vector))
+        # mutate the data so the origin of the object is in the centre.
         data = [d + (0.5 if i % 5 == index else 0) for i, d in enumerate(data)]
 
         super().__init__(*args, game, data, **kwargs)
@@ -62,7 +64,7 @@ class Axis(Entity):
             self.should_render = False
 
     def vector(self):
-        return glm.normalize(glm.vec3(self.parent.model * self.unit_vector))
+        return glm.normalize(glm.vec3(self.parent.model_mat * self.unit_vector))
 
     def move_axis(self, *mouse_pos):
         if not self.is_dragging:
@@ -92,7 +94,7 @@ def draw_dots_on_corners(*_args):
         corners = box.get_corners()
         for corner in corners:
             dot.position = corner
-            transformation_matrix = proj_times_view * dot.generate_model()
+            transformation_matrix = proj_times_view * dot.generate_model_mat()
             dot.shader_program.set_value('transformMat', transformation_matrix)
             dot.draw()
 
@@ -118,18 +120,6 @@ helper.add_variable('draw dots', bool, linked_var='draw_dots')
 helper.add_button('reset', reset_camera)
 
 game.gui.update_layout()
-
-
-# @@@@@
-# callbacks
-# todo make this standard (but overridable/configurable ofc)
-def on_resize(*_args, game=game):
-    game.projection = glm.perspective(glm.radians(75), game.width / game.height, 0.01, 100)
-
-
-game.add_callback('on_resize', on_resize)
-game.add_global_script(scripts.keys.CustomKeyPresses)
-game.add_global_script(scripts.keys.CustomKeyPresses)
 
 # @@@@@
 # create crates
@@ -172,7 +162,6 @@ axes = [
 ]
 
 dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1), should_render=False)
-
 
 
 # @@@@@
@@ -230,5 +219,9 @@ def do_gravity(delta_t):
 game.add_callback('on_frame', spin_crates)
 game.add_callback('on_frame', do_gravity)
 game.add_callback('on_frame', draw_dots_on_corners)
+
+game.add_global_script(scripts.keys.CustomKeyPresses)
+
+print(game.resize_callback)
 
 game.run(True)

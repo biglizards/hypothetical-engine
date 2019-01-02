@@ -6,9 +6,9 @@ import cube
 
 
 def generate_aabb(entity: Entity):
-    model = entity.generate_model(ignore_orientation=True)
-    aabb_min = model * glm.vec4(cube.aabb_min, 1)
-    aabb_max = model * glm.vec4(cube.aabb_max, 1)
+    model_mat = entity.generate_model_mat(ignore_orientation=True)
+    aabb_min = model_mat * glm.vec4(cube.aabb_min, 1)
+    aabb_max = model_mat * glm.vec4(cube.aabb_max, 1)
     return aabb_min, aabb_max
 
 
@@ -25,10 +25,10 @@ def two_cubes_intersect(cube1, cube2):
         return False
     corners1 = cube1.get_corners()
     corners2 = cube2.get_corners()
-    return unaligned_intersect(corners1, cube1.model, corners2, cube2.model)
+    return unaligned_intersect(corners1, cube1.model_mat, corners2, cube2.model_mat)
 
 
-def unaligned_intersect(corners1, model1, corners2, model2):
+def unaligned_intersect(corners1, model_mat1, corners2, model_mat2):
     """ adapted from explanation at
     https://gamedev.stackexchange.com/questions/44500/how-many-and-which-axes-to-use-for-3d-obb-collision-with-sat
     According to that, this is sufficient to show they do (or don't) intersect
@@ -38,8 +38,8 @@ def unaligned_intersect(corners1, model1, corners2, model2):
     k_vector = glm.vec4(0, 0, 1, 0)
     unit_vectors = (i_vector, j_vector, k_vector)
 
-    local_vectors_1 = [glm.vec3(model1 * unit_vector) for unit_vector in unit_vectors]
-    local_vectors_2 = [glm.vec3(model2 * unit_vector) for unit_vector in unit_vectors]
+    local_vectors_1 = [glm.vec3(model_mat1 * unit_vector) for unit_vector in unit_vectors]
+    local_vectors_2 = [glm.vec3(model_mat2 * unit_vector) for unit_vector in unit_vectors]
 
     # generate all local unit vectors
     for axis in itertools.chain(local_vectors_1, local_vectors_2):

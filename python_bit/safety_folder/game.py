@@ -32,7 +32,7 @@ class Entity(engine.Drawable):
         self.velocity = velocity or glm.vec3(0, 0, 0)
         self.do_gravity = do_gravity
         self.do_collisions = do_collisions
-        self.model = None
+        self.model_mat = None
         self._ignore_this = 34
         self.should_render = should_render
 
@@ -42,23 +42,23 @@ class Entity(engine.Drawable):
 
         self._click_shader = engine.ShaderProgram(vert_path, 'shaders/clickHack.frag')
 
-    def generate_model(self, ignore_orientation=False, store_model=True):
+    def generate_model_mat(self, ignore_orientation=False, store_model_mat=True):
         """generates and returns the model matrix for this entity, and by default caches it (for the physics engine)"""
-        model = glm.translate(glm.mat4(1), self.position)
+        model_mat = glm.translate(glm.mat4(1), self.position)
         if not (self.orientation == glm.quat(1, 0, 0, 0) or ignore_orientation):
-            model = model * glm.mat4_cast(self.orientation)  # rotate by orientation
+            model_mat = model_mat * glm.mat4_cast(self.orientation)  # rotate by orientation
         if self.scalar != glm.vec3(1, 1, 1):
-            model = glm.scale(model, self.scalar)
-        if store_model:
-            self.model = model
-        return model
+            model_mat = glm.scale(model_mat, self.scalar)
+        if store_model_mat:
+            self.model_mat = model_mat
+        return model_mat
 
     def set_transform_matrix(self, game):
         """this is essentially the "prepare your shaders" function, so if the vertex shaders change,
         (eg the transformMat is renamed to mvp, etc) then this function can be updated accordingly.
         A user would only need to care about this if they were modifying shaders"""
         projection_times_view = game.projection * game.camera.view_matrix()
-        transformation_matrix = projection_times_view * self.generate_model()
+        transformation_matrix = projection_times_view * self.generate_model_mat()
         self.shader_program.set_value("transformMat", transformation_matrix)
         return transformation_matrix
 
@@ -69,7 +69,7 @@ class Entity(engine.Drawable):
         #  - this can also be pre-calculated
 
         # generate two opposite corners
-        corner = multiply_vec3(glm.vec3(-.5, -.5, -.5), self.model)
+        corner = multiply_vec3(glm.vec3(-.5, -.5, -.5), self.model_mat)
         # generate the local unit vectors (note: these vectors may not be normalised, but that's fine)
         unit_vectors = self.local_unit_vectors()
         corners = []
@@ -84,26 +84,32 @@ class Entity(engine.Drawable):
         k_vector = glm.vec4(0, 0, 1, 0)
         unit_vectors = (i_vector, j_vector, k_vector)
 
-        return [glm.vec3(self.model * unit_vector) for unit_vector in unit_vectors]
+        return [glm.vec3(self.model_mat * unit_vector) for unit_vector in unit_vectors]
 
 
 class Game(engine.Window):
-    def __init__(self, *args, camera=None, background_colour=None, projection=None, **kwargs):
+    def __init__(self, *args, camera=None, background_colour=None, projection=None, fov=75, near=0.1, far=100,
+                 **kwargs):
         super().__init__(*args, **kwargs)
         self.entities = []
         self.dispatches = defaultdict(list)
 
         self.camera = camera or Camera(self)
         self.background_colour = background_colour or (0.3, 0.5, 0.8, 1)
-        self.projection = projection or glm.perspective(glm.radians(75), self.width / self.height, 0.1, 1000)
+        self.projection = projection or glm.perspective(glm.radians(fov), self.width / self.height, near, far)
+        self.near, self.far, self.fov = near, far, fov  # todo set these to properties that update self.projection
 
+        self.resize_callback = self._resize_callback  # for some reason, this is needed. Dont ask.
+
+        # engine.Window provides the callbacks
         self._set_default_callbacks({'on_cursor_pos_update': 'cursor_pos_callback',
                                      ('on_mouse_button_press', 'on_click'): 'mouse_button_callback',
                                      'on_key_press': 'key_callback',
                                      'on_char': 'char_callback',
                                      'on_file_drop': 'drop_file_callback',
                                      'on_scroll': 'scroll_callback',
-                                     'on_resize': 'resize_callback'})
+                                     # 'on_resize': 'resize_callback',  # replaced manually
+                                     })
 
     def add_entity(self, entity):
         self.entities.append(entity)
@@ -120,7 +126,7 @@ class Game(engine.Window):
         for entity in self.entities:
             if not entity.should_render:
                 continue
-            transformation_matrix = proj_times_view * entity.generate_model()
+            transformation_matrix = proj_times_view * entity.generate_model_mat()
             entity.shader_program.set_value("transformMat", transformation_matrix)
             entity.draw()
 
@@ -145,6 +151,10 @@ class Game(engine.Window):
             def dispatch_event(*args, _name=name):
                 self.dispatch(_name, *args[1:])  # these callbacks have the first arg be `self`, so ignore that
             setattr(self, event, dispatch_event)
+
+    def _resize_callback(self, *args):
+        self.projection = glm.perspective(glm.radians(self.fov), self.width / self.height, self.near, self.far)
+        self.dispatch('on_resize', *args[1:])
 
     def run(self, print_fps=False):
         frame_count = 0

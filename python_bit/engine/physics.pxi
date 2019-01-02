@@ -16,8 +16,8 @@ cpdef gen_corners_from_min_max(a, b):
             (a[0], b[1], b[2]), (b[0], b[1], b[2]))
 
 
-cpdef gen_corners(model):
-    return gen_corners_from_min_max(multiply_vec3(corner_min, model), multiply_vec3(corner_max, model))
+cpdef gen_corners(model_mat):
+    return gen_corners_from_min_max(multiply_vec3(corner_min, model_mat), multiply_vec3(corner_max, model_mat))
 
 
 cpdef multiply_vec3(vec, mat):
@@ -27,12 +27,12 @@ cpdef multiply_vec3(vec, mat):
 cpdef bint two_cubes_intersect(cube1, cube2):
     if glm.length(cube1.position - cube2.position) > 6:  # obtained by pythag, todo use bounding spheres
         return False
-    corners1 = gen_corners(cube1.model)
-    corners2 = gen_corners(cube2.model)
-    return unaligned_intersect(corners1, cube1.model, corners2, cube2.model)
+    corners1 = gen_corners(cube1.model_mat)
+    corners2 = gen_corners(cube2.model_mat)
+    return unaligned_intersect(corners1, cube1.model_mat, corners2, cube2.model_mat)
 
 
-cpdef bint unaligned_intersect(corners1, model1, corners2, model2):
+cpdef bint unaligned_intersect(corners1, model_mat1, corners2, model_mat2):
     """ adapted from explanation at
     https://gamedev.stackexchange.com/questions/44500/how-many-and-which-axes-to-use-for-3d-obb-collision-with-sat
     According to that, this is sufficient to show they do (or don't) intersect
@@ -42,8 +42,8 @@ cpdef bint unaligned_intersect(corners1, model1, corners2, model2):
     k_vector = glm.vec4(0, 0, 1, 0)
     unit_vectors = (i_vector, j_vector, k_vector)
 
-    local_vectors_1 = [glm.vec3(model1 * unit_vector) for unit_vector in unit_vectors]
-    local_vectors_2 = [glm.vec3(model2 * unit_vector) for unit_vector in unit_vectors]
+    local_vectors_1 = [glm.vec3(model_mat1 * unit_vector) for unit_vector in unit_vectors]
+    local_vectors_2 = [glm.vec3(model_mat2 * unit_vector) for unit_vector in unit_vectors]
 
     # generate all local unit vectors
     for axis in itertools.chain(local_vectors_1, local_vectors_2):
