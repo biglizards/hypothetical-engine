@@ -195,7 +195,7 @@ def do_gravity(delta_t):
 
         entity.velocity += gravity * delta_t
         entity.position += entity.velocity * delta_t
-        entity.set_transform_matrix(game)
+        entity.set_transform_matrix()
 
         for other_entity in game.entities:
             if other_entity is entity:
