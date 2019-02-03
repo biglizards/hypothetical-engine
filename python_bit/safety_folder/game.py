@@ -14,16 +14,17 @@ from camera import Camera
 from util import multiply_vec3
 
 
-class Entity(engine.Drawable):
-    def __init__(self, game, data, indices, data_format, textures, vert_path, frag_path, geo_path=None, position=None,
+class Entity(engine.Model):
+    def __init__(self, game, vert_path, frag_path, geo_path=None, meshes=None, model_path=None, position=None,
                  orientation=None, scalar=None, velocity=None, do_gravity=False, do_collisions=False,
                  should_render=True, scripts=None):
-        super().__init__(data, indices, data_format, vert_path, frag_path, geo_path)
 
-        for i, (texture, texture_name) in enumerate(textures):  # todo raise error if too many textures (either 8 or 16)
-            if isinstance(texture, str):
-                texture = engine.Texture(texture)
-            self.shader_program.add_texture(texture, texture_name, i)
+        if not (meshes is None) ^ (model_path is None):
+            raise RuntimeError("exactly one of 'meshes' and 'model_path' must be passed to Entity")
+        if meshes is None:
+            meshes = engine.load_model(model_path)
+
+        super().__init__(meshes, vert_path, frag_path, geo_path)
 
         self.game = game
         self.position = position if position is not None else glm.vec3(0, 0, 0)
@@ -85,6 +86,18 @@ class Entity(engine.Drawable):
         unit_vectors = (i_vector, j_vector, k_vector)
 
         return [glm.vec3(self.model_mat * unit_vector) for unit_vector in unit_vectors]
+
+
+class ManualEntity(Entity):
+    def __init__(self, game, data, indices, data_format, textures, *args, **kwargs):
+        mesh = engine.Mesh(data, data_format, indices)
+
+        for i, (texture, texture_name) in enumerate(textures):  # todo raise error if too many textures (either 8 or 16)
+            if isinstance(texture, str):
+                texture = engine.Texture(texture)
+            mesh.add_texture(texture, i)
+
+        super().__init__(game, meshes=[mesh], *args, **kwargs)
 
 
 class Game(engine.Window):

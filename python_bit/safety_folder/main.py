@@ -7,7 +7,7 @@ import script
 import util
 from cube import data
 from editor import Editor, Drag
-from game import Entity
+from game import ManualEntity
 from physics import two_cubes_intersect
 import scripts.keys
 
@@ -16,7 +16,7 @@ class CustomEditor(Editor, Drag, script.ScriptGame):
     pass
 
 
-class Axis(Entity):
+class Axis(ManualEntity):
     clickable = False
 
     def __init__(self, *args, game, data, unit_vector, **kwargs):
@@ -95,7 +95,7 @@ def draw_dots_on_corners(*_args):
         for corner in corners:
             dot.position = corner
             transformation_matrix = proj_times_view * dot.generate_model_mat()
-            dot.shader_program.set_value('transformMat', transformation_matrix)
+            dot.shader_program.set_trans_mat(transformation_matrix)
             dot.draw()
 
 
@@ -139,11 +139,11 @@ cube_positions = [
 crate_attributes = {
     'data': data, 'indices': None, 'data_format': (3, 2),
     'textures': [('resources/container.jpg', 'container'), ('resources/duck.png', 'face')],
-    'vert_path': 'shaders/perspective.vert', 'frag_path': 'shaders/highlight.frag'
+    'vert_path': 'shaders/perspective.vert', 'frag_path': 'shaders/highlight.frag', 'entity_class': ManualEntity
 }
 
-# for x in range(200):
-#     cube_positions.append(glm.vec3((random.random()-0.5)*400, (random.random()-0.5)*400, (random.random()-0.5)*400))
+# for x in range(1500):
+#     cube_positions.append(glm.vec3((-0.5)*40, (-0.5)*40, (-0.5)*40))
 
 crates = []
 for pos in cube_positions:
@@ -152,16 +152,17 @@ for pos in cube_positions:
 floor_crate = game.create_entity(**crate_attributes, position=glm.vec3(0, -10, 0), scalar=glm.vec3(10, 1, 10),
                                  do_gravity=False, do_collisions=True)
 
+dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1), should_render=False)
+
 # axes crates
 crate_attributes['vert_path'] = 'shaders/axes.vert'
+crate_attributes['entity_class'] = Axis
 unit_vectors = [glm.vec4(1, 0, 0, 0), glm.vec4(0, 1, 0, 0), glm.vec4(0, 0, 1, 0)]
 
 axes = [
-    game.create_entity(**crate_attributes, should_render=False, entity_class=Axis,
+    game.create_entity(**crate_attributes, should_render=False,
                        unit_vector=unit_vector) for unit_vector in unit_vectors
 ]
-
-dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1), should_render=False)
 
 
 # @@@@@
@@ -222,6 +223,7 @@ game.add_callback('on_frame', draw_dots_on_corners)
 
 game.add_global_script(scripts.keys.CustomKeyPresses)
 
-print(game.resize_callback)
+test_model = game.create_entity(model_path="/home/dave/git/LearnOpenGL/resources/objects/bc/Sketchfab_2017_02_12_14_36_10.obj",
+                   vert_path='shaders/fuckme.vert', frag_path='shaders/highlight.frag')
 
 game.run(True)
