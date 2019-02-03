@@ -18,11 +18,11 @@ cpdef unsigned int load_texture_from_file(filename_str, data_format=None, flip_o
     stbi_set_flip_vertically_on_load(flip_on_load)
     cdef unsigned char* data = stbi_load(filename, &width, &height, &no_of_channels, 0)
 
-    if data_format is None:
-        data_format = {3:GL_RGB, 4:GL_RGBA}[no_of_channels]
-
     if not data:
         raise FileNotFoundError("failed to load texture")
+
+    if data_format is None:  # figure out format based on number of channels
+        data_format = {3:GL_RGB, 4:GL_RGBA}[no_of_channels]
 
     cdef unsigned int texture
     glGenTextures(1, &texture)

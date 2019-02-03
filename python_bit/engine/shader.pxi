@@ -48,31 +48,22 @@ cpdef load_shader_program(vert_path, frag_path, geometry_path=None):
 
 cdef class ShaderProgram:
     cdef unsigned int program
-    cdef public dict textures
     cdef public list paths
+    cdef int trans_mat_location
 
-    def __init__(self, vert_path, frag_path, geo_path=None):
+    def __init__(self, vert_path, frag_path, geo_path=None, trans_mat_name=None):
         self.program = load_shader_program(vert_path, frag_path, geo_path)
-        self.textures = {}   # unit : texture
         self.paths = [vert_path, frag_path, geo_path]
+
+        trans_mat_name = to_bytes(trans_mat_name) if trans_mat_name is not None else b'transformMat'
+        self.trans_mat_location = glGetUniformLocation(self.program, trans_mat_name)
 
     cpdef use(self):
         glUseProgram(self.program)
 
-    cpdef bind_textures(self):
-        for unit, texture in self.textures.items():
-            texture.bind_to_unit(unit)
-
-    cpdef int get_location(self, name):
-        cdef bytes c_name = to_bytes(name)
-        return glGetUniformLocation(self.program, c_name)
-
-    cpdef add_texture(self, Texture texture, name, unit, overwrite=False):
-        if not overwrite and unit in self.textures:
-            raise ValueError("Unit {} already has associated texture".format(unit))
-        self.textures[unit] = texture
-        self.set_value(name, unit)
-        texture.bind_to_unit(unit)
+    cpdef bint set_trans_mat(self, value):
+        self.use()
+        glUniformMatrix4fv(self.trans_mat_location, 1, False, value_ptr(value))
 
     cpdef bint set_value(self, name, value) except False:  # i _think_ this means on error return false
         self.use()

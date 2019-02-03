@@ -54,13 +54,13 @@ class Entity(engine.Model):
             self.model_mat = model_mat
         return model_mat
 
-    def set_transform_matrix(self, game):
+    def set_transform_matrix(self):
         """this is essentially the "prepare your shaders" function, so if the vertex shaders change,
         (eg the transformMat is renamed to mvp, etc) then this function can be updated accordingly.
         A user would only need to care about this if they were modifying shaders"""
-        projection_times_view = game.projection * game.camera.view_matrix()
+        projection_times_view = self.game.projection * self.game.camera.view_matrix()
         transformation_matrix = projection_times_view * self.generate_model_mat()
-        self.shader_program.set_value("transformMat", transformation_matrix)
+        self.shader_program.set_trans_mat(transformation_matrix)
         return transformation_matrix
 
     def get_corners(self):
@@ -140,7 +140,7 @@ class Game(engine.Window):
             if not entity.should_render:
                 continue
             transformation_matrix = proj_times_view * entity.generate_model_mat()
-            entity.shader_program.set_value("transformMat", transformation_matrix)
+            entity.shader_program.set_trans_mat(transformation_matrix)
             entity.draw()
 
     def dispatch(self, names: str or Tuple[str], *args):

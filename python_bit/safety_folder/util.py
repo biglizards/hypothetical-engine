@@ -42,7 +42,7 @@ def get_entity_at_pos(game, x, y):
         entity.shader_program, entity._click_shader = entity._click_shader, entity.shader_program
         # render
         entity.shader_program.set_value('entityColour', id_to_rgb(i))
-        entity.set_transform_matrix(game)
+        entity.set_transform_matrix()
         entity.draw()
     # apparently the next bit is super slow - rip
     engine.wait_until_finished()
