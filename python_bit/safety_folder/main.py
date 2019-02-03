@@ -106,18 +106,25 @@ bounce_enabled = False
 draw_dots = False
 
 # create the gui
-helper = engine.FormHelper(game.gui)
-gui_window = helper.add_window(10, 10, 'GUI WINDOW (heck yeah)')
+# helper = engine.FormHelper(game.gui)
+# gui_window = helper.add_window(10, 10, 'GUI WINDOW (example)')
+#
+# helper.add_group('box control')
+# helper.add_variable('speed', float, linked_var='box_speed')
+#
+# helper.add_group('gravity')
+# helper.add_variable('enable gravity', bool, linked_var='gravity_enabled')
+# helper.add_variable('enable bouncing', bool, linked_var='bounce_enabled')
+# helper.add_variable('draw dots', bool, linked_var='draw_dots')
+# helper.add_button('reset', reset_camera)
 
-# todo make you not have to declare everything as a variable (ie save a reference in helper and/or gui)
-helper.add_group('box control')
-helper.add_variable('speed', float, linked_var='box_speed')
-
-helper.add_group('gravity')
-helper.add_variable('enable gravity', bool, linked_var='gravity_enabled')
-helper.add_variable('enable bouncing', bool, linked_var='bounce_enabled')
-helper.add_variable('draw dots', bool, linked_var='draw_dots')
-helper.add_button('reset', reset_camera)
+# ######
+# new custom gui
+new_gui_window = engine.GuiWindow(100, 100, "steve", gui=game.gui, layout=engine.GroupLayout())
+new_widget = engine.Widget(new_gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
+new_button = engine.Button("info", lambda: print("pressed!"), parent=new_widget)
+new_button2 = engine.Button("warn", lambda: print("pressed!"), parent=new_widget)
+new_button3 = engine.Button("ask", lambda: print("pressed!"), parent=new_widget)
 
 game.gui.update_layout()
 

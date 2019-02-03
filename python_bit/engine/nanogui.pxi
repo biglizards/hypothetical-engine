@@ -4,6 +4,11 @@ from libcpp cimport bool as c_bool
 from libcpp.string cimport string
 import inspect
 
+# note to self about the way nanogui works
+# everything is a widget. Widgets can contain other widgets
+# each widget can have its own layout (and needs one for you to add widgets to it)
+# technically you can add widgets to buttons but that's dumb and doesnt make any sense (and also crashes it)
+
 cdef class Gui:
     cdef nanogui.Screen* screen
     cdef GLFWwindow* window
@@ -55,14 +60,62 @@ cdef class Gui:
         return any(window.focused() for window in self.windows)
 
 
-cdef class GuiWindow:
+cdef class Widget:
+    cdef nanogui.Widget* widget
+
+    def __init__(self, Widget parent, Layout layout = None, *args, **kwargs):
+        if type(self) is Widget:  # only generate one if called directly
+            self.widget = new nanogui.Widget(parent.widget)
+        if layout is not None:
+            self.widget.setLayout(layout.ptr)
+
+    def set_layout(self, Layout layout):
+        self.widget.setLayout(layout.ptr)
+
+cdef class Layout:
+    cdef nanogui.Layout* ptr
+    pass
+
+cdef class BoxLayout(Layout):
+    #cdef nanogui.BoxLayout* ptr
+    def __init__(self, int orientation, int alignment = <int>nanogui.Middle,
+                  int margin = 0, int spacing = 0):
+        self.ptr = new nanogui.BoxLayout(<nanogui.Orientation>orientation, <nanogui.Alignment>alignment,
+                                         margin, spacing)
+cdef class GroupLayout(Layout):
+    #cdef nanogui.BoxLayout* ptr
+    def __init__(self, int margin=15, int spacing=6, int groupSpacing=14, int groupIndent=20):
+        self.ptr = new nanogui.GroupLayout(margin, spacing, groupSpacing, groupIndent)
+
+
+
+cdef class GuiWindow(Widget):  # inherit from widget? would require moving from __cinit__ to __init__, which could cause segfaults
     cdef nanogui.Window* window
     cdef Gui gui
 
-    def __cinit__(self, FormHelper form_helper, int x, int y, name):
-        form_helper.gui.windows.append(self)
-        self.gui = form_helper.gui
-        self.window = form_helper.helper.addWindow(nanogui.Vector2i(x, y), name)
+    def __cinit__(self, int x, int y, name, FormHelper form_helper=None, Gui gui=None, Layout layout=None):
+        assert not(form_helper and gui), "Either a FormHelper OR Gui must be passed to GuiWindow, not both"
+        name = to_bytes(name)
+        if form_helper:
+            form_helper.gui.windows.append(self)
+            self.gui = form_helper.gui
+            self.window = form_helper.helper.addWindow(nanogui.Vector2i(x, y), name)
+        elif gui:
+            gui.windows.append(self)
+            self.gui = gui
+            self.window = new nanogui.Window(gui.screen, name)
+            self.window.setPosition(nanogui.Vector2i(x, y))
+            if layout is not None:
+                self.window.setLayout(layout.ptr)
+        else:
+            raise ValueError("")
+        self.widget = self.window  # alias for treating Window as Widget
+
+    # noinspection PyMissingConstructor
+    def __init__(self, int x, int y, name, FormHelper form_helper=None, Gui gui=None, Layout layout=None):
+        """included to force valid signature"""
+        # note that the call to super is intentionally ignored, as it is also ignored in nanogui. blame C++
+        pass
 
     def focused(self):
         if self.window != NULL:
@@ -87,6 +140,9 @@ cdef class GuiWindow:
     def set_position(self, int x, int y):
         self.window.setPosition(nanogui.Vector2i(x, y))
 
+    def set_layout(self, Layout layout):
+        self.window.setLayout(layout.ptr)
+
 
 cdef class FormHelper:
     cdef nanogui.FormHelper* helper
@@ -103,8 +159,7 @@ cdef class FormHelper:
         pass
 
     cpdef GuiWindow add_window(self, x, y, name):
-        name = to_bytes(name)
-        return GuiWindow(self, x, y, name)
+        return GuiWindow(x, y, name, self)
 
     cpdef set_window(self, GuiWindow window):
         self.helper.setWindow(window.window)
@@ -142,7 +197,7 @@ cdef class FormHelper:
         return widget
 
     cpdef add_button(self, name, callback):
-        button = Button(self, name, callback)
+        button = Button(name, callback, helper=self)
         self.widgets.append(button)
         return button
 
@@ -154,14 +209,22 @@ cdef class FormHelper:
 
 buttons = {}  #
 
-cdef class Button:
+cdef class Button(Widget):
     cdef nanogui.Button* button_ptr
     cdef object callback
 
-    def __cinit__(self, FormHelper helper, name, callback, *args, **kwargs):
+    def __cinit__(self, name, callback, FormHelper helper=None, Widget parent=None, int icon=0, *args, **kwargs):
         name = to_bytes(name)
-        self.button_ptr = cengine.add_button_(helper.helper, name, <void*>self, self._callback)
+        if helper is None:
+            self.button_ptr = new nanogui.Button(parent.widget, name, icon)
+            cengine.setButtonCallback(self.button_ptr, <void*>self, self._callback)
+        else:
+            self.button_ptr = cengine.add_button_(helper.helper, name, <void*>self, self._callback)
         self.callback = callback
+
+    # noinspection PyMissingConstructor
+    def __init__(self, name, callback, FormHelper helper=None, Widget parent=None, int icon=0, *args, **kwargs):
+        pass
 
     @staticmethod
     cdef void _callback(void* _self):

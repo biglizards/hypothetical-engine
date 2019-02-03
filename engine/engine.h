@@ -28,6 +28,6 @@ nanogui::detail::FormWidget<T>* add_variable(nanogui::FormHelper* helper, const 
 }
 
 nanogui::Button* add_button_(nanogui::FormHelper* helper, const char* name, void* self, void(*callback)(void* self));
-
+void setButtonCallback(nanogui::Button* button, void* self, void(*callback)(void* self));
 
 #endif // ENGINE_H_INCLUDED

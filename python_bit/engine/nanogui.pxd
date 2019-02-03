@@ -8,6 +8,18 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui::detail":
         T value() except +
         void setItems(const vector[string]& items) except +
 
+cdef extern from "nanogui/nanogui.h" namespace "nanogui::Orientation":
+    cdef enum Orientation "nanogui::Orientation":
+        Horizontal,
+        Vertical
+
+cdef extern from "nanogui/nanogui.h" namespace "nanogui::Alignment":
+    cdef enum Alignment "nanogui::Alignment":
+        Minimum,
+        Middle,
+        Maximum,
+        Fill
+
 cdef extern from "nanogui/nanogui.h" namespace "nanogui":
     ctypedef struct GLFWwindow:
         pass
@@ -16,11 +28,48 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         Vector2i(int, int) except +
 
     cdef cppclass Widget:
-        bint focused() except +
-        void setFixedWidth(int width) except +
+        Widget(Widget *parent) except +
+        Widget *parent() except +
+        void setParent(Widget *parent) except +
+        Layout *layout() except +
+        void setLayout(Layout *layout) except +
+        # theme stuff
+        const Vector2i &position() except +
+        void setPosition(const Vector2i &pos)  except +
+        Vector2i absolutePosition() except +
+        const Vector2i &size() except +
+        void setSize(const Vector2i &size) except +
         int width() except +
+        void setWidth(int width) except +
         int height() except +
-        void setPosition(const Vector2i& pos) except +
+        void setHeight(int height) except +
+        const Vector2i &fixedSize() except +
+        void setFixedSize(const Vector2i &fixedSize) except +
+        int fixedWidth() except +
+        void setFixedWidth(int width) except +
+        int fixedHeight() except +
+        void setFixedHeight(int width) except +
+        bool visible() except +
+        bool visibleRecursive() except +
+        void setVisible(bool visible) except +
+        int childCount() except +
+        const vector[Widget *] &children() except +
+        bint focused() except +
+
+    cdef cppclass Layout:
+        pass
+
+    cdef cppclass BoxLayout(Layout):
+        BoxLayout(Orientation orientation) except +
+        BoxLayout(Orientation orientation, Alignment alignment) except +
+        BoxLayout(Orientation orientation, Alignment alignment, int margin) except +
+        BoxLayout(Orientation orientation, Alignment alignment, int margin, int spacing) except +
+        # also more getters/setters but i cba
+    cdef cppclass GroupLayout(Layout):
+        GroupLayout(int margin, ) except +
+        GroupLayout(int margin, int spacing) except +
+        GroupLayout(int margin, int spacing, int groupSpacing) except +
+        GroupLayout(int margin, int spacing, int groupSpacing, int groupIndent) except +
 
     cdef cppclass Screen(Widget):
         Screen() except +
@@ -42,10 +91,21 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         double mLastInteraction
 
     cpdef cppclass Window(Widget):
+        # Window(Widget* parent, const string& title = "Untitled") except +  # for some reason default argument breaks it
+        Window(Widget* parent, const string& title) except +
+        Window(Widget* parent) except +
+        const string& title() except +
+        void setTitle(const string& title) except +
+        # modal
+        Widget* buttonPanel() except +
         void dispose() except +
+        void center() except +
 
     cdef cppclass Button(Widget):
-        pass
+        Button(Widget *parent)
+        Button(Widget *parent, const string &caption)
+        Button(Widget *parent, const string &caption, int icon)
+        void setCallback(const function[void()] &callback)
 
     cdef cppclass FormHelper:
         FormHelper(Screen*) except +

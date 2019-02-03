@@ -25,3 +25,5 @@ cdef extern from "../../engine/engine.h":
     FormWidget[T]* add_variable[T](FormHelper* helper, const char* name,
                                    void(*setter)(const T&, uintptr_t), T(*getterFunc)(uintptr_t), uintptr_t)
     Button* add_button_(FormHelper* helper, const char* name, void* self, void(*callback)(void* self))
+
+    void setButtonCallback(Button* button, void* self, void(*callback)(void* self))
