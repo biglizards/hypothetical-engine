@@ -47,13 +47,17 @@ cdef class Texture:
     maybe i wont
     """
     cdef unsigned int texture
+    cdef public object name
+    cdef public object texture_type
 
-    def __init__(self, texture_path, data_format=None):
+    def __init__(self, texture_path, data_format=None, flip_on_load=True, name="", texture_type=None):
         if texture_path in texture_cache:
             self.texture = texture_cache[texture_path]
         else:
-            self.texture = load_texture_from_file(texture_path, data_format)
+            self.texture = load_texture_from_file(texture_path, data_format, flip_on_load)
             texture_cache[texture_path] = self.texture
+        self.name = name
+        self.texture_type = texture_type
 
     cpdef bind(self):
         glBindTexture(GL_TEXTURE_2D, self.texture)
