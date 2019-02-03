@@ -135,8 +135,7 @@ cpdef load_model(path_str):
     cdef assimp.Importer importer
     cdef const assimp.aiScene* scene = importer.ReadFile(path, assimp.aiProcess_Triangulate | assimp.aiProcess_FlipUVs)
     if scene is NULL or (scene.mFlags & assimp.AI_SCENE_FLAGS_INCOMPLETE) or not scene.mRootNode:
-        print(b"ERROR [MODEL]: " + importer.GetErrorString())
-        return None
+        raise RuntimeError("ERROR [MODEL]: " + importer.GetErrorString().decode())
     return process_node(scene.mRootNode, scene, path)
 
 cdef process_node(assimp.aiNode* node, const assimp.aiScene* scene, path, meshes=None):

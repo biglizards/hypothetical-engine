@@ -12,7 +12,7 @@ import inspect
 cdef class Gui:
     cdef nanogui.Screen* screen
     cdef GLFWwindow* window
-    cdef object windows
+    cdef list windows
 
     def __cinit__(self, Window window, *args, **kwargs):
         self.windows = []
@@ -62,10 +62,16 @@ cdef class Gui:
 
 cdef class Widget:
     cdef nanogui.Widget* widget
+    cdef list children
+
+    def __cinit__(self, *args, **kwargs):
+        self.children = []
 
     def __init__(self, Widget parent, Layout layout = None, *args, **kwargs):
         if type(self) is Widget:  # only generate one if called directly
             self.widget = new nanogui.Widget(parent.widget)
+        else:
+            parent.children.append(self)
         if layout is not None:
             self.widget.setLayout(layout.ptr)
 
@@ -97,18 +103,15 @@ cdef class GuiWindow(Widget):  # inherit from widget? would require moving from 
         assert not(form_helper and gui), "Either a FormHelper OR Gui must be passed to GuiWindow, not both"
         name = to_bytes(name)
         if form_helper:
-            form_helper.gui.windows.append(self)
-            self.gui = form_helper.gui
+            gui = form_helper.gui
             self.window = form_helper.helper.addWindow(nanogui.Vector2i(x, y), name)
         elif gui:
-            gui.windows.append(self)
-            self.gui = gui
             self.window = new nanogui.Window(gui.screen, name)
             self.window.setPosition(nanogui.Vector2i(x, y))
             if layout is not None:
                 self.window.setLayout(layout.ptr)
-        else:
-            raise ValueError("")
+        gui.windows.append(self)
+        self.gui = gui
         self.widget = self.window  # alias for treating Window as Widget
 
     # noinspection PyMissingConstructor
@@ -222,9 +225,9 @@ cdef class Button(Widget):
             self.button_ptr = cengine.add_button_(helper.helper, name, <void*>self, self._callback)
         self.callback = callback
 
-    # noinspection PyMissingConstructor
     def __init__(self, name, callback, FormHelper helper=None, Widget parent=None, int icon=0, *args, **kwargs):
-        pass
+        if parent:
+            super().__init__(parent)
 
     @staticmethod
     cdef void _callback(void* _self):
