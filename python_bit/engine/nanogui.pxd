@@ -56,6 +56,19 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         const vector[Widget *] &children() except +
         bint focused() except +
 
+    cdef cppclass Label(Widget):
+        Label(Widget *parent, const string &caption) except +
+        Label(Widget *parent, const string &caption, const string &font) except +
+        Label(Widget *parent, const string &caption, const string &font, int fontSize) except +
+
+    cdef cppclass TextBox(Widget):
+        TextBox(Widget *parent) except +
+        TextBox(Widget *parent, const string &value) except +
+
+    cdef cppclass FloatBox[T](TextBox):
+        FloatBox(Widget *parent) except +
+        FloatBox(Widget *parent, T value) except +
+
     cdef cppclass Layout:
         pass
 

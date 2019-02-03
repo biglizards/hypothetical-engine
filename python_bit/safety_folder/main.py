@@ -121,10 +121,13 @@ draw_dots = False
 # ######
 # new custom gui
 new_gui_window = engine.GuiWindow(100, 100, "steve", gui=game.gui, layout=engine.GroupLayout())
+engine.Label(new_gui_window, "Some example buttons")
 new_widget = engine.Widget(new_gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
-new_button = engine.Button("info", lambda: print("pressed!"), parent=new_widget)
-new_button2 = engine.Button("warn", lambda: print("pressed!"), parent=new_widget)
-new_button3 = engine.Button("ask", lambda: print("pressed!"), parent=new_widget)
+engine.Button("info", lambda: print("pressed!"), parent=new_widget)
+engine.Button("warn", lambda: print("pressed!"), parent=new_widget)
+engine.Button("ask", lambda: print("pressed!"), parent=new_widget)
+engine.TextBox(parent=new_gui_window, value="Ya mum")
+engine.FloatBox(parent=new_gui_window, value=3.14159)
 
 game.gui.update_layout()
 
@@ -230,7 +233,7 @@ game.add_callback('on_frame', draw_dots_on_corners)
 
 game.add_global_script(scripts.keys.CustomKeyPresses)
 
-test_model = game.create_entity(model_path="/home/dave/git/LearnOpenGL/resources/objects/bc/Sketchfab_2017_02_12_14_36_10.obj",
-                   vert_path='shaders/fuckme.vert', frag_path='shaders/highlight.frag')
+#test_model = game.create_entity(model_path="/home/dave/git/LearnOpenGL/resources/objects/bc/Sketchfab_2017_02_12_14_36_10.obj",
+#                   vert_path='shaders/fuckme.vert', frag_path='shaders/highlight.frag')
 
 game.run(True)

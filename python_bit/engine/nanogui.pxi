@@ -234,6 +234,24 @@ cdef class Button(Widget):
         cdef Button self = <Button>_self
         self.callback()
 
+cdef class Label(Widget):
+    def __cinit__(self, Widget parent, caption, font="sans-bold", font_size=-1):
+        self.widget = new nanogui.Label(parent.widget, to_bytes(caption), to_bytes(font), font_size)
+    def __init__(self, Widget parent, caption, font="sans-bold", font_size=-1):
+        super().__init__(parent)
+
+cdef class TextBox(Widget):
+    def __cinit__(self, Widget parent, value="untitled"):
+        self.widget = new nanogui.TextBox(parent.widget, to_bytes("value"))
+    def __init__(self, Widget parent, value="untitled"):
+        super().__init__(parent)
+
+cdef class FloatBox(Widget):
+    def __cinit__(self, Widget parent, value=0.0):
+        self.widget = new nanogui.FloatBox[double](parent.widget, <double>value)
+    def __init__(self, Widget parent, value=0.0):
+        super().__init__(parent)
+
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@ it's just widgets from here on down
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
