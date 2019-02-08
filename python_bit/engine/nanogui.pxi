@@ -244,12 +244,13 @@ cdef class TextBox(Widget):
     cdef nanogui.TextBox* textBox
     cdef public object callback
 
-    def __init__(self, Widget parent, value="untitled", bint editable=True, callback=None):
+    def __init__(self, Widget parent, value="untitled", bint editable=True, callback=None, spinnable=False):
         if type(self) is TextBox:
             self.textBox = new nanogui.TextBox(parent.widget, to_bytes("value"))
         cengine.setTextBoxCallback(self.textBox, <void*>self, self._callback)
         self.callback = callback
         self.editable = editable
+        self.spinnable = spinnable
 
         self.widget = self.textBox
         super().__init__(parent)
@@ -293,11 +294,11 @@ just the type is still str, which i can deal with, since i cant really be bother
 
 cdef class FloatBox(TextBox):
     cdef nanogui.FloatBox[double]* floatBox
-    def __init__(self, Widget parent, value=0.0, bint editable=True, callback=None):
+    def __init__(self, Widget parent, value=0.0, bint editable=True, callback=None, spinnable=True):
         self.floatBox = new nanogui.FloatBox[double](parent.widget, <double>value)
         self.textBox = self.floatBox
         #cengine.setFloatBoxCallback[double](<nanogui.FloatBox[double] *>self.textBox, <void*>self, self.float_callback)
-        super().__init__(self, editable=True, callback=callback)
+        super().__init__(self, editable=True, callback=callback, spinnable=spinnable)
 
     @staticmethod
     cdef c_bool float_callback(void* _self, double value):
