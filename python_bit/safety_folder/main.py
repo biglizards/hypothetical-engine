@@ -126,15 +126,22 @@ new_widget = engine.Widget(new_gui_window, layout=engine.BoxLayout(orientation=0
 engine.Button("info", lambda: print("pressed!"), parent=new_widget)
 engine.Button("warn", lambda: print("pressed!"), parent=new_widget)
 engine.Button("ask", lambda: print("pressed!"), parent=new_widget)
-a = engine.TextBox(parent=new_gui_window, value="Ya mum", callback=lambda x: setattr(b, "editable", True))
+engine.TextBox(parent=new_gui_window, value="Ya mum", callback=lambda x: setattr(b, "editable", True))
 b = engine.FloatBox(parent=new_gui_window, value=3.14159)
 b.callback = lambda x: print("float", x)
 b.spinnable = True
 b.editable = False
-a.spinnable = "False"
-a.value = "foobar"
 b.value = 34.99
 print(type(b.value), b.value)
+
+xyz_section = engine.Widget(new_gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
+engine.Label(xyz_section, "x")
+engine.FloatBox(parent=xyz_section, value=100, spinnable=True)
+engine.Label(xyz_section, "y")
+engine.FloatBox(parent=xyz_section, value=100, spinnable=True)
+engine.Label(xyz_section, "z")
+engine.FloatBox(parent=xyz_section, value=100, spinnable=True)
+
 
 game.gui.update_layout()
 
