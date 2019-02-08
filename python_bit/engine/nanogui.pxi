@@ -241,16 +241,80 @@ cdef class Label(Widget):
         super().__init__(parent)
 
 cdef class TextBox(Widget):
-    def __cinit__(self, Widget parent, value="untitled"):
-        self.widget = new nanogui.TextBox(parent.widget, to_bytes("value"))
-    def __init__(self, Widget parent, value="untitled"):
+    cdef nanogui.TextBox* textBox
+    cdef public object callback
+
+    def __init__(self, Widget parent, value="untitled", bint editable=True, callback=None):
+        if type(self) is TextBox:
+            self.textBox = new nanogui.TextBox(parent.widget, to_bytes("value"))
+        cengine.setTextBoxCallback(self.textBox, <void*>self, self._callback)
+        self.callback = callback
+        self.editable = editable
+
+        self.widget = self.textBox
         super().__init__(parent)
 
-cdef class FloatBox(Widget):
-    def __cinit__(self, Widget parent, value=0.0):
-        self.widget = new nanogui.FloatBox[double](parent.widget, <double>value)
-    def __init__(self, Widget parent, value=0.0):
-        super().__init__(parent)
+    @property
+    def editable(self):
+        return self.textBox.editable()
+
+    @editable.setter
+    def editable(self, bint value):
+        self.textBox.setEditable(value)
+
+    @property
+    def spinnable(self):
+        return self.textBox.spinnable()
+
+    @spinnable.setter
+    def spinnable(self, bint value):
+        self.textBox.setSpinnable(value)
+
+    @property
+    def value(self):
+        return self.textBox.value().decode()
+
+    @value.setter
+    def value(self, value):
+        self.textBox.setValue(to_bytes(value))
+
+    # noinspection PyMethodParameters
+    @staticmethod
+    cdef c_bool _callback(void* _self, const string& value):
+        cdef TextBox self = <TextBox>_self
+        if self.callback:
+            self.callback(value.decode())
+        return True
+
+"""
+Thing To Note: if i setCallback in textWidget, then it works fine for everything else as well, 
+just the type is still str, which i can deal with, since i cant really be bothered to wrap every box individually rn
+"""
+
+cdef class FloatBox(TextBox):
+    cdef nanogui.FloatBox[double]* floatBox
+    def __init__(self, Widget parent, value=0.0, bint editable=True, callback=None):
+        self.floatBox = new nanogui.FloatBox[double](parent.widget, <double>value)
+        self.textBox = self.floatBox
+        #cengine.setFloatBoxCallback[double](<nanogui.FloatBox[double] *>self.textBox, <void*>self, self.float_callback)
+        super().__init__(self, editable=True, callback=callback)
+
+    @staticmethod
+    cdef c_bool float_callback(void* _self, double value):
+        cdef FloatBox self = <FloatBox>_self
+        if self.callback:
+            self.callback(value)
+        return True
+
+    @property
+    def value(self):
+        return self.floatBox.floatValue()
+
+    @value.setter
+    def value(self, double value):
+        self.floatBox.setValue(value)
+
+
 
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@ it's just widgets from here on down

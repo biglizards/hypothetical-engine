@@ -17,6 +17,12 @@
 
 nanogui::Screen* gl_screen = NULL;
 
+void setTextBoxCallback(nanogui::TextBox* textBox, void* self, bool(*callback)(void* self, const std::string& str))
+{
+    textBox->setCallback([callback, self](const std::string& str) {return callback(self, str);});
+}
+
+
 nanogui::Button* add_button_(nanogui::FormHelper* helper, const char* name, void* self, void(*callback)(void* self))
 {
     return helper->addButton(name, [callback, self]() {callback(self);});

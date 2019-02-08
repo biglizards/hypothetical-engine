@@ -64,10 +64,19 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
     cdef cppclass TextBox(Widget):
         TextBox(Widget *parent) except +
         TextBox(Widget *parent, const string &value) except +
+        bool editable() except +
+        void setEditable(bool editable) except +
+        bool spinnable() except +
+        void setSpinnable(bool spinnable) except +
+        const string &value() except +
+        void setValue(const string &value) except +
 
     cdef cppclass FloatBox[T](TextBox):
         FloatBox(Widget *parent) except +
         FloatBox(Widget *parent, T value) except +
+        T floatValue "value"() except +
+        void setValue(const T) except +
+
 
     cdef cppclass Layout:
         pass
