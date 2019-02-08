@@ -2,8 +2,10 @@ cdef extern from "glad/glad.h":
     # force glad to be loaded first (before nanogui tries to load GLFW)
     pass
 
-from nanogui cimport FormHelper, FormWidget, Button
+from nanogui cimport FormHelper, FormWidget, Button, TextBox, FloatBox
 from libc.stdint cimport uintptr_t
+from libcpp.string cimport string
+from libcpp cimport bool
 
 cdef extern from * namespace "nanogui":
     cdef cppclass Screen:
@@ -27,3 +29,5 @@ cdef extern from "../../engine/engine.h":
     Button* add_button_(FormHelper* helper, const char* name, void* self, void(*callback)(void* self))
 
     void setButtonCallback(Button* button, void* self, void(*callback)(void* self))
+    void setTextBoxCallback(TextBox* textBox, void* self, bool(*callback)(void* self, const string& _str)) except +
+    void setFloatBoxCallback[T](FloatBox[T]* floatBox, void* self, bool(*callback)(void* self, T value))

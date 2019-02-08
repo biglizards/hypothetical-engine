@@ -12,3 +12,7 @@ if you aren't me (or even if you are), feel free to ask me how it works, but if 
   i have no idea why this happens.
 - terry the cockroach (pretty cool dude)
 - on my pc moving the mouse causes lag, but not when it's captured
+
+notes:
+ - good physics engine thing https://www.toptal.com/game/video-game-physics-part-i-an-introduction-to-rigid-body-dynamics
+ - opengl click on thing hack http://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/picking-with-an-opengl-hack/

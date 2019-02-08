@@ -126,8 +126,15 @@ new_widget = engine.Widget(new_gui_window, layout=engine.BoxLayout(orientation=0
 engine.Button("info", lambda: print("pressed!"), parent=new_widget)
 engine.Button("warn", lambda: print("pressed!"), parent=new_widget)
 engine.Button("ask", lambda: print("pressed!"), parent=new_widget)
-engine.TextBox(parent=new_gui_window, value="Ya mum")
-engine.FloatBox(parent=new_gui_window, value=3.14159)
+a = engine.TextBox(parent=new_gui_window, value="Ya mum", callback=lambda x: setattr(b, "editable", True))
+b = engine.FloatBox(parent=new_gui_window, value=3.14159)
+b.callback = lambda x: print("float", x)
+b.spinnable = True
+b.editable = False
+a.spinnable = "False"
+a.value = "foobar"
+b.value = 34.99
+print(type(b.value), b.value)
 
 game.gui.update_layout()
 

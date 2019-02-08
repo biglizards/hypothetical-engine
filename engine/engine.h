@@ -27,7 +27,16 @@ nanogui::detail::FormWidget<T>* add_variable(nanogui::FormHelper* helper, const 
                                  );
 }
 
+template <typename Scalar>
+void setFloatBoxCallback(nanogui::FloatBox<Scalar>* floatBox, void* self, bool(*callback)(void* self, Scalar value))
+{
+    floatBox->setCallback([callback, self](Scalar value) {return callback(self, value);});
+}
+
+
 nanogui::Button* add_button_(nanogui::FormHelper* helper, const char* name, void* self, void(*callback)(void* self));
 void setButtonCallback(nanogui::Button* button, void* self, void(*callback)(void* self));
+void setTextBoxCallback(nanogui::TextBox* textBox, void* self, bool(*callback)(void* self, const std::string& str));
+
 
 #endif // ENGINE_H_INCLUDED

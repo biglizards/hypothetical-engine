@@ -7,6 +7,8 @@ cdef bytes to_bytes(some_string):
         return some_string
     if isinstance(some_string, unicode):
         return some_string.encode()
+    if isinstance(some_string, (int, float)):
+        return str(some_string).encode()  # why would you do that though
     else:
         raise TypeError("Could not convert to bytes")
 
