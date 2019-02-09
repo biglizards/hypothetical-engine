@@ -62,6 +62,7 @@ cdef class Gui:
 
 cdef class Widget:
     cdef nanogui.Widget* widget
+    cdef Layout _layout
     cdef list children
 
     def __cinit__(self, *args, **kwargs):
@@ -74,9 +75,24 @@ cdef class Widget:
             parent.children.append(self)
         if layout is not None:
             self.widget.setLayout(layout.ptr)
+            self._layout = layout
 
     def set_layout(self, Layout layout):
         self.widget.setLayout(layout.ptr)
+
+    @property
+    def layout(self):
+        if self._layout:
+            return self._layout
+        print("[WARNING] Layout not found in {0}, generating one manually".format(self))
+        self._layout = Layout()
+        self._layout.ptr = self.widget.layout()
+        return self._layout
+
+    @layout.setter
+    def layout(self, Layout layout):
+        self.widget.setLayout(layout.ptr)
+        self._layout = layout
 
 cdef class Layout:
     cdef nanogui.Layout* ptr
@@ -93,7 +109,23 @@ cdef class GroupLayout(Layout):
     def __init__(self, int margin=15, int spacing=6, int groupSpacing=14, int groupIndent=20):
         self.ptr = new nanogui.GroupLayout(margin, spacing, groupSpacing, groupIndent)
 
+cdef class AdvancedGridLayout(Layout):
+    cdef nanogui.AdvancedGridLayout* advanced_ptr
+    # note: have not written an init because i'm lazy and dont need this other than to wrap it internally
+    def set_anchor(self, Widget widget, Anchor anchor):
+        self.advanced_ptr.setAnchor(widget.widget, anchor.ptr)
+    @property
+    def row_count(self):
+        return self.advanced_ptr.rowCount()
 
+cdef class Anchor:
+    cdef nanogui.Anchor ptr
+    def __init__(self, int x, int y, w=None, h=None,
+                 nanogui.Alignment horiz=nanogui.Fill, nanogui.Alignment vert=nanogui.Fill):
+        if w is not None and h is not None:
+            self.ptr = nanogui.Anchor(x, y, w, h, horiz, vert)
+        else:
+            self.ptr = nanogui.Anchor(x, y, horiz, vert)
 
 cdef class GuiWindow(Widget):  # inherit from widget? would require moving from __cinit__ to __init__, which could cause segfaults
     cdef nanogui.Window* window
@@ -162,7 +194,13 @@ cdef class FormHelper:
         pass
 
     cpdef GuiWindow add_window(self, x, y, name):
-        return GuiWindow(x, y, name, self)
+        cdef GuiWindow window = GuiWindow(x, y, name, self)
+        # manually create and wrap the layout for the window
+        cdef AdvancedGridLayout layout = AdvancedGridLayout()
+        layout.advanced_ptr = window.widget.layout()
+        layout.ptr = layout.advanced_ptr
+        window._layout = layout
+        return
 
     cpdef set_window(self, GuiWindow window):
         self.helper.setWindow(window.window)
