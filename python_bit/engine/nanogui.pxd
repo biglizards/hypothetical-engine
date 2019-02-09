@@ -20,6 +20,13 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui::Alignment":
         Maximum,
         Fill
 
+cdef extern from "nanogui/nanogui.h" namespace "nanogui::AdvancedGridLayout":
+    cdef cppclass Anchor:
+        Anchor() except +
+        Anchor(int x, int y, Alignment horiz, Alignment vert) except +
+        Anchor(int x, int y, int w, int h, Alignment horiz, Alignment vert) except +
+
+
 cdef extern from "nanogui/nanogui.h" namespace "nanogui":
     ctypedef struct GLFWwindow:
         pass
@@ -92,6 +99,14 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         GroupLayout(int margin, int spacing) except +
         GroupLayout(int margin, int spacing, int groupSpacing) except +
         GroupLayout(int margin, int spacing, int groupSpacing, int groupIndent) except +
+
+    cdef cppclass AdvancedGridLayout(Layout):
+        AdvancedGridLayout() except +
+        AdvancedGridLayout(const vector[int] &cols) except +
+        AdvancedGridLayout(const vector[int] &cols, const vector[int] &rows) except +
+        AdvancedGridLayout(const vector[int] &cols, const vector[int] &rows, int margin) except +
+        void setAnchor(const Widget *widget, const Anchor &anchor) except +
+        int rowCount() except +
 
     cdef cppclass Screen(Widget):
         Screen() except +

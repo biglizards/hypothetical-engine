@@ -44,6 +44,19 @@ class Editor(Click, Game):
             entity.shader_program.set_value('highlightAmount', 0.3)
         self.selected_object = entity
 
+    @staticmethod
+    def xyz_section(gui_window, vector):
+        xyz_section = engine.Widget(gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
+        gui_window.layout.set_anchor(xyz_section, engine.Anchor(3, gui_window.layout.row_count - 1))
+
+        for i in range(3):
+            def setter(new_val, _old_val, i=i, vector=vector):  # the keyword args save the value (otherwise all
+                vector[i] = new_val  # functions would use the last value in the loop)
+
+            letter = ['x', 'y', 'z'][i]
+            engine.Label(xyz_section, letter)
+            engine.FloatBox(parent=xyz_section, value=100, spinnable=True, callback=setter)
+
     def create_object_gui(self, entity: Entity):
         # todo wrap and use advanced grid layout to get the x, y, z things all on one line
         # https://nanogui.readthedocs.io/en/latest/api/class_nanogui__AdvancedGridLayout.html#class-nanogui-advancedgridlayout
@@ -56,21 +69,12 @@ class Editor(Click, Game):
         helper = engine.FormHelper(self.gui)
         new_gui = helper.add_window(640, 10, 'entity properties')
 
-        for key, item in entity.__dict__.items():
+        for key, item in entity.__dict__.items():  # key is name of attr, item is attr itself
             if key.startswith('_'):
                 continue
             if isinstance(item, glm.vec3):
                 helper.add_group(key)
-                for i in range(3):
-                    def setter(new_val, _old_val, i=i, item=item):  # the keyword args save the value (otherwise all
-                        item[i] = new_val  # functions would use the last value in the loop)
-
-                    def getter(i=i, key=key, entity=entity):
-                        return entity.__dict__[key][i]
-
-                    letter = ['x', 'y', 'z'][i]
-                    helper.add_variable(letter, float, setter=setter, getter=getter)
-
+                self.xyz_section(new_gui, item)
             elif isinstance(item, (int, float, bool, str)):
                 helper.add_group(key)
 
