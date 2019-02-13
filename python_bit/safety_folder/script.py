@@ -1,4 +1,5 @@
 import inspect
+from functools import wraps
 
 from game import Game
 
@@ -41,8 +42,27 @@ def basic_hook(name, **args):
     return inner_decorator
 
 
+def every_n_ms(n, **args):
+    n /= 1000  # convert from ms to seconds
+
+    def decorator(method):
+        time_elapsed = 0.0  # using a list so we can assign to it/update it from within the wrapped method
+
+        @wraps(method)
+        def wrapper(self, delta_t, *args, **kwargs):
+            nonlocal time_elapsed  # in order to write to variable in outer scope
+            time_elapsed += delta_t
+            if time_elapsed > n:
+                method(self, time_elapsed, *args, **kwargs)
+                time_elapsed = 0
+        wrapper.hook_name = 'on_frame'
+        wrapper.hook_args = args
+        return wrapper
+    return decorator
+
+
 ########
-# below this point is just a bunch of boring, repeated functions. Nothing interesting.
+# below this point is just a bunch of boring, repeated functions for the sake of autocomplete. Nothing interesting.
 
 def on_mouse_button():
     return basic_hook('on_mouse_button')
