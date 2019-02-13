@@ -101,6 +101,7 @@ class Editor(Click, Game):
         self.selected_gui = new_gui
         self.gui.update_layout()
         new_gui.set_position(self.width - new_gui.width - 10, 10)
+        new_gui.fixed_width = new_gui.width
 
         self.property_window_helper = helper
 
