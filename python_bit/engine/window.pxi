@@ -92,6 +92,9 @@ cdef class Window:
         glClearColor(<float>a, <float>b, <float>c, <float>d)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
+    cpdef void clear(self, int code):
+        glClear(code)
+
     cpdef bint should_close(self):
         return glfwWindowShouldClose(self.window)
 
@@ -127,8 +130,6 @@ cdef class Window:
         cdef unsigned char data[4]
         glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data)
         return data[0], data[1], data[2], data[3]
-
-
 
 # instead of creating a custom wrapper in c++ using lambdas (which i very well could, like
 # in the nanogui wrapper), since every glfw function returns a pointer to the window, and there

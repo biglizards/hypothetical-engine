@@ -21,45 +21,60 @@ def rbg_to_id(r, g, b):
     return r + g*256 + b*256**2
 
 
+# noinspection PyProtectedMember
+def draw_entity_click_hack(i, entity):
+    # ensure both shader programs use the same vertex shader
+    if entity.shader_program.paths[0] != entity._click_shader.paths[0]:
+        entity._click_shader = engine.ShaderProgram(entity.shader_program.paths[0], 'shaders/clickHack.frag')
+    # swap shader programs
+    entity.shader_program, entity._click_shader = entity._click_shader, entity.shader_program
+    # render
+    entity.shader_program.set_value('entityColour', id_to_rgb(i))
+    entity.set_transform_matrix()
+    entity.draw()
+    # swap shader programs back
+    entity.shader_program, entity._click_shader = entity._click_shader, entity.shader_program
+
+
 def get_entity_at_pos(game, x, y):
     """
     returns the entity at a given position. Draws to the screen, so dont use this while rendering
     todo check if swap_buffers can be used to swap back to the old thing, so this can be used mid-render
+    (doesnt look like it)
 
     Assigns an id in the form (0-255, 0-255, 0-255) to each object, draw it in that colour, then check what the colour
     the pixel at that point is. Kinda slow, bit of a hack, but it works for now
     """
 
-    # draw everything in a unique colour
+    # set background to white
     game.clear_colour(1, 1, 1, 1)
+    # draw everything in a unique colour
     for i, entity in enumerate(game.entities):
-        if not entity.should_render:
-            continue
-        # ensure both shader programs use the same vertex shader
-        if entity.shader_program.paths[0] != entity._click_shader.paths[0]:
-            entity.__click_shader = engine.ShaderProgram(entity.shader_program.paths[0], 'shaders/clickHack.frag')
-        # swap shader programs
-        entity.shader_program, entity._click_shader = entity._click_shader, entity.shader_program
-        # render
-        entity.shader_program.set_value('entityColour', id_to_rgb(i))
-        entity.set_transform_matrix()
-        entity.draw()
+        if entity.should_render:
+            draw_entity_click_hack(i, entity)
+
+    # if there are any, draw overlay entities like axes over the top of the rest of the entities
+    if hasattr(game, "overlay_entities"):
+        # draw overlay entities on top
+        game.clear(engine.DEPTH_BUFFER_BIT)
+        for i, entity in enumerate(game.overlay_entities, start=len(game.entities)):
+            if entity.should_render:
+                draw_entity_click_hack(i, entity)
+        # create list of target entities.
+        entity_list = game.entities + game.overlay_entities
+    else:
+        entity_list = game.entities
+
     # apparently the next bit is super slow - rip
     engine.wait_until_finished()
-
-    # swap shaders back to normal
-    for entity in game.entities:
-        if not entity.should_render:
-            continue
-        entity.shader_program, entity._click_shader = entity._click_shader, entity.shader_program
 
     # read pixel value and covert it back to id
     r, g, b, a = game.read_pixel(x, game.height - y)  # todo stop having like 3 different co-ord systems
     index = rbg_to_id(r, g, b)
     # if the index isn't valid, they must have clicked the background
-    if index >= len(game.entities):
+    if index >= len(entity_list):
         return None
-    return game.entities[index]
+    return entity_list[index]
 
 
 def get_world_space_vector(game, pos_on_screen):
