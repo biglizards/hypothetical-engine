@@ -68,11 +68,12 @@ cdef class Widget:
     def __cinit__(self, *args, **kwargs):
         self.children = []
 
-    def __init__(self, Widget parent, Layout layout = None, *args, **kwargs):
+    def __init__(self, Widget parent, Layout layout=None, *args, **kwargs):
+        assert parent is not None, "parent must not be None"
         if type(self) is Widget:  # only generate one if called directly
+            assert parent.widget is not NULL, "parent widget is null, was it correctly init?"
             self.widget = new nanogui.Widget(parent.widget)
-        else:
-            parent.children.append(self)
+        parent.children.append(self)
         if layout is not None:
             self.widget.setLayout(layout.ptr)
             self._layout = layout
@@ -171,6 +172,7 @@ cdef class GuiWindow(Widget):  # inherit from widget? would require moving from 
     def __cinit__(self, int x, int y, name, FormHelper form_helper=None, Gui gui=None, Layout layout=None):
         assert not(form_helper and gui), "Either a FormHelper OR Gui must be passed to GuiWindow, not both"
         name = to_bytes(name)
+        self.window = NULL
         if form_helper:
             gui = form_helper.gui
             self.window = form_helper.helper.addWindow(nanogui.Vector2i(x, y), name)
@@ -196,6 +198,7 @@ cdef class GuiWindow(Widget):  # inherit from widget? would require moving from 
     def dispose(self):
         self.gui.windows.remove(self)  # delete references to this window
         self.window.dispose()
+        # noinspection PyAttributeOutsideInit
         self.window = NULL
 
     def set_fixed_width(self, int width):
