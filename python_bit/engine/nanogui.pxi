@@ -2,6 +2,7 @@ cimport nanogui
 from nanogui cimport FormWidget
 from libcpp cimport bool as c_bool
 from libcpp.string cimport string
+from libcpp.pair cimport pair
 import inspect
 
 # note to self about the way nanogui works
@@ -419,7 +420,38 @@ cdef class FloatBox(TextBox):
     def value(self, double value):
         self.floatBox.setValue(value)
 
+cdef class ImagePanel(Widget):
+    cdef nanogui.ImagePanel* image_panel_ptr
+    cdef nanogui.Images c_images
+    cdef object callback
 
+    def __init__(self, Widget parent, images=None, callback=None):
+        self.image_panel_ptr = new nanogui.ImagePanel(parent.widget)
+        self.callback = callback
+
+        if images is not None:
+            self.images = images
+
+        super(ImagePanel, self).__init__(parent)
+        cengine.setMetaCallback[nanogui.ImagePanel, int, void](self.image_panel_ptr, <void*>self, self._callback)
+
+    @staticmethod
+    def load_images(Gui gui, dirname):
+        return nanogui.loadImageDirectory(gui.screen.nvgContext(), to_bytes(dirname))
+
+    @property
+    def images(self):
+        return self.image_panel_ptr.images()
+
+    @images.setter
+    def images(self, images):
+        self.c_images = [(i, to_bytes(name)) for i, name in images]
+        self.image_panel_ptr.setImages(self.c_images)
+
+    @staticmethod
+    cdef void _callback(void* _self, int selected):
+        cdef ImagePanel self = <ImagePanel>_self
+        self.callback(selected)
 
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@ it's just widgets from here on down
