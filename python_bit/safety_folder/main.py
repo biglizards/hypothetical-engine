@@ -184,7 +184,7 @@ crate_attributes['entity_class'] = Axis
 unit_vectors = [glm.vec4(1, 0, 0, 0), glm.vec4(0, 1, 0, 0), glm.vec4(0, 0, 1, 0)]
 
 axes = [
-    game.create_entity(**crate_attributes, should_render=False,
+    game.create_entity(overlay=True, **crate_attributes, should_render=False,
                        unit_vector=unit_vector) for unit_vector in unit_vectors
 ]
 

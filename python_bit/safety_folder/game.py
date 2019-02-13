@@ -105,6 +105,7 @@ class Game(engine.Window):
                  **kwargs):
         super().__init__(*args, **kwargs)
         self.entities = []
+        self.overlay_entities = []
         self.dispatches = defaultdict(list)
 
         self.camera = camera or Camera(self)
@@ -128,15 +129,18 @@ class Game(engine.Window):
         self.entities.append(entity)
 
     @wraps(Entity)
-    def create_entity(self, *args, entity_class=Entity, **kwargs):
+    def create_entity(self, *args, entity_class=Entity, overlay=False, **kwargs):
         new_entity = entity_class(game=self, *args, **kwargs)
-        self.add_entity(new_entity)
+        if overlay:
+            self.overlay_entities.append(new_entity)
+        else:
+            self.entities.append(new_entity)
         return new_entity
 
-    def draw_entities(self):
+    def draw_entities(self, entity_list):
         proj_times_view = self.projection * self.camera.view_matrix()
         # transformation_matrix = projection * view * model
-        for entity in self.entities:
+        for entity in entity_list:
             if not entity.should_render:
                 continue
             transformation_matrix = proj_times_view * entity.generate_model_mat()
@@ -182,9 +186,13 @@ class Game(engine.Window):
             # draw everything
             self.clear_colour(*self.background_colour)
             self.dispatch('before_frame', delta_t)
-            self.draw_entities()
+            self.draw_entities(self.entities)
             # call user-defined functions
             self.dispatch('on_frame', delta_t)
+            # draw any entities that are meant to be overlaid on top of the rest, like axes or a custom gui
+            self.clear(engine.DEPTH_BUFFER_BIT)
+            self.draw_entities(self.overlay_entities)
+
             self.gui.draw()
             self.swap_buffers()
 
