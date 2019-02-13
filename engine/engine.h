@@ -33,6 +33,12 @@ void setFloatBoxCallback(nanogui::FloatBox<Scalar>* floatBox, void* self, bool(*
     floatBox->setCallback([callback, self](Scalar value) {return callback(self, value);});
 }
 
+template <typename BoxType, typename T, typename R=bool>
+void setMetaCallback(BoxType* box, void* self, R(*callback)(void* self, T value))
+{
+    box->setCallback([callback, self](T value) {return callback(self, value);});
+}
+
 
 nanogui::Button* add_button_(nanogui::FormHelper* helper, const char* name, void* self, void(*callback)(void* self));
 void setButtonCallback(nanogui::Button* button, void* self, void(*callback)(void* self));
