@@ -337,6 +337,8 @@ cdef class TextBox(Widget):
         self.callback = callback
         self.editable = editable
         self.spinnable = spinnable
+        if placeholder is not None:
+            self.placeholder = placeholder
 
         self.widget = self.textBox
         super().__init__(parent)
@@ -509,7 +511,7 @@ cdef class FloatWidget:
         if self.setter is not None:
             self.setter(new_value, old_value)
 
-cdef class StringWidget:
+cdef class StringWidget(Widget):
     cdef string c_value
     cdef FormWidget[string]* widget_ptr
     cdef public object getter
@@ -529,6 +531,10 @@ cdef class StringWidget:
             self.linked_var = ""
         self.widget_ptr = cengine.add_variable[string](helper.helper, name, self.setter_callback,
                                                     self.getter_callback, self_ptr)
+        self.widget = self.widget_ptr
+
+    def __init__(StringWidget self, FormHelper helper, name, getter=None, setter=None, linked_var=None, *args, **kwargs):
+        pass
 
     @staticmethod
     cdef string getter_callback(uintptr_t self_ptr):
