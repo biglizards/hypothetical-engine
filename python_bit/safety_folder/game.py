@@ -17,7 +17,7 @@ from util import multiply_vec3
 class Entity(engine.Model):
     def __init__(self, game, vert_path, frag_path, geo_path=None, meshes=None, model_path=None, position=None,
                  orientation=None, scalar=None, velocity=None, do_gravity=False, do_collisions=False,
-                 should_render=True, scripts=None):
+                 should_render=True, scripts=None, name=''):
 
         if not (meshes is None) ^ (model_path is None):
             raise RuntimeError("exactly one of 'meshes' and 'model_path' must be passed to Entity")
@@ -27,6 +27,7 @@ class Entity(engine.Model):
         super().__init__(meshes, vert_path, frag_path, geo_path)
 
         self.game = game
+        self.name = name
         self.position = position if position is not None else glm.vec3(0, 0, 0)
         self.orientation = orientation if orientation is not None else glm.quat(1, 0, 0, 0)
         self.scalar = scalar or glm.vec3(1, 1, 1)
