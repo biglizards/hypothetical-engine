@@ -1,12 +1,8 @@
 from libcpp.string cimport string
+from libcpp cimport bool
 from libcpp.functional cimport function
 from libcpp.vector cimport vector
-from libcpp cimport bool
-
-cdef extern from "nanogui/nanogui.h" namespace "nanogui::detail":
-    cpdef cppclass FormWidget[T]:
-        T value() except +
-        void setItems(const vector[string]& items) except +
+from libcpp.pair cimport pair
 
 cdef extern from "nanogui/nanogui.h" namespace "nanogui::Orientation":
     cdef enum Orientation "nanogui::Orientation":
@@ -34,6 +30,12 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui::AdvancedGridLayout":
         Anchor() except +
         Anchor(int x, int y, Alignment horiz, Alignment vert) except +
         Anchor(int x, int y, int w, int h, Alignment horiz, Alignment vert) except +
+
+# yes i know this isnt nanogui stuff but they're basically the same shut up
+cdef extern from "nanovg.h":
+    ctypedef struct NVGcontext
+    int nvgCreateImage(NVGcontext* ctx, const char* filename, int imageFlags)
+    int nvgCreateImageMem(NVGcontext* ctx, int imageFlags, unsigned char* data, int ndata);
 
 
 cdef extern from "nanogui/nanogui.h" namespace "nanogui":
@@ -142,6 +144,7 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         bint resizeCallbackEvent(int width, int height) except +
         
         double mLastInteraction
+        NVGcontext *nvgContext() except +
 
     cpdef cppclass Window(Widget):
         # Window(Widget* parent, const string& title = "Untitled") except +  # for some reason default argument breaks it
@@ -173,3 +176,21 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         Window* window() except +
         void refresh() except +
 
+    cdef cppclass VScrollPanel(Widget):
+         VScrollPanel(Widget *parent) except +
+         float scroll() except +
+         void setScroll(float scroll) except +
+
+    cdef cppclass ImagePanel(Widget):
+        ImagePanel(Widget *parent) except +
+        void setImages(const Images &data) except +
+        const Images &images() except +
+        function[void(int)] callback() except +
+        void setCallback(const function[void(int)] &callback) except +
+
+    Images loadImageDirectory(NVGcontext *ctx, const string &path) except +
+
+cdef extern from "nanogui/nanogui.h" namespace "nanogui::detail":
+    cpdef cppclass FormWidget[T](Widget):
+        T value() except +
+        void setItems(const vector[string]& items) except +
