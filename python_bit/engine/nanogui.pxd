@@ -20,6 +20,15 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui::Alignment":
         Maximum,
         Fill
 
+cdef extern from "nanogui/nanogui.h" namespace "nanogui::TextBox":
+    cdef enum TextBoxAlignment "nanogui::TextBox::Alignment":
+        Left,
+        Center,
+        Right
+
+cdef extern from "nanogui/nanogui.h" namespace "nanogui::ImagePanel":
+    ctypedef vector[pair[int, string]] Images
+
 cdef extern from "nanogui/nanogui.h" namespace "nanogui::AdvancedGridLayout":
     cdef cppclass Anchor:
         Anchor() except +
@@ -77,13 +86,16 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         void setSpinnable(bool spinnable) except +
         const string &value() except +
         void setValue(const string &value) except +
+        TextBoxAlignment alignment() except +
+        void setAlignment(TextBoxAlignment align) except +
+        const string &placeholder() except +
+        void setPlaceholder(const string &placeholder) except +
 
     cdef cppclass FloatBox[T](TextBox):
         FloatBox(Widget *parent) except +
         FloatBox(Widget *parent, T value) except +
         T floatValue "value"() except +
         void setValue(const T) except +
-
 
     cdef cppclass Layout:
         pass
@@ -107,6 +119,10 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         AdvancedGridLayout(const vector[int] &cols, const vector[int] &rows, int margin) except +
         void setAnchor(const Widget *widget, const Anchor &anchor) except +
         int rowCount() except +
+        void appendRow(int size) except +
+        void appendRow(int size, float stretch) except +
+        void appendCol(int size) except +
+        void appendCol(int size, float stretch) except +
 
     cdef cppclass Screen(Widget):
         Screen() except +

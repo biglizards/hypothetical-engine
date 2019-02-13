@@ -94,6 +94,39 @@ cdef class Widget:
         self.widget.setLayout(layout.ptr)
         self._layout = layout
 
+    @property
+    def fixed_width(self):
+        return self.widget.fixedWidth()
+
+    @fixed_width.setter
+    def fixed_width(self, int value):
+        self.widget.setFixedWidth(value)
+
+    @property
+    def width(self):
+        return self.widget.width()
+
+    @width.setter
+    def width(self, int value):
+        self.widget.setWidth(value)
+
+    @property
+    def fixed_height(self):
+        return self.widget.fixedHeight()
+
+    @fixed_height.setter
+    def fixed_height(self, int value):
+        self.widget.setFixedHeight(value)
+
+    @property
+    def height(self):
+        return self.widget.height()
+
+    @height.setter
+    def height(self, int value):
+        self.widget.setHeight(value)
+
+
 cdef class Layout:
     cdef nanogui.Layout* ptr
     pass
@@ -114,18 +147,22 @@ cdef class AdvancedGridLayout(Layout):
     # note: have not written an init because i'm lazy and dont need this other than to wrap it internally
     def set_anchor(self, Widget widget, Anchor anchor):
         self.advanced_ptr.setAnchor(widget.widget, anchor.ptr)
+
     @property
     def row_count(self):
         return self.advanced_ptr.rowCount()
 
+    cpdef append_row(self, int size, float stretch=0.0):
+        self.advanced_ptr.appendRow(size, stretch)
+
 cdef class Anchor:
     cdef nanogui.Anchor ptr
     def __init__(self, int x, int y, w=None, h=None,
-                 nanogui.Alignment horiz=nanogui.Fill, nanogui.Alignment vert=nanogui.Fill):
+                 int horiz=<int>nanogui.Fill, int vert=<int>nanogui.Fill):
         if w is not None and h is not None:
-            self.ptr = nanogui.Anchor(x, y, w, h, horiz, vert)
+            self.ptr = nanogui.Anchor(x, y, w, h, <nanogui.Alignment>horiz, <nanogui.Alignment>vert)
         else:
-            self.ptr = nanogui.Anchor(x, y, horiz, vert)
+            self.ptr = nanogui.Anchor(x, y, <nanogui.Alignment>horiz, <nanogui.Alignment>vert)
 
 cdef class GuiWindow(Widget):  # inherit from widget? would require moving from __cinit__ to __init__, which could cause segfaults
     cdef nanogui.Window* window
@@ -183,12 +220,14 @@ cdef class FormHelper:
     cdef nanogui.FormHelper* helper
     cdef Gui gui
     cdef object widgets
+    cdef list manual_getters
 
     def __cinit__(self, Gui gui, *args, **kwargs):
         # takes a cython Gui object
         self.gui = gui
         self.helper = new nanogui.FormHelper(gui.screen)
         self.widgets = []
+        self.manual_getters = []
 
     def __init__(self, Gui gui, *args, **kwargs):
         pass
@@ -197,10 +236,10 @@ cdef class FormHelper:
         cdef GuiWindow window = GuiWindow(x, y, name, self)
         # manually create and wrap the layout for the window
         cdef AdvancedGridLayout layout = AdvancedGridLayout()
-        layout.advanced_ptr = window.widget.layout()
+        layout.advanced_ptr = <nanogui.AdvancedGridLayout*>window.widget.layout()
         layout.ptr = layout.advanced_ptr
         window._layout = layout
-        return
+        return window
 
     cpdef set_window(self, GuiWindow window):
         self.helper.setWindow(window.window)
@@ -247,6 +286,11 @@ cdef class FormHelper:
 
     cpdef refresh(self):
         self.helper.refresh()
+        for box, getter in self.manual_getters:
+            box.value = getter()
+
+    cpdef add_manual_getter(self, box, getter):
+        self.manual_getters.append((box, getter))
 
 buttons = {}  #
 
@@ -262,6 +306,7 @@ cdef class Button(Widget):
         else:
             self.button_ptr = cengine.add_button_(helper.helper, name, <void*>self, self._callback)
         self.callback = callback
+        self.widget = self.button_ptr
 
     def __init__(self, name, callback, FormHelper helper=None, Widget parent=None, int icon=0, *args, **kwargs):
         if parent:
@@ -282,10 +327,10 @@ cdef class TextBox(Widget):
     cdef nanogui.TextBox* textBox
     cdef public object callback
 
-    def __init__(self, Widget parent, value="untitled", bint editable=True, callback=None, spinnable=False):
+    def __init__(self, Widget parent, value="", placeholder=None, bint editable=True, callback=None, spinnable=False):
         if type(self) is TextBox:
-            self.textBox = new nanogui.TextBox(parent.widget, to_bytes("value"))
-        cengine.setTextBoxCallback(self.textBox, <void*>self, self._callback)
+            self.textBox = new nanogui.TextBox(parent.widget, to_bytes(value))
+            cengine.setTextBoxCallback(self.textBox, <void*>self, self._callback)
         self.callback = callback
         self.editable = editable
         self.spinnable = spinnable
@@ -325,6 +370,22 @@ cdef class TextBox(Widget):
             self.callback(value.decode())
         return True
 
+    @property
+    def alignment(self):
+        return <int>self.textBox.alignment()
+
+    @alignment.setter
+    def alignment(self, int value):
+        self.textBox.setAlignment(<nanogui.TextBoxAlignment>value)
+
+    @property
+    def placeholder(self):
+        return self.textBox.placeholder()
+
+    @placeholder.setter
+    def placeholder(self, value):
+        self.textBox.setPlaceholder(to_bytes(value))
+
 """
 Thing To Note: if i setCallback in textWidget, then it works fine for everything else as well, 
 just the type is still str, which i can deal with, since i cant really be bothered to wrap every box individually rn
@@ -335,7 +396,7 @@ cdef class FloatBox(TextBox):
     def __init__(self, Widget parent, value=0.0, bint editable=True, callback=None, spinnable=True):
         self.floatBox = new nanogui.FloatBox[double](parent.widget, <double>value)
         self.textBox = self.floatBox
-        #cengine.setFloatBoxCallback[double](<nanogui.FloatBox[double] *>self.textBox, <void*>self, self.float_callback)
+        cengine.setFloatBoxCallback[double](<nanogui.FloatBox[double] *>self.textBox, <void*>self, self.float_callback)
         super().__init__(self, editable=True, callback=callback, spinnable=spinnable)
 
     @staticmethod

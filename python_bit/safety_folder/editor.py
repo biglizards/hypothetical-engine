@@ -45,17 +45,24 @@ class Editor(Click, Game):
         self.selected_object = entity
 
     @staticmethod
-    def xyz_section(gui_window, vector):
+    def xyz_section(gui_window, vector, entity, key, helper):
         xyz_section = engine.Widget(gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
-        gui_window.layout.set_anchor(xyz_section, engine.Anchor(3, gui_window.layout.row_count - 1))
+        gui_window.layout.append_row(0)
+        gui_window.layout.set_anchor(xyz_section, engine.Anchor(1, gui_window.layout.row_count - 1, 3, 1))
 
         for i in range(3):
-            def setter(new_val, _old_val, i=i, vector=vector):  # the keyword args save the value (otherwise all
-                vector[i] = new_val  # functions would use the last value in the loop)
+            def setter(new_val, i=i, vector=vector):  # the keyword args save the value (otherwise all
+                vector[i] = new_val                   # functions would use the last value in the loop)
+
+            def getter(i=i, key=key, entity=entity):
+                return entity.__dict__[key][i]
 
             letter = ['x', 'y', 'z'][i]
             engine.Label(xyz_section, letter)
-            engine.FloatBox(parent=xyz_section, value=100, spinnable=True, callback=setter)
+            box = engine.FloatBox(parent=xyz_section, value=vector[i], spinnable=True, callback=setter)
+            helper.add_manual_getter(box, getter)  # todo refactor this mess out
+            box.fixed_width = 60
+            box.alignment = 0  # todo replace with named constant (and/or thing in init)
 
     def create_object_gui(self, entity: Entity):
         # todo wrap and use advanced grid layout to get the x, y, z things all on one line
@@ -74,7 +81,7 @@ class Editor(Click, Game):
                 continue
             if isinstance(item, glm.vec3):
                 helper.add_group(key)
-                self.xyz_section(new_gui, item)
+                self.xyz_section(new_gui, item, entity, key, helper)
             elif isinstance(item, (int, float, bool, str)):
                 helper.add_group(key)
 

@@ -9,7 +9,7 @@ from cube import data
 from editor import Editor, Drag
 from game import ManualEntity
 from physics import two_cubes_intersect
-import scripts.keys
+import scripts.keys, scripts.editor_scripts
 
 
 class CustomEditor(Editor, Drag, script.ScriptGame):
@@ -106,42 +106,72 @@ bounce_enabled = False
 draw_dots = False
 
 # create the gui
-# helper = engine.FormHelper(game.gui)
-# gui_window = helper.add_window(10, 10, 'GUI WINDOW (example)')
-#
-# helper.add_group('box control')
-# helper.add_variable('speed', float, linked_var='box_speed')
-#
-# helper.add_group('gravity')
-# helper.add_variable('enable gravity', bool, linked_var='gravity_enabled')
-# helper.add_variable('enable bouncing', bool, linked_var='bounce_enabled')
-# helper.add_variable('draw dots', bool, linked_var='draw_dots')
-# helper.add_button('reset', reset_camera)
+helper = engine.FormHelper(game.gui)
+gui_window = helper.add_window(10, 10, 'GUI WINDOW (example)')
+
+helper.add_group('box control')
+helper.add_variable('speed', float, linked_var='box_speed')
+
+helper.add_group('gravity')
+helper.add_variable('enable gravity', bool, linked_var='gravity_enabled')
+helper.add_variable('enable bouncing', bool, linked_var='bounce_enabled')
+helper.add_variable('draw dots', bool, linked_var='draw_dots')
+helper.add_button('reset', reset_camera)
 
 # ######
 # new custom gui
-new_gui_window = engine.GuiWindow(100, 100, "steve", gui=game.gui, layout=engine.GroupLayout())
-engine.Label(new_gui_window, "Some example buttons")
-new_widget = engine.Widget(new_gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
-engine.Button("info", lambda: print("pressed!"), parent=new_widget)
-engine.Button("warn", lambda: print("pressed!"), parent=new_widget)
-engine.Button("ask", lambda: print("pressed!"), parent=new_widget)
-engine.TextBox(parent=new_gui_window, value="Ya mum", callback=lambda x: setattr(b, "editable", True))
-b = engine.FloatBox(parent=new_gui_window, value=3.14159)
-b.callback = lambda x: print("float", x)
-b.spinnable = True
-b.editable = False
-b.value = 34.99
-print(type(b.value), b.value)
+model_loader_window = engine.GuiWindow(185, 10, "model loader 4000", gui=game.gui, layout=engine.GroupLayout())
 
-xyz_section = engine.Widget(new_gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
-engine.Label(xyz_section, "x")
-engine.FloatBox(parent=xyz_section, value=100, spinnable=True)
-engine.Label(xyz_section, "y")
-engine.FloatBox(parent=xyz_section, value=100, spinnable=True)
-engine.Label(xyz_section, "z")
-engine.FloatBox(parent=xyz_section, value=100, spinnable=True)
+path_box = engine.TextBox(parent=model_loader_window, value="resources/")
+model_loader_window.fixed_width = 225
 
+engine.Button("load model", parent=model_loader_window,
+              callback=lambda: game.create_entity(model_path=path_box.value,
+                                                  vert_path='shaders/fuckme.vert', frag_path='shaders/highlight.frag'))
+
+
+def make_entity_list():
+    entity_list_window = engine.GuiWindow(185, 135, "entity list 3000", gui=game.gui, layout=engine.GroupLayout())
+    entity_list_window.fixed_width = 225
+    scroll_panel_holder = engine.ScrollPanel(entity_list_window)
+    scroll_panel = engine.Widget(scroll_panel_holder, layout=engine.GroupLayout())
+    scroll_panel.fixed_height = 1000
+    scroll_panel_holder.fixed_height = 100
+
+    for i, entity in enumerate(game.entities):
+        # engine.Label(caption=f"{x}th button", parent=scroll_panel)
+        name = entity.name if entity.name is not '' else f'{i}th entity'
+        button = engine.Button(name, lambda target=entity: game.select_entity(target), parent=scroll_panel)
+        button.fixed_height = 20
+
+    game.gui.update_layout()
+
+
+def make_resource_list():
+    entity_list_window = engine.GuiWindow(185, 135, "resource list 6000", gui=game.gui, layout=engine.GroupLayout())
+    entity_list_window.fixed_width = 500
+
+    def update_resource_list(text):
+        if text == '':
+            image_panel.images = resource_images
+            return
+        text = text.encode()  # todo remove
+        image_panel.images = [x for x in resource_images if text in x[1]]
+
+    _search_box = engine.TextBox(parent=entity_list_window, placeholder="search box",
+                                 callback=update_resource_list)
+
+    scroll_panel_holder = engine.ScrollPanel(entity_list_window)
+    scroll_panel = engine.Widget(scroll_panel_holder, layout=engine.GroupLayout())
+    scroll_panel.fixed_height = 1000
+    scroll_panel_holder.fixed_height = 200
+
+    image_panel = engine.ImagePanel(parent=scroll_panel, images=resource_images,
+                                    callback=lambda x: print(x))
+    game.gui.update_layout()
+
+
+resource_images = engine.ImagePanel.load_images(game.gui, "resources")
 
 game.gui.update_layout()
 
@@ -174,9 +204,9 @@ for pos in cube_positions:
     crate = game.create_entity(**crate_attributes, position=pos, do_gravity=True, do_collisions=True)
     crates.append(crate)
 floor_crate = game.create_entity(**crate_attributes, position=glm.vec3(0, -10, 0), scalar=glm.vec3(10, 1, 10),
-                                 do_gravity=False, do_collisions=True)
+                                 do_gravity=False, do_collisions=True, name="floor crate")
 
-dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1), should_render=False)
+dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1), should_render=False, name="dot")
 
 # axes crates
 crate_attributes['vert_path'] = 'shaders/axes.vert'
@@ -235,19 +265,15 @@ def do_gravity(delta_t):
             if entity is game.selected_object:
                 game.selected_object.shader_program.set_value('highlightAmount', 0.3)
 
-    try:
-        game.property_window_helper.refresh()
-    except AttributeError:
-        pass
-
 
 game.add_callback('on_frame', spin_crates)
 game.add_callback('on_frame', do_gravity)
 game.add_callback('on_frame', draw_dots_on_corners)
 
 game.add_global_script(scripts.keys.CustomKeyPresses)
+game.add_global_script(scripts.editor_scripts.EditorScripts)
 
-#test_model = game.create_entity(model_path="/home/dave/git/LearnOpenGL/resources/objects/bc/Sketchfab_2017_02_12_14_36_10.obj",
-#                   vert_path='shaders/fuckme.vert', frag_path='shaders/highlight.frag')
+make_entity_list()
+make_resource_list()
 
 game.run(True)
