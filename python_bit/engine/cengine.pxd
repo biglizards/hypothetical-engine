@@ -31,3 +31,4 @@ cdef extern from "../../engine/engine.h":
     void setButtonCallback(Button* button, void* self, void(*callback)(void* self))
     void setTextBoxCallback(TextBox* textBox, void* self, bool(*callback)(void* self, const string& _str)) except +
     void setFloatBoxCallback[T](FloatBox[T]* floatBox, void* self, bool(*callback)(void* self, T value))
+    void setMetaCallback[T, U, R](T* box, void* self, R(*callback)(void* self, U value))
