@@ -2,7 +2,6 @@ import glm
 import itertools
 import time
 from collections import defaultdict
-from functools import wraps
 from typing import Tuple
 
 import engine
@@ -129,7 +128,7 @@ class Game(engine.Window):
     def add_entity(self, entity):
         self.entities.append(entity)
 
-    @wraps(Entity)
+    # @wraps(Entity) todo why was this here, i dont think it needs to be
     def create_entity(self, *args, entity_class=Entity, overlay=False, **kwargs):
         new_entity = entity_class(game=self, *args, **kwargs)
         if overlay:

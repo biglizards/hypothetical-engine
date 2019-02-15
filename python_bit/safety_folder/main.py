@@ -1,15 +1,16 @@
 import glm
-import random
 
 import engine
 
 import script
+import scripts.editor_scripts
+import scripts.keys
 import util
-from cube import data
 from editor import Editor, Drag
+from enginelib.level import save
+from enginelib.level import load
 from game import ManualEntity
 from physics import two_cubes_intersect
-import scripts.keys, scripts.editor_scripts
 
 
 class CustomEditor(Editor, Drag, script.ScriptGame):
@@ -117,6 +118,7 @@ helper.add_variable('enable gravity', bool, linked_var='gravity_enabled')
 helper.add_variable('enable bouncing', bool, linked_var='bounce_enabled')
 helper.add_variable('draw dots', bool, linked_var='draw_dots')
 helper.add_button('reset', reset_camera)
+helper.add_button('save', lambda: save.save_level('save.json', game))
 
 # ######
 # new custom gui
@@ -175,49 +177,6 @@ resource_images = engine.ImagePanel.load_images(game.gui, "resources")
 
 game.gui.update_layout()
 
-# @@@@@
-# create crates
-cube_positions = [
-    glm.vec3(0.0, 0.0, 0.0),
-    # glm.vec3(0.1, 0.1, 0.1),
-    glm.vec3(2.0, 5.0, -15.0),
-    glm.vec3(-1.5, -2.2, -2.33),
-    glm.vec3(-3.8, -2.0, -12.3),
-    glm.vec3(2.4, -0.4, -3.5),
-    glm.vec3(-1.7, 3.0, -7.5),
-    glm.vec3(1.3, -2.0, -2.3),
-    glm.vec3(1.5, 2.0, -2.6),
-    glm.vec3(1.5, 0.2, -1.4),
-    glm.vec3(-1.3, 1.0, -1.7)
-]
-crate_attributes = {
-    'data': data, 'indices': None, 'data_format': (3, 2),
-    'textures': [('resources/container.jpg', 'container'), ('resources/duck.png', 'face')],
-    'vert_path': 'shaders/perspective.vert', 'frag_path': 'shaders/highlight.frag', 'entity_class': ManualEntity
-}
-
-# for x in range(1500):
-#     cube_positions.append(glm.vec3((-0.5)*40, (-0.5)*40, (-0.5)*40))
-
-crates = []
-for pos in cube_positions:
-    crate = game.create_entity(**crate_attributes, position=pos, do_gravity=True, do_collisions=True)
-    crates.append(crate)
-floor_crate = game.create_entity(**crate_attributes, position=glm.vec3(0, -10, 0), scalar=glm.vec3(10, 1, 10),
-                                 do_gravity=False, do_collisions=True, name="floor crate")
-
-dot = game.create_entity(**crate_attributes, scalar=glm.vec3(0.1, 0.1, 0.1), should_render=False, name="dot")
-
-# axes crates
-crate_attributes['vert_path'] = 'shaders/axes.vert'
-crate_attributes['entity_class'] = Axis
-unit_vectors = [glm.vec4(1, 0, 0, 0), glm.vec4(0, 1, 0, 0), glm.vec4(0, 0, 1, 0)]
-
-axes = [
-    game.create_entity(overlay=True, **crate_attributes, should_render=False,
-                       unit_vector=unit_vector) for unit_vector in unit_vectors
-]
-
 
 # @@@@@
 # on_frame callbacks
@@ -275,5 +234,8 @@ game.add_global_script(scripts.editor_scripts.EditorScripts)
 
 make_entity_list()
 make_resource_list()
+load.load_level('save.json', game)
+crates = []
+dot = [x for x in game.entities if x.name == 'dot'][0]
 
 game.run(True)

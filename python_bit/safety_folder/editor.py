@@ -105,6 +105,12 @@ class Editor(Click, Game):
 
         self.property_window_helper = helper
 
+    def create_entity(self, *args, entity_class=Entity, **kwargs):
+        entity = super().create_entity(*args, entity_class=entity_class, **kwargs)
+        entity._args = args
+        entity._kwargs = kwargs
+        return entity
+
 
 class Drag(Game):
     def __init__(self, *args, **kwargs):
