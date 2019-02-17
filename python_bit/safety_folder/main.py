@@ -5,75 +5,14 @@ import engine
 import script
 import scripts.editor_scripts
 import scripts.keys
-import util
 from editor import Editor, Drag
 from enginelib.level import save
 from enginelib.level import load
-from game import ManualEntity
 from physics import two_cubes_intersect
 
 
 class CustomEditor(Editor, Drag, script.ScriptGame):
     pass
-
-
-class Axis(ManualEntity):
-    clickable = False
-
-    def __init__(self, *args, game, data, unit_vector, **kwargs):
-        # awful hack to set the origin in the right place, todo remove when you add model loading
-        # convert the unit vector into an index (ie x: 0, y:1, z:2)
-        index = int(glm.length(glm.vec4(0, 1, 2, 1) * unit_vector))
-        # mutate the data so the origin of the object is in the centre.
-        data = [d + (0.5 if i % 5 == index else 0) for i, d in enumerate(data)]
-
-        super().__init__(*args, game, data, **kwargs)
-        self.game = game
-        self.unit_vector = unit_vector
-        self.scalar = glm.vec3(0.10, 0.10, 0.10) + (unit_vector.xyz * 0.9)
-        self.parent = None
-        self.offset = None
-        self.parent_start_pos = None
-        self.is_dragging = False
-        # set callbacks
-        game.add_callback('on_drag_update', self.move_axis)
-        game.add_callback('on_click_entity', self.set_drag_start_pos)
-        game.add_callback('on_drag', self.reset_variables)  # once the drag finishes, reset everything to none
-        game.add_callback('before_frame', self.update_variables)
-
-    def reset_variables(self, *_args):
-        self.offset = None
-        self.parent_start_pos = None
-        self.is_dragging = False
-
-    def update_variables(self, *_args):
-        if self.parent is not None:
-            self.position = self.parent.position
-            self.orientation = self.parent.orientation
-            self.should_render = True
-
-    def set_drag_start_pos(self, entity):
-        if entity is self:
-            self.is_dragging = True
-            drag_start_pos = util.get_point_closest_to_cursor(game, self.position,
-                                                              self.vector(), self.game.cursor_location)
-            self.offset = self.parent.position - drag_start_pos
-            self.parent_start_pos = self.parent.position
-        elif util.is_clickable(entity):  # todo maybe replace with entity is game.selected_object
-            self.parent = entity
-        if entity is None:
-            self.should_render = False
-
-    def vector(self):
-        return glm.normalize(glm.vec3(self.parent.model_mat * self.unit_vector))
-
-    def move_axis(self, *mouse_pos):
-        if not self.is_dragging:
-            return None
-        target = util.get_point_closest_to_cursor(game, self.parent_start_pos, self.vector(), mouse_pos)
-
-        true_target = target + self.offset
-        self.parent.position = true_target
 
 
 game = CustomEditor()
@@ -90,7 +29,8 @@ def reset_camera(*_args, **_kwargs):
 def draw_dots_on_corners(*_args):
     if not draw_dots:
         return
-    proj_times_view = game.projection * game.camera.view_matrix()  # i'm unpacking it for performance reasons
+    # i'm unpacking it for performance reasons
+    proj_times_view = game.projection * game.camera.view_matrix()
     for box in game.entities[1:]:
         corners = box.get_corners()
         for corner in corners:
@@ -169,21 +109,13 @@ def make_resource_list():
     scroll_panel_holder.fixed_height = 200
 
     image_panel = engine.ImagePanel(parent=scroll_panel, images=resource_images,
-                                    callback=lambda x: print(x))
+                                    callback=print)
     game.gui.update_layout()
 
 
 resource_images = engine.ImagePanel.load_images(game.gui, "resources")
 
 game.gui.update_layout()
-
-
-# @@@@@
-# on_frame callbacks
-def spin_crates(delta_t):
-    for i, crate in enumerate(crates):
-        angle = box_speed * delta_t * glm.radians(15 * (0 + 1))
-        crate.orientation = glm.rotate(crate.orientation, angle, glm.vec3(0.5, 1, 0))
 
 
 gravity = glm.vec3(0, -1, 0)
@@ -225,17 +157,20 @@ def do_gravity(delta_t):
                 game.selected_object.shader_program.set_value('highlightAmount', 0.3)
 
 
-game.add_callback('on_frame', spin_crates)
 game.add_callback('on_frame', do_gravity)
 game.add_callback('on_frame', draw_dots_on_corners)
 
 game.add_global_script(scripts.keys.CustomKeyPresses)
 game.add_global_script(scripts.editor_scripts.EditorScripts)
 
-make_entity_list()
-make_resource_list()
 load.load_level('save.json', game)
+
 crates = []
 dot = [x for x in game.entities if x.name == 'dot'][0]
+
+make_entity_list()
+# make_resource_list()
+
+# todo make axis appear when you select an object
 
 game.run(True)

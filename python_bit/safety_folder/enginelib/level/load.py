@@ -2,6 +2,7 @@ import importlib
 
 import json
 import glm
+from warnings import warn
 
 
 def handle(data, game):
@@ -31,7 +32,9 @@ def handle_entity(data, game):
     kwargs = {name: handle_item(item, game)
               for name, item in data.items()
               if not name.startswith('@')}
-    args = handle_item(data['@args'], game)
+    args = handle_item(data.get('@args', []), game)  # @args is deprecated and should no longer exist
+    if args:
+        warn("@args is deprecated", DeprecationWarning)
 
     entity_class = load_entity_class(module_name=data['@class_module'],
                                      class_name=data['@class_name'])
@@ -56,6 +59,7 @@ handlers = {
     'vec2': lambda x, _: glm.vec2(x['values']),
     'vec3': lambda x, _: glm.vec3(x['values']),
     'vec4': lambda x, _: glm.vec4(x['values']),
+    'quat': lambda x, _: glm.quat(x['values']),
     'entity': handle_entity,
 }
 

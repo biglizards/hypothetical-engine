@@ -90,3 +90,7 @@ def on_scroll():
 
 def on_resize():
     return basic_hook('on_resize')
+
+
+def on_frame():
+    return basic_hook('on_frame')
