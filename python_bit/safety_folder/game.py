@@ -13,6 +13,10 @@ from camera import Camera
 from util import multiply_vec3
 
 
+def savable_args(*args):
+    return {arg: arg for arg in args}
+
+
 class Entity(engine.Model):
     def __init__(self, game, vert_path, frag_path, geo_path=None, meshes=None, model_path=None, position=None,
                  orientation=None, scalar=None, velocity=None, do_gravity=False, do_collisions=False,
@@ -36,6 +40,11 @@ class Entity(engine.Model):
         self.model_mat = None
         self._ignore_this = 34
         self.should_render = should_render
+
+        # add savable attributes (that is, attributes that i expect to change while editing is being done)
+        self.savable_attributes = savable_args('position', 'orientation', 'scalar', 'velocity', 'do_gravity',
+                                               'do_collisions', 'should_render', 'name')
+        # arguments not on this list: shader paths, meshes, model_path, scripts
 
         if scripts is None:
             scripts = []

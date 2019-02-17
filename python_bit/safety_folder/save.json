@@ -3,7 +3,6 @@
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -206,19 +205,45 @@
         "position": {
             "@type": "vec3",
             "values": [
+                -0.4372654181045394,
+                -0.49901885414295816,
+                0.0
+            ]
+        },
+        "do_gravity": true,
+        "do_collisions": true,
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
                 0.0,
                 0.0,
                 0.0
             ]
         },
-        "do_gravity": true,
-        "do_collisions": true
+        "should_render": true,
+        "name": "dave"
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -427,13 +452,39 @@
             ]
         },
         "do_gravity": true,
-        "do_collisions": true
+        "do_collisions": true,
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "should_render": true,
+        "name": ""
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -642,13 +693,39 @@
             ]
         },
         "do_gravity": true,
-        "do_collisions": true
+        "do_collisions": true,
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "should_render": true,
+        "name": ""
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -857,13 +934,39 @@
             ]
         },
         "do_gravity": true,
-        "do_collisions": true
+        "do_collisions": true,
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "should_render": true,
+        "name": ""
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -1072,13 +1175,39 @@
             ]
         },
         "do_gravity": true,
-        "do_collisions": true
+        "do_collisions": true,
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "should_render": true,
+        "name": ""
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -1287,13 +1416,39 @@
             ]
         },
         "do_gravity": true,
-        "do_collisions": true
+        "do_collisions": true,
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "should_render": true,
+        "name": ""
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -1502,13 +1657,39 @@
             ]
         },
         "do_gravity": true,
-        "do_collisions": true
+        "do_collisions": true,
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "should_render": true,
+        "name": ""
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -1717,13 +1898,39 @@
             ]
         },
         "do_gravity": true,
-        "do_collisions": true
+        "do_collisions": true,
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "should_render": true,
+        "name": ""
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -1932,13 +2139,39 @@
             ]
         },
         "do_gravity": true,
-        "do_collisions": true
+        "do_collisions": true,
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "should_render": true,
+        "name": ""
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -2147,13 +2380,39 @@
             ]
         },
         "do_gravity": true,
-        "do_collisions": true
+        "do_collisions": true,
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "should_render": true,
+        "name": ""
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -2371,13 +2630,30 @@
         },
         "do_gravity": false,
         "do_collisions": true,
-        "name": "floor crate"
+        "name": "floor crate",
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "should_render": true
     },
     {
         "@type": "entity",
         "@class_module": "game",
         "@class_name": "ManualEntity",
-        "@args": [],
         "data": [
             -0.5,
             -0.5,
@@ -2586,13 +2862,39 @@
             ]
         },
         "should_render": false,
-        "name": "dot"
+        "name": "dot",
+        "position": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "do_gravity": false,
+        "do_collisions": false
     },
     {
         "@type": "entity",
-        "@class_module": "__main__",
+        "@class_module": "classes.axis",
         "@class_name": "Axis",
-        "@args": [],
         "overlay": true,
         "data": [
             -0.5,
@@ -2793,7 +3095,7 @@
         ],
         "vert_path": "shaders/axes.vert",
         "frag_path": "shaders/highlight.frag",
-        "should_render": false,
+        "should_render": true,
         "unit_vector": {
             "@type": "vec4",
             "values": [
@@ -2802,13 +3104,48 @@
                 0.0,
                 0.0
             ]
-        }
+        },
+        "position": {
+            "@type": "vec3",
+            "values": [
+                -0.4372654181045394,
+                -0.49901885414295816,
+                0.0
+            ]
+        },
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                1.0,
+                0.1,
+                0.1
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "do_gravity": false,
+        "do_collisions": false,
+        "name": ""
     },
     {
         "@type": "entity",
-        "@class_module": "__main__",
+        "@class_module": "classes.axis",
         "@class_name": "Axis",
-        "@args": [],
         "overlay": true,
         "data": [
             -0.5,
@@ -3009,7 +3346,7 @@
         ],
         "vert_path": "shaders/axes.vert",
         "frag_path": "shaders/highlight.frag",
-        "should_render": false,
+        "should_render": true,
         "unit_vector": {
             "@type": "vec4",
             "values": [
@@ -3018,13 +3355,48 @@
                 0.0,
                 0.0
             ]
-        }
+        },
+        "position": {
+            "@type": "vec3",
+            "values": [
+                -0.4372654181045394,
+                -0.49901885414295816,
+                0.0
+            ]
+        },
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                0.1,
+                1.0,
+                0.1
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "do_gravity": false,
+        "do_collisions": false,
+        "name": ""
     },
     {
         "@type": "entity",
-        "@class_module": "__main__",
+        "@class_module": "classes.axis",
         "@class_name": "Axis",
-        "@args": [],
         "overlay": true,
         "data": [
             -0.5,
@@ -3225,7 +3597,7 @@
         ],
         "vert_path": "shaders/axes.vert",
         "frag_path": "shaders/highlight.frag",
-        "should_render": false,
+        "should_render": true,
         "unit_vector": {
             "@type": "vec4",
             "values": [
@@ -3234,6 +3606,42 @@
                 1.0,
                 0.0
             ]
-        }
+        },
+        "position": {
+            "@type": "vec3",
+            "values": [
+                -0.4372654181045394,
+                -0.49901885414295816,
+                0.0
+            ]
+        },
+        "orientation": {
+            "@type": "quat",
+            "values": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "scalar": {
+            "@type": "vec3",
+            "values": [
+                0.1,
+                0.1,
+                1.0
+            ]
+        },
+        "velocity": {
+            "@type": "vec3",
+            "values": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "do_gravity": false,
+        "do_collisions": false,
+        "name": ""
     }
 ]

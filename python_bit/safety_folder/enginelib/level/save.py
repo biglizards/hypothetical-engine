@@ -33,6 +33,11 @@ def handle_item(item):
     raise KeyError(f"No save handler could be found for class '{item.__class__}'")
 
 
+def convert_args_to_kwargs(entity, args):
+    raise NotImplementedError(f"entity {entity} has positional args, but these are not supported yet!")
+
+
+# noinspection PyProtectedMember
 def handle_entity(entity):
     # ensure entity is valid and serialisable
     if not hasattr(entity, '_args') or not hasattr(entity, '_kwargs'):
@@ -46,65 +51,28 @@ def handle_entity(entity):
     # after reading https://stackoverflow.com/questions/2020014/get-fully-qualified-class-name-of-an-object-in-python
     # i'm using the top answer but using __qualname__ instead
     entity_obj = {'@type': 'entity', '@class_module': entity.__class__.__module__,
-                  '@class_name': entity.__class__.__qualname__,
-                  '@args': handle_entity_args(entity, entity._args)}
-    entity_obj.update(handle_entity_kwargs(entity, entity._kwargs))
+                  '@class_name': entity.__class__.__qualname__}
+    if entity._args:
+        entity_obj.update(handle_item(convert_args_to_kwargs(entity, entity._args)))
+
+    # set the base arguments to the original arguments
+    entity_obj.update(handle_item(entity._kwargs))
+
+    # replace any arguments that might have been updated after instantiation
+    for arg_name, attr_name in entity.savable_attributes.items():
+        entity_obj[arg_name] = handle_item(getattr(entity, attr_name))
+
+    # handle any overrides, if they exist
+    overrides = getattr(entity, 'save_overrides', {})
+    for arg_name, value in overrides.items():
+        entity_obj[arg_name] = handle_item(value)
+
     # todo 1. raise error if arg names change
     # todo 2. add way to change signature of entity without breaking saves
     # todo 3. try to re-import the name to make sure it worked and refers to the correct thing (cont)
     # and/or only accept classes that can be guaranteed to be available in PYTHONPATH like the library,
     # or files within the bit of the level that gets zipped (like example_app/classes/my_custom_class.py)
     return entity_obj
-
-
-def handle_entity_args(entity, args):
-    handled_args = []
-    for i, name, initial_value in enumerate(zip(args, inspect.getfullargspec(entity.__init__).args)):
-        try:
-            handled_args.append(handle_entity_arg(entity, name, initial_value))
-        except AttributeError:
-            handled_args.append(handle_item(initial_value))
-    return args
-
-
-def handle_entity_kwargs(entity, kwargs):
-    handled_kwargs = {}
-    for name, initial_value in kwargs.items():
-        try:
-            handled_kwargs[name] = handle_entity_kwarg(entity, name, initial_value)
-        except AttributeError:
-            handled_kwargs[name] = handle_item(initial_value)
-    return handled_kwargs
-
-
-def handle_entity_arg(entity, name, initial_value):
-    """
-    if the entity has an attribute with the same name as an argument, try to take that as our value
-    instead of the initial value passed to __init__ (to account for stuff like entity.position changing)
-    raises AttributeError, which is caught by `handle_entity_args`
-    """
-
-    new_value = getattr(entity, name)
-    if not isinstance(new_value, type(initial_value)) and initial_value is not None:
-        warn(f"WARNING: value {name} of entity {entity} changed type from __init__ argument. "
-             f"Consider renaming it.")
-        return
-    return handle_item(initial_value)
-
-
-def handle_entity_kwarg(entity, name, initial_value):
-    """
-    if the entity has an attribute with the same name as an argument, try to take that as our value
-    instead of the initial value passed to __init__ (to account for stuff like entity.position changing)
-    raises AttributeError, which is caught by `handle_entity_kwargs`
-    """
-
-    new_value = getattr(entity, name)
-    if not isinstance(new_value, type(initial_value)) and initial_value is not None :
-        warn(f"WARNING: value {name} of entity {entity} changed type from __init__ argument. "
-             f"Consider renaming it.")
-        return
-    return handle_item(initial_value)
 
 
 handlers = {int: lambda x: x,
@@ -119,10 +87,14 @@ handlers = {int: lambda x: x,
             glm.vec2: lambda x: {'@type': 'vec2', 'values': list(x)},
             glm.vec3: lambda x: {'@type': 'vec3', 'values': list(x)},
             glm.vec4: lambda x: {'@type': 'vec4', 'values': list(x)},
+            # in quaternions, args are given in (w, x, y, z), but list(x) = (x, y, z, w)
+            # oddly, however, if you pass a list, it reads in in (x, y, z, w) order, so quat(list(quat)) = quat
+            glm.quat: lambda x: {'@type': 'quat', 'values': list(x)},  # list(x)[-1:] + list(x)[:3]
             }
 
 
 def save_level(location, editor):
+    editor.dispatch('on_save')
     processed_entities = []
     for entity in itertools.chain(editor.entities, editor.overlay_entities):
         entity_obj = handle_item(entity)
@@ -130,3 +102,5 @@ def save_level(location, editor):
 
     with open(location, 'w') as f:
         json.dump(processed_entities, f, indent=4)
+
+    editor.dispatch('after_save')
