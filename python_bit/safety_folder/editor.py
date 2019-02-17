@@ -51,8 +51,8 @@ class Editor(Click, Game):
         gui_window.layout.set_anchor(xyz_section, engine.Anchor(1, gui_window.layout.row_count - 1, 3, 1))
 
         for i in range(3):
-            def setter(new_val, i=i, vector=vector):  # the keyword args save the value (otherwise all
-                vector[i] = new_val                   # functions would use the last value in the loop)
+            def setter(new_val, i=i, key=key, entity=entity):  # the keyword args save the value (otherwise all
+                entity.__dict__[key][i] = new_val              # functions would use the last value in the loop)
 
             def getter(i=i, key=key, entity=entity):
                 return entity.__dict__[key][i]
