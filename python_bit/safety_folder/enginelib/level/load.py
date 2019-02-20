@@ -1,3 +1,4 @@
+import functools
 import importlib
 
 import json
@@ -29,6 +30,16 @@ def handle_dict(value, game):
 
 
 def handle_entity(data, game):
+    args, kwargs, entity_class = extract_entity_data(data, game)
+    game.create_entity(*args, entity_class=entity_class, **kwargs)
+
+
+def handle_script(data, game):
+    args, kwargs, script_class = extract_entity_data(data, game)
+    return functools.partial(game.create_script, *args, script_class=script_class, **kwargs)
+
+
+def extract_entity_data(data, game):
     kwargs = {name: handle_item(item, game)
               for name, item in data.items()
               if not name.startswith('@')}
@@ -39,12 +50,16 @@ def handle_entity(data, game):
     entity_class = load_entity_class(module_name=data['@class_module'],
                                      class_name=data['@class_name'])
 
-    game.create_entity(*args, entity_class=entity_class, **kwargs)
+    return args, kwargs, entity_class
 
 
 def load_entity_class(module_name, class_name):
     module = importlib.import_module(module_name)
     return getattr(module, class_name)
+
+
+def handle_entity_ref(data, game):
+    return game.entities_by_id[data['id']]
 
 
 # handlers in the form {@type: handler(data, game), ...}
@@ -61,13 +76,16 @@ handlers = {
     'vec4': lambda x, _: glm.vec4(x['values']),
     'quat': lambda x, _: glm.quat(x['values']),
     'entity': handle_entity,
+    'entity_ref': handle_entity_ref,
+    'script': handle_script,
 }
 
 
 def load_level(location, game):
     with open(location, 'r') as f:
-        entity_list = json.load(f)
+        save_obj = json.load(f)
+    entity_dict = save_obj['entities']
 
-    # since the file is a list of (probably) entities, we call handle_item to call the relevant handler
-    for entity in entity_list:
+    # since the dict is full of (hopefully) entities, we call handle_item to call the relevant handler
+    for entity in entity_dict.values():
         handle_item(entity, game)

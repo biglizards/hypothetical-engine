@@ -10,12 +10,16 @@ class Script:
     def __init__(self, parent, game, *_args, **_kwargs):
         self.parent = parent
         self.game = game
+        # note: args and kwargs are set in editor.add_script, not here, since we dont get args from subclasses etc.
+        self._args = []
+        self._kwargs = {}
 
         for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
             if name.startswith('_'):
                 continue
 
             if hasattr(method, 'hook_name') and hasattr(method, 'hook_args'):  # if it's wrapped (eg with `basic_hook`)
+                # todo either find a use for hook_args or get rid of it
                 game.add_callback(method.hook_name, method)
             else:
                 game.add_callback(name, method)   # if it isn't decorated, add it as a callback anyway, there's no cost

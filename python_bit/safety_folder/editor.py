@@ -111,6 +111,12 @@ class Editor(Click, Game):
         entity._kwargs = kwargs
         return entity
 
+    def create_script(self, entity, script_class, *args, **kwargs):
+        script = super(Editor, self).create_script(entity=entity, script_class=script_class, *args, **kwargs)
+        script._args = args
+        script._kwargs = kwargs
+        return script
+
 
 class Drag(Game):
     def __init__(self, *args, **kwargs):

@@ -20,7 +20,7 @@ def savable_args(*args):
 class Entity(engine.Model):
     def __init__(self, game, vert_path, frag_path, geo_path=None, meshes=None, model_path=None, position=None,
                  orientation=None, scalar=None, velocity=None, do_gravity=False, do_collisions=False,
-                 should_render=True, scripts=None, name=''):
+                 should_render=True, scripts=None, id='', **kwargs):
 
         if not (meshes is None) ^ (model_path is None):
             raise RuntimeError("exactly one of 'meshes' and 'model_path' must be passed to Entity")
@@ -30,7 +30,7 @@ class Entity(engine.Model):
         super().__init__(meshes, vert_path, frag_path, geo_path)
 
         self.game = game
-        self.name = name
+        self.id = id
         self.position = position if position is not None else glm.vec3(0, 0, 0)
         self.orientation = orientation if orientation is not None else glm.quat(1, 0, 0, 0)
         self.scalar = scalar or glm.vec3(1, 1, 1)
@@ -43,12 +43,12 @@ class Entity(engine.Model):
 
         # add savable attributes (that is, attributes that i expect to change while editing is being done)
         self.savable_attributes = savable_args('position', 'orientation', 'scalar', 'velocity', 'do_gravity',
-                                               'do_collisions', 'should_render', 'name')
+                                               'do_collisions', 'should_render', 'id', 'scripts')
         # arguments not on this list: shader paths, meshes, model_path, scripts
 
-        if scripts is None:
-            scripts = []
-        self.scripts = [script(parent=self, game=game) for script in scripts]
+        self.scripts = []
+        for add_script in scripts:  # scripts is a list of partials of game.add_script
+            add_script(entity=self)
 
         self._click_shader = engine.ShaderProgram(vert_path, 'shaders/clickHack.frag')
 
@@ -114,7 +114,9 @@ class Game(engine.Window):
                  **kwargs):
         super().__init__(*args, **kwargs)
         self.entities = []
+        self.entities_by_id = {}
         self.overlay_entities = []
+        self.entity_lists = [self.entities, self.overlay_entities]
         self.dispatches = defaultdict(list)
 
         self.camera = camera or Camera(self)
@@ -134,17 +136,28 @@ class Game(engine.Window):
                                      # 'on_resize': 'resize_callback',  # replaced manually
                                      })
 
+    @property
+    def all_entities(self):
+        return itertools.chain(*self.entity_lists)
+
     def add_entity(self, entity):
         self.entities.append(entity)
 
     # @wraps(Entity) todo why was this here, i dont think it needs to be
-    def create_entity(self, *args, entity_class=Entity, overlay=False, **kwargs):
-        new_entity = entity_class(game=self, *args, **kwargs)
+    def create_entity(self, *args, entity_class=Entity, overlay=False, id, **kwargs):
+        assert id not in self.entities_by_id, 'entities must be unique'
+        new_entity = entity_class(game=self, id=id, *args, **kwargs)
+        self.entities_by_id[id] = new_entity
         if overlay:
             self.overlay_entities.append(new_entity)
         else:
             self.entities.append(new_entity)
         return new_entity
+
+    def create_script(self, entity, script_class, *args, **kwargs):
+        new_script = script_class(parent=entity, game=self, *args, **kwargs)
+        entity.scripts.append(new_script)
+        return new_script
 
     def draw_entities(self, entity_list):
         proj_times_view = self.projection * self.camera.view_matrix()
@@ -217,3 +230,6 @@ class Game(engine.Window):
                     print("current fps:", round(frame_count/duration))
                     time_since_last_fps_print = time_time
                     frame_count = 0
+
+        # the loop is over, so self.should_close() == True
+
