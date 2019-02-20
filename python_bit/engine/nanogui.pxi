@@ -296,6 +296,14 @@ cdef class FormHelper:
     cpdef add_manual_getter(self, box, getter):
         self.manual_getters.append((box, getter))
 
+cdef class ScrollPanel(Widget):
+    cdef nanogui.VScrollPanel* scroll_panel_ptr
+    def __init__(self, Widget parent):
+        if type(self) is ScrollPanel:
+            self.scroll_panel_ptr = new nanogui.VScrollPanel(parent.widget)
+            self.widget = self.scroll_panel_ptr
+        super(ScrollPanel, self).__init__(parent)
+
 buttons = {}  #
 
 cdef class Button(Widget):
