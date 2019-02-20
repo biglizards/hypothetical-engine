@@ -29,6 +29,7 @@ def reset_camera(*_args, **_kwargs):
 def draw_dots_on_corners(*_args):
     if not draw_dots:
         return
+    dot = game.entities_by_id['dot']
     # i'm unpacking it for performance reasons
     proj_times_view = game.projection * game.camera.view_matrix()
     for box in game.entities[1:]:
@@ -64,11 +65,11 @@ helper.add_button('save', lambda: save.save_level('save.json', game))
 # new custom gui
 model_loader_window = engine.GuiWindow(185, 10, "model loader 4000", gui=game.gui, layout=engine.GroupLayout())
 
-path_box = engine.TextBox(parent=model_loader_window, value="resources/")
+path_box = engine.TextBox(parent=model_loader_window, value="resources/capsule/capsule.obj")
 model_loader_window.fixed_width = 225
 
 engine.Button("load model", parent=model_loader_window,
-              callback=lambda: game.create_entity(model_path=path_box.value,
+              callback=lambda: game.create_entity(model_path=path_box.value, id='new_model',
                                                   vert_path='shaders/fuckme.vert', frag_path='shaders/highlight.frag'))
 
 
@@ -82,7 +83,7 @@ def make_entity_list():
 
     for i, entity in enumerate(game.entities):
         # engine.Label(caption=f"{x}th button", parent=scroll_panel)
-        name = entity.name if entity.name is not '' else f'{i}th entity'
+        name = entity.id if entity.id is not '' else f'{i}th entity'
         button = engine.Button(name, lambda target=entity: game.select_entity(target), parent=scroll_panel)
         button.fixed_height = 20
 
@@ -165,8 +166,8 @@ game.add_global_script(scripts.editor_scripts.EditorScripts)
 
 load.load_level('save.json', game)
 
-crates = []
-dot = [x for x in game.entities if x.name == 'dot'][0]
+# crates = []
+# dot = [x for x in game.entities if x.id == 'dot'][0]
 
 make_entity_list()
 # make_resource_list()

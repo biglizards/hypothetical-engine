@@ -60,10 +60,9 @@ def get_entity_at_pos(game, x, y):
         for i, entity in enumerate(game.overlay_entities, start=len(game.entities)):
             if entity.should_render:
                 draw_entity_click_hack(i, entity)
-        # create list of target entities.
-        entity_list = game.entities + game.overlay_entities
-    else:
-        entity_list = game.entities
+
+    # create list of target entities.
+    entity_list = list(game.all_entities)  # wow this is horrible for memory todo dont
 
     # apparently the next bit is super slow - rip
     engine.wait_until_finished()
