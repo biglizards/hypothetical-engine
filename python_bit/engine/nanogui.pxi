@@ -3,6 +3,7 @@ from nanogui cimport FormWidget
 from libcpp cimport bool as c_bool
 from libcpp.string cimport string
 from libcpp.pair cimport pair
+from libcpp.vector cimport vector
 import inspect
 
 # note to self about the way nanogui works
@@ -13,7 +14,7 @@ import inspect
 cdef class Gui:
     cdef nanogui.Screen* screen
     cdef GLFWwindow* window
-    cdef list windows
+    cdef readonly list windows
 
     def __cinit__(self, Window window, *args, **kwargs):
         self.windows = []
@@ -64,7 +65,7 @@ cdef class Gui:
 cdef class Widget:
     cdef nanogui.Widget* widget
     cdef Layout _layout
-    cdef list children
+    cdef readonly list children
 
     def __cinit__(self, *args, **kwargs):
         self.children = []
@@ -128,6 +129,17 @@ cdef class Widget:
     def height(self, int value):
         self.widget.setHeight(value)
 
+    @property
+    def font_size(self):
+        return self.widget.fontSize()
+
+    @font_size.setter
+    def font_size(self, int value):
+        self.widget.setFontSize(value)
+
+    cdef nanogui.Widget* find_widget(self, int x, int y):
+        return self.widget.findWidget(nanogui.Vector2i(x, y))
+
 
 cdef class Layout:
     cdef nanogui.Layout* ptr
@@ -146,6 +158,17 @@ cdef class GroupLayout(Layout):
 
 cdef class AdvancedGridLayout(Layout):
     cdef nanogui.AdvancedGridLayout* advanced_ptr
+
+    def __init__(self, list cols=None, list rows=None, int margin=0, set_helper_stuff=True):
+        cdef vector[int] cols_ = cols if cols else []
+        cdef vector[int] rows_ = rows if rows else []
+        self.advanced_ptr = new nanogui.AdvancedGridLayout(cols_, rows_, margin)
+        self.ptr = self.advanced_ptr
+
+        if set_helper_stuff:
+            self.advanced_ptr.setMargin(10)
+            self.advanced_ptr.setColStretch(2, 1)
+
     # note: have not written an init because i'm lazy and dont need this other than to wrap it internally
     def set_anchor(self, Widget widget, Anchor anchor):
         self.advanced_ptr.setAnchor(widget.widget, anchor.ptr)
@@ -154,7 +177,7 @@ cdef class AdvancedGridLayout(Layout):
     def row_count(self):
         return self.advanced_ptr.rowCount()
 
-    cpdef append_row(self, int size, float stretch=0.0):
+    cpdef append_row(self, int size=0, float stretch=0.0):
         self.advanced_ptr.appendRow(size, stretch)
 
 cdef class Anchor:
@@ -239,7 +262,7 @@ cdef class FormHelper:
     cpdef GuiWindow add_window(self, x, y, name):
         cdef GuiWindow window = GuiWindow(x, y, name, self)
         # manually create and wrap the layout for the window
-        cdef AdvancedGridLayout layout = AdvancedGridLayout()
+        cdef AdvancedGridLayout layout = AdvancedGridLayout.__new__(AdvancedGridLayout)
         layout.advanced_ptr = <nanogui.AdvancedGridLayout*>window.widget.layout()
         layout.ptr = layout.advanced_ptr
         window._layout = layout
@@ -247,6 +270,10 @@ cdef class FormHelper:
 
     cpdef set_window(self, GuiWindow window):
         self.helper.setWindow(window.window)
+
+    cpdef set_window_unsafe(self, Widget window):
+        self.helper.setWindow(<nanogui.Window*>window.widget)
+
 
     cpdef GuiWindow window(self):
         cdef nanogui.Window* window = self.helper.window()
@@ -329,9 +356,41 @@ cdef class Button(Widget):
         cdef Button self = <Button>_self
         self.callback()
 
+
+cdef class PopupButton(Widget):  # doesnt inherit from button since there isn't a callback
+    cdef nanogui.PopupButton* popup_button
+    cdef Widget _popup
+
+    def __cinit__(self, Widget parent, caption="untitled", int button_icon=0, int side=0):
+        self.popup_button = new nanogui.PopupButton(parent.widget, to_bytes(caption), button_icon)
+        self.widget = self.popup_button
+
+        cdef Widget popup = Widget(parent=self)
+        popup.widget = self.popup_button.popup()
+        self._popup = popup
+
+        self.side = side
+
+
+    def __init__(self, Widget parent, caption="untitled", int button_icon=0, int side=0):
+        super().__init__(parent)
+
+    @property
+    def popup(self):
+        return self._popup
+
+    @property
+    def side(self):
+        return <int>self.popup_button.side()
+
+    @side.setter
+    def side(self, int value):
+        self.popup_button.setSide(<nanogui.PopupSide>value)
+
 cdef class Label(Widget):
     def __cinit__(self, Widget parent, caption, font="sans-bold", font_size=-1):
         self.widget = new nanogui.Label(parent.widget, to_bytes(caption), to_bytes(font), font_size)
+
     def __init__(self, Widget parent, caption, font="sans-bold", font_size=-1):
         super().__init__(parent)
 

@@ -22,6 +22,11 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui::TextBox":
         Center,
         Right
 
+cdef extern from "nanogui/nanogui.h" namespace "nanogui::Popup":
+    cdef enum PopupSide "nanogui::Popup::Side":
+        PopupLeft "Left",
+        PopupRight "Right",
+
 cdef extern from "nanogui/nanogui.h" namespace "nanogui::ImagePanel":
     ctypedef vector[pair[int, string]] Images
 
@@ -74,6 +79,11 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         const vector[Widget *] &children() except +
         bint focused() except +
 
+        int fontSize() except +
+        void setFontSize(int fontSize) except +
+
+        Widget *findWidget(const Vector2i &p)
+
     cdef cppclass Label(Widget):
         Label(Widget *parent, const string &caption) except +
         Label(Widget *parent, const string &caption, const string &font) except +
@@ -125,6 +135,9 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         void appendRow(int size, float stretch) except +
         void appendCol(int size) except +
         void appendCol(int size, float stretch) except +
+
+        void setMargin(int margin) except +
+        void setColStretch(int index, float stretch) except +
 
     cdef cppclass Screen(Widget):
         Screen() except +
@@ -187,6 +200,16 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         const Images &images() except +
         function[void(int)] callback() except +
         void setCallback(const function[void(int)] &callback) except +
+
+    cdef cppclass PopupButton(Button):
+        PopupButton(Widget *parent) except +
+        PopupButton(Widget *parent, const string &caption) except +
+        PopupButton(Widget *parent, const string &caption, int buttonIcon) except +
+        Widget* popup() except +
+        void setSide(PopupSide popupSide) except +
+        PopupSide side() except +
+
+
 
     Images loadImageDirectory(NVGcontext *ctx, const string &path) except +
 
