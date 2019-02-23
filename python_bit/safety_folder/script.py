@@ -24,6 +24,21 @@ class Script:
             else:
                 game.add_callback(name, method)   # if it isn't decorated, add it as a callback anyway, there's no cost
 
+    def remove(self):
+        for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
+            if name.startswith('_'):
+                continue
+
+            if hasattr(method, 'hook_name') and hasattr(method, 'hook_args'):  # if it's wrapped (eg with `basic_hook`)
+                # todo either find a use for hook_args or get rid of it
+                self.game.remove_callback(method.hook_name, method)
+            else:
+                self.game.remove_callback(name, method)   # if it isn't decorated, add it as a callback anyway, there's no cost
+
+        self.parent.scripts.remove(self)
+        # for thing in gc.get_referrers(self):
+        #     print(thing, gc.get_referrers(thing))
+
 
 class ScriptGame(Game):
     """An add-on for the Game object that adds support for global scripts. Stores them in a list and does nothing

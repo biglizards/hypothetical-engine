@@ -131,6 +131,11 @@ cdef class Window:
         glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, data)
         return data[0], data[1], data[2], data[3]
 
+    cpdef bint gui_under_mouse(self):
+        cdef int x, y
+        x, y = self.cursor_location
+        return self.gui.screen.findWidget(nanogui.Vector2i(x, y)) is not self.gui.screen
+
 # instead of creating a custom wrapper in c++ using lambdas (which i very well could, like
 # in the nanogui wrapper), since every glfw function returns a pointer to the window, and there
 # is a one to one correspondence between Window objects and GLFWWindows, I just store them
@@ -193,8 +198,15 @@ cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, 
 
 cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, int modifiers):
     cdef Window window = get_window(window_ptr)
-    abstract_callback(window, window.mouse_button_callback, window.gui.handle_mouse_button, button, action, modifiers)
-
+    cdef int x, y
+    if window.handle_gui_callbacks or window.mouse_button_callback is None:
+        window.gui.handle_mouse_button(button, action, modifiers)
+    # todo try to simplify logic, it's getting a bit out of hand
+    if window.mouse_button_callback is not None and not (window.handle_gui_callbacks and window.gui.focused()):
+        if action != MOUSE_DOWN:
+            window.mouse_button_callback(window, button, action, modifiers)
+        elif not window.gui_under_mouse():
+            window.mouse_button_callback(window, button, action, modifiers)
 
 
 cdef void resize_callback(GLFWwindow* window_ptr, int width, int height):

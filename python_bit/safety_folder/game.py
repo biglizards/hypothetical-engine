@@ -38,7 +38,6 @@ class Entity(engine.Model):
         self.do_gravity = do_gravity
         self.do_collisions = do_collisions
         self.model_mat = None
-        self._ignore_this = 34
         self.should_render = should_render
 
         # add savable attributes (that is, attributes that i expect to change while editing is being done)
@@ -46,9 +45,13 @@ class Entity(engine.Model):
                                                'do_collisions', 'should_render', 'id', 'scripts')
         # arguments not on this list: shader paths, meshes, model_path, scripts
 
+        # set the property blacklist, which lists the things that dont show up in the property window
+        self.property_blacklist = ['game', 'savable_attributes', 'property_blacklist', 'scripts']
+
         self.scripts = []
-        for add_script in scripts:  # scripts is a list of partials of game.add_script
-            add_script(entity=self)
+        if scripts is not None:
+            for add_script in scripts:  # scripts is a list of partials of game.add_script
+                add_script(entity=self)
 
         self._click_shader = engine.ShaderProgram(vert_path, 'shaders/clickHack.frag')
 
@@ -181,6 +184,9 @@ class Game(engine.Window):
 
     def add_callback(self, name, func):
         self.dispatches[name].append(func)
+
+    def remove_callback(self, name, func):
+        self.dispatches[name].remove(func)
 
     def _set_default_callbacks(self, events):
         """sets the default callbacks for events, given a dict in the format

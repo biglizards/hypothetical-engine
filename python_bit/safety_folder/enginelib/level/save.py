@@ -57,7 +57,9 @@ def handle_entity(entity):
         entity_obj.update(handle_item(convert_args_to_kwargs(entity, entity._args)))
 
     # set the base arguments to the original arguments
-    entity_obj.update(handle_item(entity._kwargs))
+    for arg_name, value in entity._kwargs.items():
+        if arg_name not in entity.savable_attributes:
+            entity_obj[arg_name] = handle_item(value)
 
     # replace any arguments that might have been updated after instantiation
     for arg_name, attr_name in entity.savable_attributes.items():
@@ -85,7 +87,7 @@ def handle_entity_ref(entity):
 def handle_script(script):
     script_obj = handle_entity(script)  # yeah i know this looks strange but stick with me
     script_obj['@type'] = 'script'
-    script_obj['parent'] = handle_item(script.parent)
+    # script_obj['parent'] = handle_item(script.parent)
     return script_obj
 
 

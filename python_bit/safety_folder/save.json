@@ -203,6 +203,7 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "dave",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -211,8 +212,6 @@
                     0.0
                 ]
             },
-            "do_gravity": true,
-            "do_collisions": true,
             "orientation": {
                 "@type": "quat",
                 "values": [
@@ -238,8 +237,9 @@
                     0.0
                 ]
             },
+            "do_gravity": true,
+            "do_collisions": true,
             "should_render": true,
-            "name": "dave",
             "id": "crate0",
             "scripts": []
         },
@@ -446,6 +446,7 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -454,8 +455,6 @@
                     -15.0
                 ]
             },
-            "do_gravity": true,
-            "do_collisions": true,
             "orientation": {
                 "@type": "quat",
                 "values": [
@@ -481,8 +480,9 @@
                     0.0
                 ]
             },
+            "do_gravity": true,
+            "do_collisions": true,
             "should_render": true,
-            "name": "",
             "id": "crate1",
             "scripts": []
         },
@@ -689,6 +689,7 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -697,8 +698,6 @@
                     -2.33
                 ]
             },
-            "do_gravity": true,
-            "do_collisions": true,
             "orientation": {
                 "@type": "quat",
                 "values": [
@@ -724,8 +723,9 @@
                     0.0
                 ]
             },
+            "do_gravity": true,
+            "do_collisions": true,
             "should_render": true,
-            "name": "",
             "id": "crate2",
             "scripts": []
         },
@@ -932,6 +932,7 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -940,8 +941,6 @@
                     -12.3
                 ]
             },
-            "do_gravity": true,
-            "do_collisions": true,
             "orientation": {
                 "@type": "quat",
                 "values": [
@@ -967,8 +966,9 @@
                     0.0
                 ]
             },
+            "do_gravity": true,
+            "do_collisions": true,
             "should_render": true,
-            "name": "",
             "id": "crate3",
             "scripts": []
         },
@@ -1175,6 +1175,7 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -1183,8 +1184,6 @@
                     -3.5
                 ]
             },
-            "do_gravity": true,
-            "do_collisions": true,
             "orientation": {
                 "@type": "quat",
                 "values": [
@@ -1210,8 +1209,9 @@
                     0.0
                 ]
             },
+            "do_gravity": true,
+            "do_collisions": true,
             "should_render": true,
-            "name": "",
             "id": "crate4",
             "scripts": []
         },
@@ -1418,6 +1418,7 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -1426,8 +1427,6 @@
                     -7.5
                 ]
             },
-            "do_gravity": true,
-            "do_collisions": true,
             "orientation": {
                 "@type": "quat",
                 "values": [
@@ -1453,8 +1452,9 @@
                     0.0
                 ]
             },
+            "do_gravity": true,
+            "do_collisions": true,
             "should_render": true,
-            "name": "",
             "id": "crate5",
             "scripts": []
         },
@@ -1661,6 +1661,7 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -1669,8 +1670,6 @@
                     -2.3
                 ]
             },
-            "do_gravity": true,
-            "do_collisions": true,
             "orientation": {
                 "@type": "quat",
                 "values": [
@@ -1696,8 +1695,9 @@
                     0.0
                 ]
             },
+            "do_gravity": true,
+            "do_collisions": true,
             "should_render": true,
-            "name": "",
             "id": "crate6",
             "scripts": []
         },
@@ -1904,6 +1904,7 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -1912,8 +1913,6 @@
                     -2.6
                 ]
             },
-            "do_gravity": true,
-            "do_collisions": true,
             "orientation": {
                 "@type": "quat",
                 "values": [
@@ -1939,8 +1938,9 @@
                     0.0
                 ]
             },
+            "do_gravity": true,
+            "do_collisions": true,
             "should_render": true,
-            "name": "",
             "id": "crate7",
             "scripts": []
         },
@@ -2147,6 +2147,7 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -2155,8 +2156,6 @@
                     -1.4
                 ]
             },
-            "do_gravity": true,
-            "do_collisions": true,
             "orientation": {
                 "@type": "quat",
                 "values": [
@@ -2182,8 +2181,9 @@
                     0.0
                 ]
             },
+            "do_gravity": true,
+            "do_collisions": true,
             "should_render": true,
-            "name": "",
             "id": "crate8",
             "scripts": []
         },
@@ -2390,6 +2390,7 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -2398,8 +2399,6 @@
                     -1.7
                 ]
             },
-            "do_gravity": true,
-            "do_collisions": true,
             "orientation": {
                 "@type": "quat",
                 "values": [
@@ -2425,8 +2424,9 @@
                     0.0
                 ]
             },
+            "do_gravity": true,
+            "do_collisions": true,
             "should_render": true,
-            "name": "",
             "id": "crate9",
             "scripts": []
         },
@@ -2633,12 +2633,22 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
+            "name": "floor crate",
             "position": {
                 "@type": "vec3",
                 "values": [
                     0.0,
                     -10.0,
                     0.0
+                ]
+            },
+            "orientation": {
+                "@type": "quat",
+                "values": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
                 ]
             },
             "scalar": {
@@ -2649,18 +2659,6 @@
                     10.0
                 ]
             },
-            "do_gravity": false,
-            "do_collisions": true,
-            "name": "floor crate",
-            "orientation": {
-                "@type": "quat",
-                "values": [
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.0
-                ]
-            },
             "velocity": {
                 "@type": "vec3",
                 "values": [
@@ -2669,6 +2667,8 @@
                     0.0
                 ]
             },
+            "do_gravity": false,
+            "do_collisions": true,
             "should_render": true,
             "id": "floor_crate",
             "scripts": []
@@ -2876,15 +2876,6 @@
             ],
             "vert_path": "shaders/perspective.vert",
             "frag_path": "shaders/highlight.frag",
-            "scalar": {
-                "@type": "vec3",
-                "values": [
-                    0.1,
-                    0.1,
-                    0.1
-                ]
-            },
-            "should_render": false,
             "name": "dot",
             "position": {
                 "@type": "vec3",
@@ -2903,6 +2894,14 @@
                     1.0
                 ]
             },
+            "scalar": {
+                "@type": "vec3",
+                "values": [
+                    0.1,
+                    0.1,
+                    0.1
+                ]
+            },
             "velocity": {
                 "@type": "vec3",
                 "values": [
@@ -2913,6 +2912,7 @@
             },
             "do_gravity": false,
             "do_collisions": false,
+            "should_render": false,
             "id": "dot",
             "scripts": []
         },
@@ -2921,7 +2921,6 @@
             "@class_module": "game",
             "@class_name": "Entity",
             "model_path": "resources/capsule/capsule.obj",
-            "id": "capsule",
             "vert_path": "shaders/fuckme.vert",
             "frag_path": "shaders/highlight.frag",
             "position": {
@@ -2935,10 +2934,10 @@
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    0.4341660510407362,
-                    0.8683321020814724,
+                    -0.26707924629513463,
+                    -0.5341584925902693,
                     0.0,
-                    -0.239789909334123
+                    -0.8020868911733515
                 ]
             },
             "scalar": {
@@ -2960,12 +2959,13 @@
             "do_gravity": false,
             "do_collisions": false,
             "should_render": true,
+            "id": "capsule",
             "scripts": [
                 {
                     "@type": "script",
                     "@class_module": "scripts.spin",
                     "@class_name": "CrateSpinner",
-                    "speed": 2
+                    "speed": 20
                 }
             ]
         },
@@ -3173,7 +3173,6 @@
             ],
             "vert_path": "shaders/axes.vert",
             "frag_path": "shaders/highlight.frag",
-            "should_render": false,
             "unit_vector": {
                 "@type": "vec4",
                 "values": [
@@ -3183,6 +3182,7 @@
                     0.0
                 ]
             },
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -3194,10 +3194,10 @@
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    0.141299818064085,
-                    0.28259963612817,
+                    0.41766598161455915,
+                    0.8353319632291183,
                     0.0,
-                    0.9487738440088178
+                    0.3574571848624016
                 ]
             },
             "scalar": {
@@ -3218,7 +3218,7 @@
             },
             "do_gravity": false,
             "do_collisions": false,
-            "name": "",
+            "should_render": false,
             "id": "_engine_axis0",
             "scripts": []
         },
@@ -3426,7 +3426,6 @@
             ],
             "vert_path": "shaders/axes.vert",
             "frag_path": "shaders/highlight.frag",
-            "should_render": false,
             "unit_vector": {
                 "@type": "vec4",
                 "values": [
@@ -3436,6 +3435,7 @@
                     0.0
                 ]
             },
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -3447,10 +3447,10 @@
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    0.141299818064085,
-                    0.28259963612817,
+                    0.41766598161455915,
+                    0.8353319632291183,
                     0.0,
-                    0.9487738440088178
+                    0.3574571848624016
                 ]
             },
             "scalar": {
@@ -3471,7 +3471,7 @@
             },
             "do_gravity": false,
             "do_collisions": false,
-            "name": "",
+            "should_render": false,
             "id": "_engine_axis1",
             "scripts": []
         },
@@ -3679,7 +3679,6 @@
             ],
             "vert_path": "shaders/axes.vert",
             "frag_path": "shaders/highlight.frag",
-            "should_render": false,
             "unit_vector": {
                 "@type": "vec4",
                 "values": [
@@ -3689,6 +3688,7 @@
                     0.0
                 ]
             },
+            "name": "",
             "position": {
                 "@type": "vec3",
                 "values": [
@@ -3700,10 +3700,10 @@
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    0.141299818064085,
-                    0.28259963612817,
+                    0.41766598161455915,
+                    0.8353319632291183,
                     0.0,
-                    0.9487738440088178
+                    0.3574571848624016
                 ]
             },
             "scalar": {
@@ -3724,7 +3724,7 @@
             },
             "do_gravity": false,
             "do_collisions": false,
-            "name": "",
+            "should_render": false,
             "id": "_engine_axis2",
             "scripts": []
         }
