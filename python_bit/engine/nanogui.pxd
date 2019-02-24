@@ -175,6 +175,8 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         Button(Widget *parent, const string &caption)
         Button(Widget *parent, const string &caption, int icon)
         void setCallback(const function[void()] &callback)
+        const string &caption()
+        void setCaption(const string &caption)
 
     cdef cppclass FormHelper:
         FormHelper(Screen*) except +

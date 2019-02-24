@@ -78,14 +78,24 @@ handlers = {
     'entity': handle_entity,
     'entity_ref': handle_entity_ref,
     'script': handle_script,
+    'script_cls': lambda data, _: (load_entity_class(module_name=data['@class_module'],
+                                                     class_name=data['@class_name']), data['@name']),
+
 }
 
 
 def load_level(location, game):
     with open(location, 'r') as f:
         save_obj = json.load(f)
-    entity_dict = save_obj['entities']
 
+    # load models and scripts (ie everything that's not entities)
+    game.models = handle_item(save_obj['models'], game)
+    game.scripts = {cls: name for cls, name in handle_item(save_obj['scripts'], game)}
+    print(game.models, game.scripts)
+
+    # load entities
+    entity_dict = save_obj['entities']
     # since the dict is full of (hopefully) entities, we call handle_item to call the relevant handler
     for entity in entity_dict.values():
         handle_item(entity, game)
+
