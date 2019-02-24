@@ -91,6 +91,10 @@ def handle_script(script):
     return script_obj
 
 
+def handle_script_cls(cls, name):
+    return {'@type': 'script_cls', '@name': name, '@class_module': cls.__module__, '@class_name': cls.__qualname__}
+
+
 handlers = {int: lambda x: x,
             str: lambda x: x,
             float: lambda x: x,
@@ -112,13 +116,19 @@ handlers = {int: lambda x: x,
 
 def save_level(location, editor):
     editor.dispatch('on_save')
+    save_file = {}
+
     processed_entities = {}  # id: {entity...}
     for entity in itertools.chain(editor.entities, editor.overlay_entities):
         entity_obj = handle_entity(entity)
         assert entity.id not in processed_entities, 'duplicate id not allowed'
         processed_entities[entity_obj['id']] = entity_obj
+    save_file['entities'] = processed_entities
+
+    save_file['models'] = handle_item(editor.models)
+    save_file['scripts'] = [handle_script_cls(cls, name) for cls, name in editor.scripts.items()]
 
     with open(location, 'w') as f:
-        json.dump({'entities': processed_entities}, f, indent=4)
+        json.dump(save_file, f, indent=4)
 
     editor.dispatch('after_save')

@@ -137,6 +137,17 @@ cdef class Widget:
     def font_size(self, int value):
         self.widget.setFontSize(value)
 
+    @property
+    def visible(self):
+        return self.widget.visible()
+
+    @visible.setter
+    def visible(self, bint value):
+        self.widget.setVisible(value)
+
+    cpdef visibleRecursive(self):
+        return self.widget.visibleRecursive()
+
     cdef nanogui.Widget* find_widget(self, int x, int y):
         return self.widget.findWidget(nanogui.Vector2i(x, y))
 
@@ -355,6 +366,14 @@ cdef class Button(Widget):
     cdef void _callback(void* _self):
         cdef Button self = <Button>_self
         self.callback()
+
+    @property
+    def text(self):
+        return self.button_ptr.caption().decode()
+
+    @text.setter
+    def text(self, value):
+        self.button_ptr.setCaption(to_bytes(value))
 
 
 cdef class PopupButton(Widget):  # doesnt inherit from button since there isn't a callback

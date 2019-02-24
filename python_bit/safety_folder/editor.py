@@ -1,4 +1,5 @@
 import glm
+from warnings import warn
 
 import engine
 
@@ -25,6 +26,8 @@ class Editor(Click, Game):
         self.selected_object = None
         self.selected_gui = None
         self.property_window_helper = None
+        self.models = {}
+        self.scripts = {}
         self.add_callback('on_click_entity', self.on_entity_click)
 
     def on_entity_click(self, entity):
@@ -45,25 +48,22 @@ class Editor(Click, Game):
         self.selected_object = entity
 
     @staticmethod
-    def xyz_section(gui_window, vector, entity, key, helper, n=3):
+    def xyz_section(gui_window, vector, entity, key, helper, width=60):
         xyz_section = engine.Widget(gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
         gui_window.layout.append_row(0)
         gui_window.layout.set_anchor(xyz_section, engine.Anchor(1, gui_window.layout.row_count - 1, 3, 1))
 
-        for i in range(n):
+        for i, value in enumerate(vector):
             def setter(new_val, i=i, key=key, entity=entity):  # the keyword args save the value (otherwise all
                 entity.__dict__[key][i] = new_val              # functions would use the last value in the loop)
 
             def getter(i=i, key=key, entity=entity):
                 return entity.__dict__[key][i]
 
-            if n == 3:
+            if len(vector) <= 3:  # sometimes, eg quats, it's more, but there's not enough space for labels then
                 letter = ['x', 'y', 'z'][i]
                 engine.Label(xyz_section, letter)
-                width = 60
-            else:
-                width = 55
-            box = engine.FloatBox(parent=xyz_section, value=vector[i], spinnable=(n == 3), callback=setter)
+            box = engine.FloatBox(parent=xyz_section, value=value, spinnable=(len(vector) <= 3), callback=setter)
             box.font_size = 17.5
             helper.add_manual_getter(box, getter)  # todo refactor this mess out
             box.fixed_width = width
@@ -78,7 +78,7 @@ class Editor(Click, Game):
                 self.xyz_section(widget, item, entity, key, helper)
             elif isinstance(item, glm.quat):
                 helper.add_group(key)
-                self.xyz_section(widget, item, entity, key, helper, n=4)
+                self.xyz_section(widget, item, entity, key, helper, width=54)
             elif isinstance(item, (int, float, bool, str)):
                 # helper.add_group(key)
 
@@ -93,7 +93,7 @@ class Editor(Click, Game):
             elif isinstance(item, (glm.mat4, glm.quat)):  # ignore matrices and quaternions
                 pass
             else:
-                print(f'warning: unknown variable type {type(item)}: {key}')
+                warn(f'warning: unknown variable type {type(item)}: {key}', RuntimeWarning)
 
     def create_object_gui(self, entity: Entity):
         """
@@ -107,11 +107,7 @@ class Editor(Click, Game):
           c. raise a warning if no handler is found
         4. iterate over the scripts of the object:
           a. create a popup button
-          b. iterate over the __dict__ of the script:
-            i. if it starts with _ or is on the blacklist, ignore it
-            ii. if the type matches something we have a handler for, use that handler
-                (this uses the layout of the popup, usually a GridLayout)
-            iii. raise a warning if no handler is found
+          b. iterate over the __dict__ of the script, same as 3.
         """
         if self.selected_gui is not None:
             self.selected_gui.dispose()
@@ -142,6 +138,8 @@ class Editor(Click, Game):
         self.populate_properties_window(entity, helper, widget=helper_section)
 
         engine.Label(caption="Scripts", parent=script_section, font_size=20)
+        script_adder = engine.PopupButton(caption="Add new script", parent=script_section, side=0)
+        self.make_script_adder(entity, script_adder.popup)
         for script in entity.scripts:
             # create popup button
             popup_button = engine.PopupButton(parent=script_section, caption="popup", side=0)
@@ -156,9 +154,9 @@ class Editor(Click, Game):
             spacer.fixed_height = 10
             advanced_layout.set_anchor(spacer, engine.Anchor(1, advanced_layout.row_count - 1, 3, 1))
             advanced_layout.append_row()
-            delete_button = engine.Button(name="delet this", parent=popup_button.popup, callback=script.remove)
+            delete_button = engine.Button(name="delet this", parent=popup_button.popup,
+                                          callback=lambda: (script.remove(), self.create_object_gui(entity)))
             advanced_layout.set_anchor(delete_button, engine.Anchor(1, advanced_layout.row_count - 1, 1, 1))
-
 
         # end bit
         self.selected_gui = new_gui
@@ -168,13 +166,47 @@ class Editor(Click, Game):
 
         self.property_window_helper = helper
 
+    def make_script_adder(self, entity, window):
+        def update_resource_list(text):
+            if text == '':
+                for button in scroll_panel.children:
+                    button.visible = True
+                return
+            for button in scroll_panel.children:
+                button.visible = text.lower() in button.text.lower()
+
+        window.layout = engine.GroupLayout()
+        window.fixed_width = 225
+        _search_box = engine.TextBox(parent=window, placeholder="search box",
+                                     callback=update_resource_list)
+
+        scroll_panel_holder = engine.ScrollPanel(window)
+        scroll_panel = engine.Widget(scroll_panel_holder, layout=engine.GroupLayout())
+        scroll_panel.fixed_height = 10000
+        scroll_panel_holder.fixed_height = 100
+
+        for cls, name in self.scripts.items():
+            # engine.Label(caption=f"{x}th button", parent=scroll_panel)
+            name = name if name is not None else cls.__name__
+            button = engine.Button(name, parent=scroll_panel,
+                                   callback=lambda: (self.create_script(entity, cls), self.create_object_gui(entity)))
+            button.fixed_height = 20
+
+        self.gui.update_layout()
+        return window
+
     def create_entity(self, *args, entity_class=Entity, **kwargs):
+        if kwargs.get('model_path') and kwargs.get('model_path') not in self.models:
+            self.models[kwargs.get('model_path')] = None
+
         entity = super().create_entity(*args, entity_class=entity_class, **kwargs)
         entity._args = args
         entity._kwargs = kwargs
         return entity
 
     def create_script(self, entity, script_class, *args, **kwargs):
+        if script_class not in self.scripts:
+            self.scripts[script_class] = None
         script = super(Editor, self).create_script(entity=entity, script_class=script_class, *args, **kwargs)
         script._args = args
         script._kwargs = kwargs
