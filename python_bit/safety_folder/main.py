@@ -88,6 +88,7 @@ def make_entity_list():
         button.fixed_height = 20
 
     game.gui.update_layout()
+    return entity_list_window
 
 
 def make_resource_list():

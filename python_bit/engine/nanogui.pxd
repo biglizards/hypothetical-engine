@@ -214,6 +214,7 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
 
 
     Images loadImageDirectory(NVGcontext *ctx, const string &path) except +
+    string file_dialog(const vector[pair[string, string]] &filetypes, bool save)
 
 cdef extern from "nanogui/nanogui.h" namespace "nanogui::detail":
     cpdef cppclass FormWidget[T](Widget):

@@ -37,6 +37,7 @@ class Entity(engine.Model):
         self.velocity = velocity or glm.vec3(0, 0, 0)
         self.do_gravity = do_gravity
         self.do_collisions = do_collisions
+        self.model_path = model_path
         self.model_mat = None
         self.should_render = should_render
 
@@ -46,7 +47,7 @@ class Entity(engine.Model):
         # arguments not on this list: shader paths, meshes, model_path, scripts
 
         # set the property blacklist, which lists the things that dont show up in the property window
-        self.property_blacklist = ['game', 'savable_attributes', 'property_blacklist', 'scripts']
+        self.property_blacklist = ['game', 'savable_attributes', 'property_blacklist', 'scripts', 'model_path']
 
         self.scripts = []
         if scripts is not None:
