@@ -59,7 +59,8 @@ cdef class Gui:
 
     def focused(self):
         cdef GuiWindow window
-        return any(window.focused() for window in self.windows)
+        return any(window.focused() for window in self.windows) \
+               or any(window.focused_recursive() for window in self.windows)
 
 
 cdef class Widget:
@@ -82,6 +83,14 @@ cdef class Widget:
 
     def set_layout(self, Layout layout):
         self.widget.setLayout(layout.ptr)
+
+    def focused(self):
+        return self.widget.focused()
+
+    def focused_recursive(self):
+        return self.focused() \
+               or any(widget.focused_recursive() for widget in self.children)
+
 
     @property
     def layout(self):
