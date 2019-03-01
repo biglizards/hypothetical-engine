@@ -1,5 +1,6 @@
 import glm
 import engine
+import importlib.util
 
 
 def rotate_vec3(vec, angle, axis):
@@ -126,3 +127,9 @@ def get_point_closest_to_cursor(game, position, vector, cursor_pos=None):
 
 def is_clickable(entity):
     return not (hasattr(entity, 'clickable') and entity.clickable is False)
+
+
+def load_module_from_path(path, name):
+    spec = importlib.util.spec_from_file_location(name, path)
+    foo = importlib.util.module_from_spec(spec)
+    return spec.loader.exec_module(foo)

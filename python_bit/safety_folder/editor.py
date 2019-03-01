@@ -1,4 +1,6 @@
 import glm
+import importlib
+import os
 from warnings import warn
 
 import engine
@@ -137,12 +139,18 @@ class Editor(Click, Game):
 
         self.populate_properties_window(entity, helper, widget=helper_section)
 
+        if entity.model_path is not None:
+            engine.Label(caption="Model", parent=script_section, font_size=20)
+            engine.Label(caption=entity.model_path, parent=script_section)
+            model_changer = engine.PopupButton(caption="Change Model", parent=script_section, side=0)
+            self.make_model_editor(entity, model_changer.popup)
+
         engine.Label(caption="Scripts", parent=script_section, font_size=20)
-        script_adder = engine.PopupButton(caption="Add new script", parent=script_section, side=0)
+        script_adder = engine.PopupButton(caption="Add script", parent=script_section, side=0)
         self.make_script_adder(entity, script_adder.popup)
         for script in entity.scripts:
             # create popup button
-            popup_button = engine.PopupButton(parent=script_section, caption="popup", side=0)
+            popup_button = engine.PopupButton(parent=script_section, caption=script.__class__.__name__, side=0)
             advanced_layout = engine.AdvancedGridLayout([10, 0, 10, 0])
             popup_button.popup.layout = advanced_layout
             # populate popup with properties
@@ -166,7 +174,8 @@ class Editor(Click, Game):
 
         self.property_window_helper = helper
 
-    def make_script_adder(self, entity, window):
+    @staticmethod
+    def make_resource_list(window, width=255, height=100):
         def update_resource_list(text):
             if text == '':
                 for button in scroll_panel.children:
@@ -176,24 +185,85 @@ class Editor(Click, Game):
                 button.visible = text.lower() in button.text.lower()
 
         window.layout = engine.GroupLayout()
-        window.fixed_width = 225
+        if width > 0:
+            window.fixed_width = width
+        if height > 0:
+            window.fixed_height = height
         _search_box = engine.TextBox(parent=window, placeholder="search box",
                                      callback=update_resource_list)
 
         scroll_panel_holder = engine.ScrollPanel(window)
         scroll_panel = engine.Widget(scroll_panel_holder, layout=engine.GroupLayout())
-        scroll_panel.fixed_height = 10000
-        scroll_panel_holder.fixed_height = 100
+        return scroll_panel
 
+    def make_script_adder(self, entity, window):
+        def import_script(path=None, name=None):
+            module = importlib.import_module(path)
+            self.create_script(entity, getattr(module, name))
+            self.create_object_gui(entity)
+
+        engine.Button(name="Import new script", parent=window,
+                      callback=lambda: self.make_file_import(callback=import_script,
+                                                             path_placeholder='scripts.module',
+                                                             name_placeholder='ScriptClassName'))
+
+        scroll_panel = self.make_resource_list(window, height=200)
         for cls, name in self.scripts.items():
             # engine.Label(caption=f"{x}th button", parent=scroll_panel)
             name = name if name is not None else cls.__name__
             button = engine.Button(name, parent=scroll_panel,
-                                   callback=lambda: (self.create_script(entity, cls), self.create_object_gui(entity)))
+                                   callback=lambda: (self.create_script(entity, cls),
+                                                     self.create_object_gui(entity))
+                                   )
             button.fixed_height = 20
 
-        self.gui.update_layout()
         return window
+
+    def make_model_editor(self, entity, window):
+        def set_entity_model(path=None, name=None):
+            if path == '':
+                return None
+            entity.meshes = engine.load_model(path)
+            entity.model_path = path
+            if path not in self.models:
+                self.models[path] = name
+            self.create_object_gui(entity)  # reload properties menu
+
+        engine.Button(name="import new model", parent=window,
+                      callback=lambda: self.make_file_import(callback=set_entity_model,
+                                                             path_placeholder='path/to/file',
+                                                             name_placeholder='model name'))
+
+        scroll_panel = self.make_resource_list(window, width=-1, height=-1)
+        for path, name in self.models.items():
+            # engine.Label(caption=f"{x}th button", parent=scroll_panel)
+            name = name if name is not None else path
+            button = engine.Button(name, parent=scroll_panel, callback=lambda path_=path: set_entity_model(path_))
+            button.fixed_height = 20
+
+        return window
+
+    def make_file_import(self, callback=None, name="file loader", path_placeholder='', name_placeholder=''):
+        def set_file_path(path):
+            if path == '':
+                return None
+            path_box.value = os.path.relpath(path)
+            if name_box.value == '':
+                name_box.value = os.path.basename(path)
+
+        window = engine.GuiWindow(self.width//2-125, self.height//2-80,
+                                  name, gui=self.gui, layout=engine.GroupLayout())
+        window.fixed_width = 250
+
+        engine.Button(parent=window, name="open file", callback=lambda: set_file_path(engine.file_dialog(True)))
+        path_box = engine.TextBox(parent=window, value="", placeholder=path_placeholder)
+        name_box = engine.TextBox(parent=window, value="", placeholder=name_placeholder)
+
+        button_section = engine.Widget(parent=window, layout=engine.BoxLayout(orientation=0, spacing=90))
+        engine.Button(parent=button_section, name="cancel", callback=window.dispose)
+        engine.Button(parent=button_section, name="apply",
+                      callback=lambda: (callback(path=path_box.value, name=name_box.value),
+                                        window.dispose()))
 
     def create_entity(self, *args, entity_class=Entity, **kwargs):
         if kwargs.get('model_path') and kwargs.get('model_path') not in self.models:

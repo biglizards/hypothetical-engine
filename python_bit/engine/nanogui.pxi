@@ -6,6 +6,10 @@ from libcpp.pair cimport pair
 from libcpp.vector cimport vector
 import inspect
 
+
+def file_dialog(save):
+    return nanogui.file_dialog([(b"*", b"any file")], save).decode()
+
 # note to self about the way nanogui works
 # everything is a widget. Widgets can contain other widgets
 # each widget can have its own layout (and needs one for you to add widgets to it)
