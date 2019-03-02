@@ -130,28 +130,28 @@ cdef class Model:
             mesh.draw(self.shader_program, mode=mode)
 
 
-cpdef load_model(path_str):
+cpdef load_model(path_str, flip_on_load=True):
     cdef bytes path = to_bytes(path_str)
     cdef assimp.Importer importer
     cdef const assimp.aiScene* scene = importer.ReadFile(path, assimp.aiProcess_Triangulate | assimp.aiProcess_FlipUVs)
     if scene is NULL or (scene.mFlags & assimp.AI_SCENE_FLAGS_INCOMPLETE) or not scene.mRootNode:
         raise RuntimeError("ERROR [MODEL]: " + importer.GetErrorString().decode())
-    return process_node(scene.mRootNode, scene, path)
+    return process_node(scene.mRootNode, scene, path, meshes=None, flip_on_load=flip_on_load)
 
-cdef process_node(assimp.aiNode* node, const assimp.aiScene* scene, path, meshes=None):
+cdef process_node(assimp.aiNode* node, const assimp.aiScene* scene, path, meshes=None, flip_on_load=True):
     cdef assimp.aiMesh* mesh
     cdef assimp.aiNode* child_node
     meshes = meshes if meshes is not None else []
 
     for mesh_index in node.mMeshes[:node.mNumMeshes]:
         mesh = scene.mMeshes[mesh_index]
-        meshes.append(process_mesh(mesh, scene, path))
+        meshes.append(process_mesh(mesh, scene, path, flip_on_load))
     for child_node in node.mChildren[:node.mNumChildren]:
         process_node(child_node, scene, path, meshes=meshes)
 
     return meshes
 
-cdef process_mesh(assimp.aiMesh* mesh, const assimp.aiScene* scene, path):
+cdef process_mesh(assimp.aiMesh* mesh, const assimp.aiScene* scene, path, flip_on_load=True):
     cdef assimp.aiVector3D* ai_vector
     cdef assimp.aiFace* face
 
@@ -186,7 +186,7 @@ cdef process_mesh(assimp.aiMesh* mesh, const assimp.aiScene* scene, path):
         data.extend(sum(coords, ()))
 
     cdef assimp.aiMaterial* material = scene.mMaterials[mesh.mMaterialIndex]
-    diff_textures = load_textures_from_material(material, assimp.aiTextureType_DIFFUSE, path, "diffuse")
+    diff_textures = load_textures_from_material(material, assimp.aiTextureType_DIFFUSE, path, "diffuse", flip_on_load)
     # the following are being ignored until i sort out the shaders, since i dont have lighting yet
     # todo fix this once i've added lighting
     #spec_textures = load_textures_from_material(material, assimp.aiTextureType_SPECULAR, path)
@@ -194,7 +194,8 @@ cdef process_mesh(assimp.aiMesh* mesh, const assimp.aiScene* scene, path):
 
     return Mesh(data, data_format, indices, textures=diff_textures)  # + spec_textures + ambient_textures
 
-cdef load_textures_from_material(assimp.aiMaterial* material, assimp.aiTextureType texture_type, path, type_name_str):
+cdef load_textures_from_material(assimp.aiMaterial* material, assimp.aiTextureType texture_type, path, type_name_str,
+                                 flip_on_load):
     cdef bytes directory = os.path.dirname(path)
     cdef unsigned int texture_count = material.GetTextureCount(texture_type)
     cdef assimp.aiString ai_string
@@ -203,5 +204,5 @@ cdef load_textures_from_material(assimp.aiMaterial* material, assimp.aiTextureTy
         material.GetTexture(texture_type, i, &ai_string)
         texture_paths.append(os.path.join(directory, ai_string.C_Str()))
 
-    textures = [Texture(texture_path, flip_on_load=False, name=texture_path) for texture_path in texture_paths]
+    textures = [Texture(texture_path, flip_on_load=flip_on_load, name=texture_path) for texture_path in texture_paths]
     return textures

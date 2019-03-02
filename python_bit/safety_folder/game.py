@@ -20,12 +20,12 @@ def savable_args(*args):
 class Entity(engine.Model):
     def __init__(self, game, vert_path, frag_path, geo_path=None, meshes=None, model_path=None, position=None,
                  orientation=None, scalar=None, velocity=None, do_gravity=False, do_collisions=False,
-                 should_render=True, scripts=None, id='', **kwargs):
+                 should_render=True, scripts=None, id='', flip_textures=True, **kwargs):
 
         if not (meshes is None) ^ (model_path is None):
             raise RuntimeError("exactly one of 'meshes' and 'model_path' must be passed to Entity")
         if meshes is None:
-            meshes = engine.load_model(model_path)
+            meshes = engine.load_model(model_path, flip_on_load=flip_textures)
 
         super().__init__(meshes, vert_path, frag_path, geo_path)
 
