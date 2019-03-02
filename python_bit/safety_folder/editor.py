@@ -205,7 +205,7 @@ class Editor(Click, Game):
         engine.Button(name="Import new script", parent=window,
                       callback=lambda: self.make_file_import(callback=import_script,
                                                              path_placeholder='scripts.module',
-                                                             name_placeholder='ScriptClassName'))
+                                                             name_placeholder='ScriptClassName', use_button=False))
 
         scroll_panel = self.make_resource_list(window, height=200)
         for cls, name in self.scripts.items():
@@ -243,7 +243,8 @@ class Editor(Click, Game):
 
         return window
 
-    def make_file_import(self, callback=None, name="file loader", path_placeholder='', name_placeholder=''):
+    def make_file_import(self, callback=None, name="file loader", path_placeholder='', name_placeholder='',
+                         use_button=True):
         def set_file_path(path):
             if path == '':
                 return None
@@ -254,8 +255,8 @@ class Editor(Click, Game):
         window = engine.GuiWindow(self.width//2-125, self.height//2-80,
                                   name, gui=self.gui, layout=engine.GroupLayout())
         window.fixed_width = 250
-
-        engine.Button(parent=window, name="open file", callback=lambda: set_file_path(engine.file_dialog(True)))
+        if use_button:
+            engine.Button(parent=window, name="open file", callback=lambda: set_file_path(engine.file_dialog(True)))
         path_box = engine.TextBox(parent=window, value="", placeholder=path_placeholder)
         name_box = engine.TextBox(parent=window, value="", placeholder=name_placeholder)
 
