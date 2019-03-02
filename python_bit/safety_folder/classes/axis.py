@@ -17,14 +17,13 @@ class Axis(ManualEntity):
         self.game = game
         self.unit_vector = unit_vector
         self.scalar = glm.vec3(0.10, 0.10, 0.10) + (unit_vector.xyz * 0.9)
-        self.parent = None
         self.offset = None
         self.parent_start_pos = None
         self.is_dragging = False
         self.should_render = False
         # set callbacks
         self.game.add_callback('on_drag_update', self.move_axis)
-        self.game.add_callback('on_click_entity', self.set_drag_start_pos)
+        self.game.add_callback('on_click_entity', self.on_click_entity)
         self.game.add_callback('on_drag', self.reset_variables)  # once the drag finishes, reset everything to none
         self.game.add_callback('before_frame', self.update_variables)
 
@@ -34,30 +33,31 @@ class Axis(ManualEntity):
         self.is_dragging = False
 
     def update_variables(self, *_args):
-        if self.parent is not None:
-            self.position = self.parent.position
-            self.orientation = self.parent.orientation
+        if self.game.selected_object is not None:
+            self.position = self.game.selected_object.position
+            self.orientation = self.game.selected_object.orientation
             self.should_render = True
-
-    def set_drag_start_pos(self, entity):
-        if entity is self:
-            self.is_dragging = True
-            drag_start_pos = util.get_point_closest_to_cursor(self.game, self.position,
-                                                              self.vector(), self.game.cursor_location)
-            self.offset = self.parent.position - drag_start_pos
-            self.parent_start_pos = self.parent.position
-        elif util.is_clickable(entity):  # todo maybe replace with entity is game.selected_object
-            self.parent = entity
-        if entity is None:
+        else:
             self.should_render = False
 
+    def set_drag_start_pos(self):
+        self.is_dragging = True
+        drag_start_pos = util.get_point_closest_to_cursor(self.game, self.position,
+                                                          self.vector(), self.game.cursor_location)
+        self.offset = self.game.selected_object.position - drag_start_pos
+        self.parent_start_pos = self.game.selected_object.position
+
+    def on_click_entity(self, entity):
+        if entity is self:
+            self.set_drag_start_pos()
+
     def vector(self):
-        return glm.normalize(glm.vec3(self.parent.model_mat * self.unit_vector))
+        return glm.normalize(glm.vec3(self.game.selected_object.model_mat * self.unit_vector))
 
     def move_axis(self, *mouse_pos):
-        if not self.is_dragging:
-            return None
+        if not self.is_dragging or self.game.selected_object is None:
+            return
         target = util.get_point_closest_to_cursor(self.game, self.parent_start_pos, self.vector(), mouse_pos)
 
         true_target = target + self.offset
-        self.parent.position = true_target
+        self.game.selected_object.position = true_target
