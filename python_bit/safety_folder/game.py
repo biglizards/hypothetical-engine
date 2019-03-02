@@ -147,6 +147,12 @@ class Game(engine.Window):
     def add_entity(self, entity):
         self.entities.append(entity)
 
+    def remove_entity(self, entity):
+        del self.entities_by_id[entity.id]
+        self.entities.remove(entity)
+        while entity.scripts:
+            entity.scripts[0].remove()
+
     # @wraps(Entity) todo why was this here, i dont think it needs to be
     def create_entity(self, *args, entity_class=Entity, overlay=False, id, **kwargs):
         assert id not in self.entities_by_id, 'entities must be unique'
