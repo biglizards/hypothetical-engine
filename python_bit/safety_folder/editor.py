@@ -145,6 +145,8 @@ class Editor(Click, Game):
             model_changer = engine.PopupButton(caption="Change Model", parent=script_section, side=0)
             self.make_model_editor(entity, model_changer.popup)
 
+        engine.Button(parent=script_section, name="delet this", callback=lambda: self.remove_entity(entity))
+
         engine.Label(caption="Scripts", parent=script_section, font_size=20)
         script_adder = engine.PopupButton(caption="Add script", parent=script_section, side=0)
         self.make_script_adder(entity, script_adder.popup)
@@ -274,6 +276,11 @@ class Editor(Click, Game):
         entity._args = args
         entity._kwargs = kwargs
         return entity
+
+    def remove_entity(self, entity):
+        super().remove_entity(entity)
+        if self.selected_object is entity:
+            self.select_entity(None)
 
     def create_script(self, entity, script_class, *args, **kwargs):
         if script_class not in self.scripts:
