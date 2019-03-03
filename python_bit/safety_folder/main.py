@@ -26,93 +26,18 @@ def reset_camera(*_args, **_kwargs):
     game.camera.up = glm.vec3(0, 1, 0)
 
 
-def draw_dots_on_corners(*_args):
-    if not draw_dots:
-        return
-    dot = game.entities_by_id['dot']
-    # i'm unpacking it for performance reasons
-    proj_times_view = game.projection * game.camera.view_matrix()
-    for box in game.entities[1:]:
-        corners = box.get_corners()
-        for corner in corners:
-            dot.position = corner
-            transformation_matrix = proj_times_view * dot.generate_model_mat()
-            dot.shader_program.set_trans_mat(transformation_matrix)
-            dot.draw()
-
-
 # variables altered by the gui
 box_speed = 0
 gravity_enabled = False
-bounce_enabled = False
-draw_dots = False
 
 # create the gui
 helper = engine.FormHelper(game.gui)
-gui_window = helper.add_window(10, 10, 'GUI WINDOW (example)')
-
-helper.add_group('box control')
-helper.add_variable('speed', float, linked_var='box_speed')
+gui_window = helper.add_window(240, 10, 'GUI WINDOW (example)')
 
 helper.add_group('gravity')
 helper.add_variable('enable gravity', bool, linked_var='gravity_enabled')
-helper.add_variable('enable bouncing', bool, linked_var='bounce_enabled')
-helper.add_variable('draw dots', bool, linked_var='draw_dots')
 helper.add_button('reset', reset_camera)
 helper.add_button('save', lambda: save.save_level('save.json', game))
-
-# ######
-# new custom gui
-model_loader_window = engine.GuiWindow(185, 10, "model loader 4000", gui=game.gui, layout=engine.GroupLayout())
-
-path_box = engine.TextBox(parent=model_loader_window, value="resources/capsule/capsule.obj")
-model_loader_window.fixed_width = 225
-
-engine.Button("load model", parent=model_loader_window,
-              callback=lambda: game.create_entity(model_path=path_box.value, id='new_model',
-                                                  vert_path='shaders/fuckme.vert', frag_path='shaders/highlight.frag'))
-
-
-def make_entity_list():
-    entity_list_window = engine.GuiWindow(185, 135, "entity list 3000", gui=game.gui, layout=engine.GroupLayout())
-    entity_list_window.fixed_width = 225
-    scroll_panel_holder = engine.ScrollPanel(entity_list_window)
-    scroll_panel = engine.Widget(scroll_panel_holder, layout=engine.GroupLayout())
-    scroll_panel.fixed_height = 1000
-    scroll_panel_holder.fixed_height = 100
-
-    for i, entity in enumerate(game.entities):
-        # engine.Label(caption=f"{x}th button", parent=scroll_panel)
-        name = entity.id if entity.id is not '' else f'{i}th entity'
-        button = engine.Button(name, lambda target=entity: game.select_entity(target), parent=scroll_panel)
-        button.fixed_height = 20
-
-    game.gui.update_layout()
-    return entity_list_window
-
-
-def make_resource_list():
-    entity_list_window = engine.GuiWindow(185, 135, "resource list 6000", gui=game.gui, layout=engine.GroupLayout())
-    entity_list_window.fixed_width = 500
-
-    def update_resource_list(text):
-        if text == '':
-            image_panel.images = resource_images
-            return
-        text = text.encode()  # todo remove
-        image_panel.images = [x for x in resource_images if text in x[1]]
-
-    _search_box = engine.TextBox(parent=entity_list_window, placeholder="search box",
-                                 callback=update_resource_list)
-
-    scroll_panel_holder = engine.ScrollPanel(entity_list_window)
-    scroll_panel = engine.Widget(scroll_panel_holder, layout=engine.GroupLayout())
-    scroll_panel.fixed_height = 1000
-    scroll_panel_holder.fixed_height = 200
-
-    image_panel = engine.ImagePanel(parent=scroll_panel, images=resource_images,
-                                    callback=print)
-    game.gui.update_layout()
 
 
 resource_images = engine.ImagePanel.load_images(game.gui, "resources")
@@ -160,7 +85,6 @@ def do_gravity(delta_t):
 
 
 game.add_callback('on_frame', do_gravity)
-game.add_callback('on_frame', draw_dots_on_corners)
 
 game.add_global_script(scripts.keys.CustomKeyPresses)
 game.add_global_script(scripts.editor_scripts.EditorScripts)

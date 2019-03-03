@@ -91,8 +91,8 @@ def handle_script(script):
     return script_obj
 
 
-def handle_script_cls(cls, name):
-    return {'@type': 'script_cls', '@name': name, '@class_module': cls.__module__, '@class_name': cls.__qualname__}
+def handle_cls(cls, name, type_name):
+    return {'@type': type_name, '@name': name, '@class_module': cls.__module__, '@class_name': cls.__qualname__}
 
 
 handlers = {int: lambda x: x,
@@ -126,7 +126,8 @@ def save_level(location, editor):
     save_file['entities'] = processed_entities
 
     save_file['models'] = handle_item(editor.models)
-    save_file['scripts'] = [handle_script_cls(cls, name) for cls, name in editor.scripts.items()]
+    save_file['scripts'] = [handle_cls(cls, name, 'script_cls') for cls, name in editor.scripts.items()]
+    save_file['entity_classes'] = [handle_cls(cls, name, 'entity_cls') for cls, name in editor.entity_classes.items()]
 
     with open(location, 'w') as f:
         json.dump(save_file, f, indent=4)

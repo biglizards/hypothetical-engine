@@ -22,14 +22,20 @@ class Click(Game):
         self.dispatch('on_click_entity', entity)
 
 
+# noinspection PyShadowingNames
 class Editor(Click, Game):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.selected_object = None
         self.selected_gui = None
         self.property_window_helper = None
+        self.entity_list_scroll_panel = None
+        self.entity_list_buttons_by_id = {}
+
         self.models = {}
         self.scripts = {}
+        self.entity_classes = {}
+
         self.add_callback('on_click_entity', self.on_entity_click)
 
     def on_entity_click(self, entity):
@@ -73,6 +79,7 @@ class Editor(Click, Game):
 
     def populate_properties_window(self, entity: Entity, helper, widget):
         if isinstance(entity, Entity):  # scripts also use this, so we need to check it's an entity
+            helper.add_group(f'Entity class: {entity.__class__.__name__}')
             # add 'id' at the top (it's a property so i need to do this manually)
             helper.add_variable('id', str, setter=lambda x, _: setattr(entity, 'id', x),
                                 getter=lambda: entity.id)
@@ -146,7 +153,9 @@ class Editor(Click, Game):
 
         if entity.model_path is not None:
             engine.Label(caption="Model", parent=script_section, font_size=20)
-            engine.Label(caption=entity.model_path, parent=script_section)
+            model_name = self.models.get(entity.model_path)
+            model_name = model_name if model_name is not None else entity.model_path
+            engine.Label(caption=f'selected: {model_name}', parent=script_section)
             model_changer = engine.PopupButton(caption="Change Model", parent=script_section, side=0)
             self.make_model_editor(entity, model_changer.popup)
 
@@ -216,7 +225,6 @@ class Editor(Click, Game):
 
         scroll_panel = self.make_resource_list(window, height=200)
         for cls, name in self.scripts.items():
-            # engine.Label(caption=f"{x}th button", parent=scroll_panel)
             name = name if name is not None else cls.__name__
             button = engine.Button(name, parent=scroll_panel,
                                    callback=lambda: (self.create_script(entity, cls),
@@ -243,9 +251,28 @@ class Editor(Click, Game):
 
         scroll_panel = self.make_resource_list(window, width=-1, height=-1)
         for path, name in self.models.items():
-            # engine.Label(caption=f"{x}th button", parent=scroll_panel)
             name = name if name is not None else path
             button = engine.Button(name, parent=scroll_panel, callback=lambda path_=path: set_entity_model(path_))
+            button.fixed_height = 20
+
+        return window
+
+    def make_entity_class_editor(self, window, create_new_entity):
+        def import_entity_class(path=None, name=None):
+            module = importlib.import_module(path)
+            entity_class = getattr(module, name)
+            create_new_entity(entity_class)
+
+        engine.Button(name="Import new class", parent=window,
+                      callback=lambda: self.make_file_import(callback=import_entity_class,
+                                                             path_placeholder='classes.module',
+                                                             name_placeholder='EntityClassName', use_button=False))
+
+        scroll_panel = self.make_resource_list(window, height=200)
+        for cls, name in self.entity_classes.items():
+            name = name if name is not None else cls.__name__
+            button = engine.Button(name, parent=scroll_panel,
+                                   callback=lambda entity_class=cls: create_new_entity(entity_class))
             button.fixed_height = 20
 
         return window
@@ -273,9 +300,63 @@ class Editor(Click, Game):
                       callback=lambda: (callback(path=path_box.value, name=name_box.value),
                                         window.dispose()))
 
+    def make_entity_list(self):
+        entity_list_window = engine.GuiWindow(10, 10, "entity list", gui=self.gui, layout=engine.GroupLayout())
+        entity_list_window.fixed_width = 225
+
+        def create_new_entity(cls):
+            # todo refactor this mess out
+            # select a unique id, keep guessing until you find one
+            id = 'new_entity'
+            i = len(self.entities)
+            while True:
+                if id not in self.entities_by_id:
+                    break
+                i += 1
+                id = f'new_entity{i}'
+
+            new_entity = self.create_entity(model_path='resources/cube/cube.obj', id=id, entity_class=cls,
+                                            vert_path='shaders/fuckme.vert', frag_path='shaders/basichighlight.frag')
+            self.select_entity(new_entity)
+
+        add_entity_button = engine.PopupButton(parent=entity_list_window, caption="create entity", side=0)
+        add_entity_button.side = 1  # the chevron is the wrong way round if i dont do this
+        self.make_entity_class_editor(add_entity_button.popup, create_new_entity)
+
+        scroll_panel_holder = engine.ScrollPanel(entity_list_window)
+        scroll_panel_holder.fixed_height = 150
+        scroll_panel = engine.Widget(parent=scroll_panel_holder, layout=engine.GroupLayout())
+        self.entity_list_scroll_panel = scroll_panel
+        self.update_entity_list()
+
+    def update_entity_list(self):
+        # if an entity is not in the list, add it
+        for id, entity in self.entities_by_id.items():
+            if id in self.entity_list_buttons_by_id or id.startswith('_'):
+                continue
+
+            # engine.Label(caption=f"{x}th button", parent=scroll_panel)
+            button = engine.Button(id, lambda target=entity: self.select_entity(target),
+                                   parent=self.entity_list_scroll_panel)
+            button.fixed_height = 20
+            self.entity_list_buttons_by_id[id] = button
+
+        # if a deleted entity is still in the list, remove it
+        ids_to_delete = []
+        for id, button in self.entity_list_buttons_by_id.items():
+            if id not in self.entities_by_id:
+                button.visible = False  # todo actually remove it
+                ids_to_delete.append(id)
+        for id in ids_to_delete:
+            del self.entity_list_buttons_by_id[id]
+
+        self.gui.update_layout()
+
     def create_entity(self, *args, entity_class=Entity, **kwargs):
         if kwargs.get('model_path') and kwargs.get('model_path') not in self.models:
-            self.models[kwargs.get('model_path')] = None
+            self.models[kwargs.get('model_path')] = None  # none means "no custom name set"
+        if entity_class not in self.entity_classes:
+            self.entity_classes[entity_class] = None  # none means "no custom name set"
 
         entity = super().create_entity(*args, entity_class=entity_class, **kwargs)
         entity._args = args
@@ -289,7 +370,7 @@ class Editor(Click, Game):
 
     def create_script(self, entity, script_class, *args, **kwargs):
         if script_class not in self.scripts:
-            self.scripts[script_class] = None
+            self.scripts[script_class] = None  # none means "no custom name set"
         script = super(Editor, self).create_script(entity=entity, script_class=script_class, *args, **kwargs)
         script._args = args
         script._kwargs = kwargs
