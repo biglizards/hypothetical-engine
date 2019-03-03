@@ -30,7 +30,7 @@ class Entity(engine.Model):
         super().__init__(meshes, vert_path, frag_path, geo_path)
 
         self.game = game
-        self.id = id
+        self._id = id
         self.position = position if position is not None else glm.vec3(0, 0, 0)
         self.orientation = orientation if orientation is not None else glm.quat(1, 0, 0, 0)
         self.scalar = scalar or glm.vec3(1, 1, 1)
@@ -55,6 +55,16 @@ class Entity(engine.Model):
                 add_script(entity=self)
 
         self._click_shader = engine.ShaderProgram(vert_path, 'shaders/clickHack.frag')
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, value):
+        del self.game.entities_by_id[self._id]
+        self._id = value
+        self.game.entities_by_id[value] = self
 
     def generate_model_mat(self, ignore_orientation=False, store_model_mat=True):
         """generates and returns the model matrix for this entity, and by default caches it (for the physics engine)"""

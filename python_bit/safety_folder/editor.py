@@ -72,6 +72,11 @@ class Editor(Click, Game):
             box.alignment = 0  # todo replace with named constant (and/or thing in init)
 
     def populate_properties_window(self, entity: Entity, helper, widget):
+        if isinstance(entity, Entity):  # scripts also use this, so we need to check it's an entity
+            # add 'id' at the top (it's a property so i need to do this manually)
+            helper.add_variable('id', str, setter=lambda x, _: setattr(entity, 'id', x),
+                                getter=lambda: entity.id)
+
         for key, item in entity.__dict__.items():  # key is name of attr, item is attr itself
             if key.startswith('_') or key in getattr(entity, 'property_blacklist', []):
                 continue
