@@ -80,6 +80,8 @@ handlers = {
     'script': handle_script,
     'script_cls': lambda data, _: (load_entity_class(module_name=data['@class_module'],
                                                      class_name=data['@class_name']), data['@name']),
+    'entity_cls': lambda data, _: (load_entity_class(module_name=data['@class_module'],  # todo remove duplication
+                                                     class_name=data['@class_name']), data['@name']),
 
 }
 
@@ -91,6 +93,7 @@ def load_level(location, game):
     # load models and scripts (ie everything that's not entities)
     game.models = handle_item(save_obj['models'], game)
     game.scripts = {cls: name for cls, name in handle_item(save_obj['scripts'], game)}
+    game.entity_classes = {cls: name for cls, name in handle_item(save_obj['entity_classes'], game)}
     print(game.models, game.scripts)
 
     # load entities

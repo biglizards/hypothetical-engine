@@ -241,7 +241,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate0",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "crate1": {
             "@type": "entity",
@@ -484,7 +485,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate1",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "crate2": {
             "@type": "entity",
@@ -727,7 +729,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate2",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "crate3": {
             "@type": "entity",
@@ -970,7 +973,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate3",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "crate4": {
             "@type": "entity",
@@ -1213,7 +1217,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate4",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "crate5": {
             "@type": "entity",
@@ -1456,7 +1461,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate5",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "crate6": {
             "@type": "entity",
@@ -1699,7 +1705,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate6",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "crate7": {
             "@type": "entity",
@@ -1908,7 +1915,7 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    1.5,
+                    1.9551756396012006,
                     2.0,
                     -2.6
                 ]
@@ -1942,7 +1949,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate7",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "crate8": {
             "@type": "entity",
@@ -2151,8 +2159,8 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    1.5,
-                    0.2,
+                    1.8287221086681145,
+                    -0.7775976647934473,
                     -1.4
                 ]
             },
@@ -2185,7 +2193,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate8",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "crate9": {
             "@type": "entity",
@@ -2394,7 +2403,7 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    -1.3,
+                    -2.71480061275519,
                     1.0,
                     -1.7
                 ]
@@ -2428,7 +2437,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate9",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "floor_crate": {
             "@type": "entity",
@@ -2654,9 +2664,9 @@
             "scalar": {
                 "@type": "vec3",
                 "values": [
-                    10.0,
+                    35.0,
                     1.0,
-                    10.0
+                    35.0
                 ]
             },
             "velocity": {
@@ -2671,7 +2681,8 @@
             "do_collisions": true,
             "should_render": true,
             "id": "floor_crate",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "dot": {
             "@type": "entity",
@@ -2914,13 +2925,13 @@
             "do_collisions": false,
             "should_render": false,
             "id": "dot",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "capsule": {
             "@type": "entity",
             "@class_module": "game",
             "@class_name": "Entity",
-            "model_path": "resources/capsule/capsule.obj",
             "vert_path": "shaders/fuckme.vert",
             "frag_path": "shaders/highlight.frag",
             "position": {
@@ -2934,10 +2945,10 @@
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    0.40305532281164796,
-                    0.8061106456232959,
+                    -0.43771271203413203,
+                    -0.8754254240682641,
                     0.0,
-                    0.4332805485668968
+                    0.20503148201992896
                 ]
             },
             "scalar": {
@@ -2967,7 +2978,107 @@
                     "@class_name": "CrateSpinner",
                     "speed": 2
                 }
-            ]
+            ],
+            "model_path": "resources/capsule/capsule.obj"
+        },
+        "blender_chan": {
+            "@type": "entity",
+            "@class_module": "game",
+            "@class_name": "Entity",
+            "vert_path": "shaders/fuckme.vert",
+            "frag_path": "shaders/basichighlight.frag",
+            "position": {
+                "@type": "vec3",
+                "values": [
+                    -0.11486374227346952,
+                    0.0,
+                    -3.3218948645378705
+                ]
+            },
+            "orientation": {
+                "@type": "quat",
+                "values": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ]
+            },
+            "scalar": {
+                "@type": "vec3",
+                "values": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "velocity": {
+                "@type": "vec3",
+                "values": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            "do_gravity": false,
+            "do_collisions": false,
+            "should_render": true,
+            "id": "blender_chan",
+            "scripts": [],
+            "model_path": "/home/dave/PycharmProjects/cs_proj/python_bit/safety_folder/resources/bc/Sketchfab_2017_02_12_14_36_10.obj"
+        },
+        "new_entity": {
+            "@type": "entity",
+            "@class_module": "classes.autospin",
+            "@class_name": "AutoSpin",
+            "vert_path": "shaders/fuckme.vert",
+            "frag_path": "shaders/basichighlight.frag",
+            "position": {
+                "@type": "vec3",
+                "values": [
+                    -3.7121966373176294,
+                    1.5008331089346734,
+                    1.284301861750969
+                ]
+            },
+            "orientation": {
+                "@type": "quat",
+                "values": [
+                    0.339139659254477,
+                    0.678279318508954,
+                    0.0,
+                    -0.6518599984688445
+                ]
+            },
+            "scalar": {
+                "@type": "vec3",
+                "values": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "velocity": {
+                "@type": "vec3",
+                "values": [
+                    0.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            "do_gravity": false,
+            "do_collisions": false,
+            "should_render": true,
+            "id": "new_entity",
+            "scripts": [
+                {
+                    "@type": "script",
+                    "@class_module": "scripts.spin",
+                    "@class_name": "CrateSpinner",
+                    "speed": 1
+                }
+            ],
+            "model_path": "resources/cube/cube.obj"
         },
         "_engine_axis0": {
             "@type": "entity",
@@ -3186,18 +3297,18 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    4.44300000696969,
-                    0.0,
-                    -3.769032599658539
+                    -3.7121966373176294,
+                    1.5008331089346734,
+                    1.284301861750969
                 ]
             },
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    0.20843411648338345,
-                    0.4168682329667669,
+                    0.4435669742722402,
+                    0.8871339485444804,
                     0.0,
-                    0.884746345247826
+                    0.12744291535775823
                 ]
             },
             "scalar": {
@@ -3220,7 +3331,8 @@
             "do_collisions": false,
             "should_render": false,
             "id": "_engine_axis0",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "_engine_axis1": {
             "@type": "entity",
@@ -3439,18 +3551,18 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    4.44300000696969,
-                    0.0,
-                    -3.769032599658539
+                    -3.7121966373176294,
+                    1.5008331089346734,
+                    1.284301861750969
                 ]
             },
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    0.20843411648338345,
-                    0.4168682329667669,
+                    0.4435669742722402,
+                    0.8871339485444804,
                     0.0,
-                    0.884746345247826
+                    0.12744291535775823
                 ]
             },
             "scalar": {
@@ -3473,7 +3585,8 @@
             "do_collisions": false,
             "should_render": false,
             "id": "_engine_axis1",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         },
         "_engine_axis2": {
             "@type": "entity",
@@ -3692,18 +3805,18 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    4.44300000696969,
-                    0.0,
-                    -3.769032599658539
+                    -3.7121966373176294,
+                    1.5008331089346734,
+                    1.284301861750969
                 ]
             },
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    0.20843411648338345,
-                    0.4168682329667669,
+                    0.4435669742722402,
+                    0.8871339485444804,
                     0.0,
-                    0.884746345247826
+                    0.12744291535775823
                 ]
             },
             "scalar": {
@@ -3726,12 +3839,15 @@
             "do_collisions": false,
             "should_render": false,
             "id": "_engine_axis2",
-            "scripts": []
+            "scripts": [],
+            "model_path": null
         }
     },
     "models": {
         "resources/capsule/capsule.obj": "capsule",
-        "/home/dave/PycharmProjects/cs_proj/python_bit/safety_folder/resources/bc/scene.gltf": "blender_chan"
+        "/home/dave/PycharmProjects/cs_proj/python_bit/safety_folder/resources/bc/scene.gltf": "blender_chan",
+        "resources/cube/cube.obj": "perfectly generic object",
+        "/home/dave/PycharmProjects/cs_proj/python_bit/safety_folder/resources/bc/Sketchfab_2017_02_12_14_36_10.obj": "bc"
     },
     "scripts": [
         {
@@ -3739,6 +3855,32 @@
             "@name": null,
             "@class_module": "scripts.spin",
             "@class_name": "CrateSpinner"
+        }
+    ],
+    "entity_classes": [
+        {
+            "@type": "entity_cls",
+            "@name": null,
+            "@class_module": "game",
+            "@class_name": "ManualEntity"
+        },
+        {
+            "@type": "entity_cls",
+            "@name": null,
+            "@class_module": "game",
+            "@class_name": "Entity"
+        },
+        {
+            "@type": "entity_cls",
+            "@name": null,
+            "@class_module": "classes.axis",
+            "@class_name": "Axis"
+        },
+        {
+            "@type": "entity_cls",
+            "@name": null,
+            "@class_module": "classes.autospin",
+            "@class_name": "AutoSpin"
         }
     ]
 }
