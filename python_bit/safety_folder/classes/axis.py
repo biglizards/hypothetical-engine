@@ -1,3 +1,4 @@
+from editor import Editor
 from game import ManualEntity
 import glm
 import util
@@ -21,11 +22,22 @@ class Axis(ManualEntity):
         self.parent_start_pos = None
         self.is_dragging = False
         self.should_render = False
+
+        # dont bother using hooks if not in editor mode
+        if not isinstance(game, Editor):
+            return
+
         # set callbacks
-        self.game.add_callback('on_drag_update', self.move_axis)
-        self.game.add_callback('on_click_entity', self.on_click_entity)
-        self.game.add_callback('on_drag', self.reset_variables)  # once the drag finishes, reset everything to none
-        self.game.add_callback('before_frame', self.update_variables)
+        self.game.add_callback('on_drag_update', self.move_axis, editor=True)
+        self.game.add_callback('on_click_entity', self.on_click_entity, editor=True)
+        self.game.add_callback('on_drag', self.reset_variables, editor=True)  # once the drag finishes, reset everything to none
+        self.game.add_callback('before_frame', self.update_variables, editor=True)
+
+    def remove(self):
+        self.game.remove_callback('on_drag_update', self.move_axis)
+        self.game.remove_callback('on_click_entity', self.on_click_entity)
+        self.game.remove_callback('on_drag', self.reset_variables)
+        self.game.remove_callback('before_frame', self.update_variables)
 
     def reset_variables(self, *_args):
         self.offset = None

@@ -6,13 +6,14 @@ from warnings import warn
 import engine
 
 import util
+from enginelib.level import save, load
 from game import Game, Entity
 
 
 class Click(Game):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.add_callback('on_click', self.dispatch_click_entity)
+        self.add_callback('on_click', self.dispatch_click_entity, always_fire=True)
 
     def dispatch_click_entity(self, button, action, *_args, **_kwargs):
         if not (button == engine.MOUSE_LEFT and action == engine.MOUSE_PRESS):
@@ -26,6 +27,7 @@ class Click(Game):
 class Editor(Click, Game):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.mode = 'editor'
         self.selected_object = None
         self.selected_gui = None
         self.property_window_helper = None
@@ -36,7 +38,22 @@ class Editor(Click, Game):
         self.scripts = {}
         self.entity_classes = {}
 
-        self.add_callback('on_click_entity', self.on_entity_click)
+        self.add_callback('on_click_entity', self.on_entity_click, editor=True)
+        self.make_entity_list()
+        self.create_tool_window()
+
+    def dispatch(self, name: str, *args):
+        # call the functions which should fire even in editor mode
+        funcs = self.dispatches.get(name, [])
+        for func in funcs:
+            if self.should_run_function(func):
+                func(*args)
+
+    def should_run_function(self, func):
+        if self.mode == 'game':
+            return not (hasattr(func, 'hook_args') and func.hook_args.get('editor'))
+        elif self.mode == 'editor':
+            return hasattr(func, 'hook_args') and (func.hook_args.get('editor') or func.hook_args.get('always_fire'))
 
     def on_entity_click(self, entity):
         if util.is_clickable(entity):
@@ -352,6 +369,27 @@ class Editor(Click, Game):
 
         self.gui.update_layout()
 
+    def create_tool_window(self):
+        tool_window = engine.GuiWindow(240, 10, 'tools', gui=self.gui, layout=engine.GroupLayout())
+        engine.Button(parent=tool_window, name='save', callback=lambda: save.save_level('save.json', editor=self))
+        engine.Button(parent=tool_window, name='reload', callback=self.reload_level)
+        mode_box = engine.TextBox(parent=tool_window, value=f'mode: {self.mode}', editable=False)
+        engine.Button(parent=tool_window, name='toggle mode',
+                      callback=lambda: (self.toggle_mode(),
+                                        setattr(mode_box, 'value', f'mode: {self.mode}'),
+                                        )
+                      )
+
+    def reload_level(self):
+        while self.entities:
+            self.remove_entity(self.entities[0])
+        while self.overlay_entities:
+            self.remove_entity(self.overlay_entities[0])
+        load.load_level('save.json', game=self)
+
+    def toggle_mode(self):
+        self.mode = 'game' if self.mode == 'editor' else 'editor'
+
     def create_entity(self, *args, entity_class=Entity, **kwargs):
         if kwargs.get('model_path') and kwargs.get('model_path') not in self.models:
             self.models[kwargs.get('model_path')] = None  # none means "no custom name set"
@@ -383,8 +421,8 @@ class Drag(Game):
         self.is_dragging = False
         self.holding_mouse_button = False
         self.drag_start = None
-        self.add_callback('on_click', self.dragger_on_click)
-        self.add_callback('on_cursor_pos_update', self.on_cursor_location_update)
+        self.add_callback('on_click', self.dragger_on_click, always_fire=True)
+        self.add_callback('on_cursor_pos_update', self.on_cursor_location_update, always_fire=True)
 
     def dragger_on_click(self, button, action, _mods, *_args):
         if button != engine.MOUSE_LEFT:

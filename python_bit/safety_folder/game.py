@@ -2,7 +2,7 @@ import glm
 import itertools
 import time
 from collections import defaultdict
-from typing import Tuple
+from typing import Iterable
 
 import engine
 
@@ -11,6 +11,18 @@ from camera import Camera
 
 # TODO remove data, data_format once model loading is added
 from util import multiply_vec3
+
+
+class MethodWrapper:
+    def __init__(self, method, args):
+        self.hook_args = args
+        self.method = method
+
+    def __call__(self, *args, **kwargs):
+        self.method(*args, **kwargs)
+
+    def __eq__(self, other):
+        return other == self.method
 
 
 def savable_args(*args):
@@ -197,17 +209,25 @@ class Game(engine.Window):
             entity.shader_program.set_trans_mat(transformation_matrix)
             entity.draw()
 
-    def dispatch(self, names: str or Tuple[str], *args):
-        # if the input isn't a tuple, make it one so we can iterate over it
-        if isinstance(names, str):
-            names = (names,)
+    def dispatch(self, name: str, *args):
+        funcs = self.dispatches.get(name, [])
+        for func in funcs:
+            func(*args)
 
+    def dispatch_many(self, names: Iterable[str], *args):
         for name in names:
-            funcs = self.dispatches.get(name, [])
-            for func in funcs:
-                func(*args)
+            self.dispatch(name, *args)
 
-    def add_callback(self, name, func):
+    def add_callback(self, name, func, **args):
+        if args:
+            try:
+                if hasattr(func, 'hook_args') and func.hook_args != args:
+                    raise RuntimeError(f"{func} was registered to two hooks with different arguments")
+                func.hook_args = args
+            except AttributeError:
+                # this can happen if func is a method
+                func = MethodWrapper(func, args)
+
         self.dispatches[name].append(func)
 
     def remove_callback(self, name, func):
@@ -219,7 +239,10 @@ class Game(engine.Window):
         """
         for name, event in events.items():
             def dispatch_event(*args, _name=name):
-                self.dispatch(_name, *args[1:])  # these callbacks have the first arg be `self`, so ignore that
+                if isinstance(_name, str):
+                    self.dispatch(_name, *args[1:])  # these callbacks have the first arg be `self`, so ignore that
+                else:  # the only other valid thing should be a tuple, but any iterable is fine really
+                    self.dispatch_many(_name, *args[1:])
             setattr(self, event, dispatch_event)
 
     def _resize_callback(self, *args):

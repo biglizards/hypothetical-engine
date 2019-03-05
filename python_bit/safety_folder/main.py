@@ -31,18 +31,18 @@ box_speed = 0
 gravity_enabled = False
 
 # create the gui
-helper = engine.FormHelper(game.gui)
-gui_window = helper.add_window(240, 10, 'GUI WINDOW (example)')
-
-helper.add_group('gravity')
-helper.add_variable('enable gravity', bool, linked_var='gravity_enabled')
-helper.add_button('reset', reset_camera)
-helper.add_button('save', lambda: save.save_level('save.json', game))
-
-
-resource_images = engine.ImagePanel.load_images(game.gui, "resources")
-
-game.gui.update_layout()
+# helper = engine.FormHelper(game.gui)
+# gui_window = helper.add_window(240, 10, 'GUI WINDOW (example)')
+#
+# helper.add_group('gravity')
+# helper.add_variable('enable gravity', bool, linked_var='gravity_enabled')
+# helper.add_button('reset', reset_camera)
+# helper.add_button('save', lambda: save.save_level('save.json', game))
+#
+#
+# resource_images = engine.ImagePanel.load_images(game.gui, "resources")
+#
+# game.gui.update_layout()
 
 
 gravity = glm.vec3(0, -1, 0)
@@ -76,12 +76,12 @@ def do_gravity(delta_t):
                 # don't
                 entity.position -= entity.velocity * delta_t
                 entity.velocity = glm.vec3(0, 0, 0)
-                if entity is game.selected_object:
-                    entity.shader_program.set_value('highlightAmount', 0.6)
+                # if entity is game.selected_object:
+                #     entity.shader_program.set_value('highlightAmount', 0.6)
                 break
-        else:
-            if entity is game.selected_object:
-                game.selected_object.shader_program.set_value('highlightAmount', 0.3)
+        # else:
+        #     if entity is game.selected_object:
+        #         game.selected_object.shader_program.set_value('highlightAmount', 0.3)
 
 
 game.add_callback('on_frame', do_gravity)
@@ -94,7 +94,6 @@ load.load_level('save.json', game)
 # crates = []
 # dot = [x for x in game.entities if x.id == 'dot'][0]
 
-make_entity_list()
 # make_resource_list()
 
 # todo make axis appear when you select an object
