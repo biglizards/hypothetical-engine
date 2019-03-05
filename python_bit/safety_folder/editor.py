@@ -8,6 +8,7 @@ import engine
 import util
 from enginelib.level import save, load
 from game import Game, Entity
+import scripts.editor_scripts
 
 
 class Click(Game):
@@ -23,8 +24,40 @@ class Click(Game):
         self.dispatch('on_click_entity', entity)
 
 
+class Drag(Game):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.is_dragging = False
+        self.holding_mouse_button = False
+        self.drag_start = None
+        self.add_callback('on_click', self.dragger_on_click, always_fire=True)
+        self.add_callback('on_cursor_pos_update', self.on_cursor_location_update, always_fire=True)
+
+    def dragger_on_click(self, button, action, _mods, *_args):
+        if button != engine.MOUSE_LEFT:
+            return
+        if action == engine.MOUSE_CLICK:
+            assert self.is_dragging is False, "somehow user clicked while already dragging"
+            self.holding_mouse_button = True
+            self.drag_start = self.cursor_location
+        elif action == engine.MOUSE_RELEASE:
+            if self.is_dragging:
+                self.dispatch('on_drag', self.drag_start, self.cursor_location)
+            # reset values to defaults, since the drag is over
+            self.is_dragging = False
+            self.holding_mouse_button = False
+            self.drag_start = None
+
+    def on_cursor_location_update(self, *mouse_pos):
+        should_start_drag = self.holding_mouse_button and not self.is_dragging
+        if should_start_drag and mouse_pos != self.drag_start:
+            self.is_dragging = True
+        if self.is_dragging:
+            self.dispatch('on_drag_update', *mouse_pos)
+
+
 # noinspection PyShadowingNames
-class Editor(Click, Game):
+class Editor(Click, Drag):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.mode = 'editor'
@@ -39,6 +72,7 @@ class Editor(Click, Game):
         self.entity_classes = {}
 
         self.add_callback('on_click_entity', self.on_entity_click, editor=True)
+        self.add_global_script(scripts.editor_scripts.EditorScripts)
         self.make_entity_list()
         self.create_tool_window()
 
@@ -413,35 +447,3 @@ class Editor(Click, Game):
         script._args = args
         script._kwargs = kwargs
         return script
-
-
-class Drag(Game):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.is_dragging = False
-        self.holding_mouse_button = False
-        self.drag_start = None
-        self.add_callback('on_click', self.dragger_on_click, always_fire=True)
-        self.add_callback('on_cursor_pos_update', self.on_cursor_location_update, always_fire=True)
-
-    def dragger_on_click(self, button, action, _mods, *_args):
-        if button != engine.MOUSE_LEFT:
-            return
-        if action == engine.MOUSE_CLICK:
-            assert self.is_dragging is False, "somehow user clicked while already dragging"
-            self.holding_mouse_button = True
-            self.drag_start = self.cursor_location
-        elif action == engine.MOUSE_RELEASE:
-            if self.is_dragging:
-                self.dispatch('on_drag', self.drag_start, self.cursor_location)
-            # reset values to defaults, since the drag is over
-            self.is_dragging = False
-            self.holding_mouse_button = False
-            self.drag_start = None
-
-    def on_cursor_location_update(self, *mouse_pos):
-        should_start_drag = self.holding_mouse_button and not self.is_dragging
-        if should_start_drag and mouse_pos != self.drag_start:
-            self.is_dragging = True
-        if self.is_dragging:
-            self.dispatch('on_drag_update', *mouse_pos)

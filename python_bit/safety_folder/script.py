@@ -1,8 +1,6 @@
 import inspect
 from functools import wraps
 
-from game import Game
-
 
 class Script:
     """The base class for script objects. Stores the references to the parent (the entity that owns the script) and the
@@ -10,6 +8,7 @@ class Script:
     def __init__(self, parent, game, *_args, **_kwargs):
         self.parent = parent
         self.game = game
+        self.savable_attributes = {}
         # note: args and kwargs are set in editor.add_script, not here, since we dont get args from subclasses etc.
         self._args = []
         self._kwargs = {}
@@ -38,17 +37,6 @@ class Script:
         self.parent.scripts.remove(self)
         # for thing in gc.get_referrers(self):
         #     print(thing, gc.get_referrers(thing))
-
-
-class ScriptGame(Game):
-    """An add-on for the Game object that adds support for global scripts. Stores them in a list and does nothing
-    with them, just so they dont get garbage collected. TODO do they get gc'd even if they're not stored in a list?"""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.global_scripts = []
-
-    def add_global_script(self, script):
-        self.global_scripts.append(script(parent=None, game=self))
 
 
 def basic_hook(name, **args):
