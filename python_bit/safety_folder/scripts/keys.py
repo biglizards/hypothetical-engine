@@ -3,7 +3,7 @@ import engine
 
 
 class CustomKeyPresses(script.Script):
-    @script.on_key_press()
+    @script.on_key_press(editor=True)
     def do_stuff(self, key, _scancode, action, _mods):
         if action != engine.KEY_PRESS:
             return

@@ -83,33 +83,33 @@ def every_n_ms(n, **args):
 ########
 # below this point is just a bunch of boring, repeated functions for the sake of autocomplete. Nothing interesting.
 
-def on_mouse_button():
-    return basic_hook('on_mouse_button')
+def on_mouse_button(**kwargs):
+    return basic_hook('on_mouse_button', **kwargs)
 
 
-def on_cursor_pos_update():
-    return basic_hook('on_cursor_pos_update')
+def on_cursor_pos_update(**kwargs):
+    return basic_hook('on_cursor_pos_update', **kwargs)
 
 
-def on_key_press():
-    return basic_hook('on_key_press')
+def on_key_press(**kwargs):
+    return basic_hook('on_key_press', **kwargs)
 
 
-def on_char():
-    return basic_hook('on_char')
+def on_char(**kwargs):
+    return basic_hook('on_char', **kwargs)
 
 
-def on_file_drop():
-    return basic_hook('on_file_drop')
+def on_file_drop(**kwargs):
+    return basic_hook('on_file_drop', **kwargs)
 
 
-def on_scroll():
-    return basic_hook('on_scroll')
+def on_scroll(**kwargs):
+    return basic_hook('on_scroll', **kwargs)
 
 
-def on_resize():
-    return basic_hook('on_resize')
+def on_resize(**kwargs):
+    return basic_hook('on_resize', **kwargs)
 
 
-def on_frame():
-    return basic_hook('on_frame')
+def on_frame(**kwargs):
+    return basic_hook('on_frame', **kwargs)

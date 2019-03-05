@@ -2,7 +2,7 @@ import script
 
 
 class EditorScripts(script.Script):
-    @script.every_n_ms(50)
+    @script.every_n_ms(50, editor=True)
     def refresh_gui(self, _delta_t):
         try:
             self.game.update_entity_list()
