@@ -56,6 +56,10 @@ class Entity(engine.Model):
 
         self._click_shader = engine.ShaderProgram(vert_path, 'shaders/clickHack.frag')
 
+    def remove(self):
+        """this function is called when the entity is removed, and can be overridden to perform cleanup"""
+        pass
+
     @property
     def id(self):
         return self._id
@@ -159,9 +163,13 @@ class Game(engine.Window):
 
     def remove_entity(self, entity):
         del self.entities_by_id[entity.id]
-        self.entities.remove(entity)
+        try:
+            self.entities.remove(entity)
+        except ValueError:  # entity not in list
+            self.overlay_entities.remove(entity)
         while entity.scripts:
             entity.scripts[0].remove()
+        entity.remove()  # call custom handler to do custom cleanup
 
     # @wraps(Entity) todo why was this here, i dont think it needs to be
     def create_entity(self, *args, entity_class=Entity, overlay=False, id, **kwargs):
