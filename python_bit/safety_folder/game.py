@@ -7,9 +7,8 @@ from typing import Iterable
 import engine
 
 from camera import Camera
-
-
 # TODO remove data, data_format once model loading is added
+from enginelib.level import load
 from util import multiply_vec3
 
 
@@ -140,7 +139,7 @@ class ManualEntity(Entity):
 
 
 class Game(engine.Window):
-    def __init__(self, *args, camera=None, background_colour=None, projection=None, fov=75, near=0.1, far=100,
+    def __init__(self, *args, camera=None, save_name=None, background_colour=None, projection=None, fov=75, near=0.1, far=100,
                  **kwargs):
         super().__init__(*args, **kwargs)
         self.entities = []
@@ -148,8 +147,10 @@ class Game(engine.Window):
         self.overlay_entities = []
         self.entity_lists = [self.entities, self.overlay_entities]
         self.dispatches = defaultdict(list)
+        self.global_scripts = []
 
         self.camera = camera or Camera(self)
+        self.save_name = save_name if save_name else 'save.json'
         self.background_colour = background_colour or (0.3, 0.5, 0.8, 1)
         self.projection = projection or glm.perspective(glm.radians(fov), self.width / self.height, near, far)
         self.near, self.far, self.fov = near, far, fov  # todo set these to properties that update self.projection
@@ -165,6 +166,7 @@ class Game(engine.Window):
                                      'on_scroll': 'scroll_callback',
                                      # 'on_resize': 'resize_callback',  # replaced manually
                                      })
+        load.load_level('save.json', game=self)
 
     @property
     def all_entities(self):
@@ -198,6 +200,9 @@ class Game(engine.Window):
         new_script = script_class(parent=entity, game=self, *args, **kwargs)
         entity.scripts.append(new_script)
         return new_script
+
+    def add_global_script(self, script):
+        self.global_scripts.append(script(parent=None, game=self))
 
     def draw_entities(self, entity_list):
         proj_times_view = self.projection * self.camera.view_matrix()
