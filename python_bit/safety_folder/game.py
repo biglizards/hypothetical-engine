@@ -43,7 +43,7 @@ class Entity(engine.Model):
 
         # add savable attributes (that is, attributes that i expect to change while editing is being done)
         self.savable_attributes = savable_args('position', 'orientation', 'scalar', 'velocity', 'do_gravity',
-                                               'do_collisions', 'should_render', 'id', 'scripts')
+                                               'do_collisions', 'should_render', 'id', 'scripts', 'model_path')
         # arguments not on this list: shader paths, meshes, model_path, scripts
 
         # set the property blacklist, which lists the things that dont show up in the property window
