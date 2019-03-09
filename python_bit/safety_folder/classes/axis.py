@@ -1,7 +1,7 @@
-from editor import Editor
-from game import ManualEntity
+from enginelib.editor import Editor
+from enginelib.game import ManualEntity
 import glm
-import util
+from enginelib import util
 
 
 class Axis(ManualEntity):

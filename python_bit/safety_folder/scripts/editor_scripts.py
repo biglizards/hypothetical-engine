@@ -1,6 +1,6 @@
 import engine
 
-import script
+from enginelib import script
 
 
 class EditorScripts(script.Script):

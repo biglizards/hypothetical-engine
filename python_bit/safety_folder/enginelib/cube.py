@@ -1,7 +1,7 @@
 import glm
 
 # NOTE/TODO: this data will eventually be generated dynamically or from a file or something
-from util import multiply_vec3
+from enginelib.util import multiply_vec3
 
 data = [
     -0.5, -0.5, -0.5, 0.0, 0.0,

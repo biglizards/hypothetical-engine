@@ -1,8 +1,7 @@
 import glm
 
-import engine
-import script
-from physics import two_cubes_intersect
+from enginelib import script
+from enginelib.physics import two_entities_intersect
 
 
 class Physics(script.Script):

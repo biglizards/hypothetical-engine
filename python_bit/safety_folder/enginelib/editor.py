@@ -5,9 +5,9 @@ from warnings import warn
 
 import engine
 
-import util
+from enginelib import util
 from enginelib.level import save, load
-from game import Game, Entity
+from enginelib.game import Game, Entity
 import scripts.editor_scripts
 
 
@@ -59,7 +59,6 @@ class Drag(Game):
 # noinspection PyShadowingNames
 class Editor(Click, Drag):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self.mode = 'editor'
         self.selected_object = None
         self.selected_gui = None
@@ -70,6 +69,8 @@ class Editor(Click, Drag):
         self.models = {}
         self.scripts = {}
         self.entity_classes = {}
+
+        super().__init__(*args, **kwargs)
 
         self.add_callback('on_click_entity', self.on_entity_click, editor=True)
         self.add_global_script(scripts.editor_scripts.EditorScripts)
@@ -289,6 +290,7 @@ class Editor(Click, Drag):
         def set_entity_model(path=None, name=None):
             if path == '':
                 return None
+            path = os.path.relpath(path)  # get relative path
             entity.meshes = engine.load_model(path)
             entity.model_path = path
             if path not in self.models:

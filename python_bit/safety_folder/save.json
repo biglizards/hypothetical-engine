@@ -2,7 +2,7 @@
     "entities": {
         "crate0": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -208,7 +208,7 @@
                 "@type": "vec3",
                 "values": [
                     -0.955699077690723,
-                    -0.49901885414295816,
+                    -6.009478653862642,
                     0.0
                 ]
             },
@@ -233,7 +233,7 @@
                 "@type": "vec3",
                 "values": [
                     0.0,
-                    0.0,
+                    -3.3115854263305664,
                     0.0
                 ]
             },
@@ -241,12 +241,18 @@
             "do_collisions": true,
             "should_render": true,
             "id": "crate0",
-            "scripts": [],
+            "scripts": [
+                {
+                    "@type": "script",
+                    "@class_module": "scripts.physics",
+                    "@class_name": "Physics"
+                }
+            ],
             "model_path": null
         },
         "crate1": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -490,7 +496,7 @@
         },
         "crate2": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -734,7 +740,7 @@
         },
         "crate3": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -978,7 +984,7 @@
         },
         "crate4": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -1222,7 +1228,7 @@
         },
         "crate5": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -1466,7 +1472,7 @@
         },
         "crate6": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -1710,7 +1716,7 @@
         },
         "crate7": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -1954,7 +1960,7 @@
         },
         "crate8": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -2198,7 +2204,7 @@
         },
         "crate9": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -2442,7 +2448,7 @@
         },
         "floor_crate": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -2686,7 +2692,7 @@
         },
         "dot": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -2891,9 +2897,9 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    0.0,
-                    0.0,
-                    0.0
+                    0.36994698643684387,
+                    1.0697510242462158,
+                    0.937870979309082
                 ]
             },
             "orientation": {
@@ -2930,7 +2936,7 @@
         },
         "capsule": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "Entity",
             "vert_path": "shaders/fuckme.vert",
             "frag_path": "shaders/highlight.frag",
@@ -2945,10 +2951,10 @@
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    -0.43771271203413203,
-                    -0.8754254240682641,
+                    -0.21088321841200552,
+                    -0.42176643682401105,
                     0.0,
-                    0.20503148201992896
+                    0.8818397478916714
                 ]
             },
             "scalar": {
@@ -2983,16 +2989,16 @@
         },
         "blender_chan": {
             "@type": "entity",
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "Entity",
             "vert_path": "shaders/fuckme.vert",
             "frag_path": "shaders/basichighlight.frag",
             "position": {
                 "@type": "vec3",
                 "values": [
-                    -0.11486374227346952,
                     0.0,
-                    -3.3218948645378705
+                    0.0,
+                    0.0
                 ]
             },
             "orientation": {
@@ -3024,8 +3030,14 @@
             "do_collisions": false,
             "should_render": true,
             "id": "blender_chan",
-            "scripts": [],
-            "model_path": "/home/dave/PycharmProjects/cs_proj/python_bit/safety_folder/resources/bc/Sketchfab_2017_02_12_14_36_10.obj"
+            "scripts": [
+                {
+                    "@type": "script",
+                    "@class_module": "scripts.dot_corners",
+                    "@class_name": "DotCorners"
+                }
+            ],
+            "model_path": "resources/bc/Sketchfab_2017_02_12_14_36_10.obj"
         },
         "new_entity": {
             "@type": "entity",
@@ -3044,10 +3056,10 @@
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    0.339139659254477,
-                    0.678279318508954,
+                    0.1840429193449757,
+                    0.3680858386899514,
                     0.0,
-                    -0.6518599984688445
+                    -0.9113950950026463
                 ]
             },
             "scalar": {
@@ -3297,8 +3309,8 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    -0.955699077690723,
-                    -0.49901885414295816,
+                    0.0,
+                    0.0,
                     0.0
                 ]
             },
@@ -3551,8 +3563,8 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    -0.955699077690723,
-                    -0.49901885414295816,
+                    0.0,
+                    0.0,
                     0.0
                 ]
             },
@@ -3805,8 +3817,8 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    -0.955699077690723,
-                    -0.49901885414295816,
+                    0.0,
+                    0.0,
                     0.0
                 ]
             },
@@ -3844,43 +3856,54 @@
         }
     },
     "models": {
-        "resources/capsule/capsule.obj": "capsule",
-        "/home/dave/PycharmProjects/cs_proj/python_bit/safety_folder/resources/bc/scene.gltf": "blender_chan",
-        "resources/cube/cube.obj": "perfectly generic object",
-        "/home/dave/PycharmProjects/cs_proj/python_bit/safety_folder/resources/bc/Sketchfab_2017_02_12_14_36_10.obj": "bc"
+        "resources/bc/Sketchfab_2017_02_12_14_36_10.obj": "blender_chan",
+        "resources/capsule/capsule.obj": null,
+        "resources/cube/cube.obj": null
     },
     "scripts": [
         {
             "@type": "script_cls",
             "@name": null,
+            "@class_module": "scripts.physics",
+            "@class_name": "Physics"
+        },
+        {
+            "@type": "script_cls",
+            "@name": null,
             "@class_module": "scripts.spin",
             "@class_name": "CrateSpinner"
+        },
+        {
+            "@type": "script_cls",
+            "@name": null,
+            "@class_module": "scripts.dot_corners",
+            "@class_name": "DotCorners"
         }
     ],
     "entity_classes": [
         {
             "@type": "entity_cls",
             "@name": null,
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "ManualEntity"
         },
         {
             "@type": "entity_cls",
             "@name": null,
-            "@class_module": "game",
+            "@class_module": "enginelib.game",
             "@class_name": "Entity"
-        },
-        {
-            "@type": "entity_cls",
-            "@name": null,
-            "@class_module": "classes.axis",
-            "@class_name": "Axis"
         },
         {
             "@type": "entity_cls",
             "@name": null,
             "@class_module": "classes.autospin",
             "@class_name": "AutoSpin"
+        },
+        {
+            "@type": "entity_cls",
+            "@name": null,
+            "@class_module": "classes.axis",
+            "@class_name": "Axis"
         }
     ]
 }

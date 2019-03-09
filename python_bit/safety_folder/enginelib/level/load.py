@@ -94,7 +94,6 @@ def load_level(location, game):
     game.models = handle_item(save_obj['models'], game)
     game.scripts = {cls: name for cls, name in handle_item(save_obj['scripts'], game)}
     game.entity_classes = {cls: name for cls, name in handle_item(save_obj['entity_classes'], game)}
-    print(game.models, game.scripts)
 
     # load entities
     entity_dict = save_obj['entities']
