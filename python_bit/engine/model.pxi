@@ -207,7 +207,7 @@ cdef class Model:
         # centre is implicitly the origin
         cdef r = 0
         for mesh in self.meshes:
-            mesh_r = mesh.centre + mesh.bounding_radius
+            mesh_r = glm.length(mesh.centre) + mesh.bounding_radius
             if mesh_r > r:
                 r = mesh_r
 
