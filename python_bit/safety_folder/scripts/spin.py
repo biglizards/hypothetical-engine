@@ -1,4 +1,4 @@
-import script
+from enginelib import script
 import glm
 
 

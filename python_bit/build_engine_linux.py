@@ -31,7 +31,8 @@ with open('engine/config.pxi', 'w') as f:
 ext_modules = [Extension(name="engine.engine",
                          language='c++',
                          sources=['engine/engine.pyx', #'../opengl_stuff/glad/src/glad.c',
-                                  '../engine/engine.cpp'],
+                                  '../engine/engine.cpp',
+                                  ],
                          include_dirs=[#'../opengl_stuff/glad/include',
                                        #'../opengl_stuff/build2/',
                                        '.', '../ext/include', '../ext/include/nanovg/src'],
@@ -41,9 +42,10 @@ ext_modules = [Extension(name="engine.engine",
                                     'GL',
                                     'X11', 'Xrandr', 'Xi', 'Xxf86vm', 'Xcursor', 'Xinerama',
                                     ],
-                         extra_compile_args=["-std=c++11", '-fPIC', '-Wno-int-in-bool-context'],
-                         extra_link_args=["-std=c++11", '-fPIC']
-                         )]
+                         extra_compile_args=["-std=c++11", '-fPIC', '-Wno-int-in-bool-context', '-O0'],
+                         extra_link_args=["-std=c++11", '-fPIC', '-O0']
+                         ),
+               ]
 
 setup(
     name='engine',

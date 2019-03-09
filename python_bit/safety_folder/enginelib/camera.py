@@ -2,7 +2,7 @@ import engine
 import glm
 import time
 import math
-from util import rotate_vec3
+from enginelib.util import rotate_vec3
 
 
 class BaseCamera:

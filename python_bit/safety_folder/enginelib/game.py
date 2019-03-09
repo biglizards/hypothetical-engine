@@ -6,10 +6,10 @@ from typing import Iterable
 
 import engine
 
-from camera import Camera
+from enginelib.camera import Camera
 # TODO remove data, data_format once model loading is added
 from enginelib.level import load
-from util import multiply_vec3
+from enginelib.util import multiply_vec3
 
 
 class MethodWrapper:
@@ -28,6 +28,13 @@ def savable_args(*args):
     return {arg: arg for arg in args}
 
 
+def grouper(iterable, n, fillvalue=None):
+    """Collect data into fixed-length chunks or blocks"""
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
+    args = [iter(iterable)] * n
+    return itertools.zip_longest(*args, fillvalue=fillvalue)
+
+
 class Entity(engine.Model):
     def __init__(self, game, vert_path, frag_path, geo_path=None, meshes=None, model_path=None, position=None,
                  orientation=None, scalar=None, velocity=None, do_gravity=False, do_collisions=False,
@@ -36,6 +43,7 @@ class Entity(engine.Model):
         if not (meshes is None) ^ (model_path is None):
             raise RuntimeError("exactly one of 'meshes' and 'model_path' must be passed to Entity")
         if meshes is None:
+            print("loading", id)
             meshes = engine.load_model(model_path, flip_on_load=flip_textures)
 
         super().__init__(meshes, vert_path, frag_path, geo_path)
@@ -50,6 +58,7 @@ class Entity(engine.Model):
         self.do_collisions = do_collisions
         self.model_path = model_path
         self.model_mat = None
+        self.bounding_sphere_radius = float('inf')
         self.should_render = should_render
 
         # add savable attributes (that is, attributes that i expect to change while editing is being done)
@@ -101,21 +110,25 @@ class Entity(engine.Model):
         self.shader_program.set_trans_mat(transformation_matrix)
         return transformation_matrix
 
-    def get_corners(self):
-        # todo have the corner not be hard-coded
-        #  - it'd only need to be generated once, at load-time, when calculating the OABB
-        # todo scale unit vectors by length of each side of the bounding box
-        #  - this can also be pre-calculated
+    def get_vertices(self):
+        for mesh in self.meshes:
+            yield from mesh.get_vertices()
 
-        # generate two opposite corners
-        corner = multiply_vec3(glm.vec3(-.5, -.5, -.5), self.model_mat)
-        # generate the local unit vectors (note: these vectors may not be normalised, but that's fine)
-        unit_vectors = self.local_unit_vectors()
-        corners = []
-        for i in (0, 1, 2, 3):
-            for path in itertools.combinations(unit_vectors, i):
-                corners.append(corner + sum(path))
-        return corners
+    # def get_corners(self):
+    #     # todo have the corner not be hard-coded
+    #     #  - it'd only need to be generated once, at load-time, when calculating the OABB
+    #     # todo scale unit vectors by length of each side of the bounding box
+    #     #  - this can also be pre-calculated
+    #
+    #     # generate two opposite corners
+    #     corner = multiply_vec3(glm.vec3(-.5, -.5, -.5), self.model_mat)
+    #     # generate the local unit vectors (note: these vectors may not be normalised, but that's fine)
+    #     unit_vectors = self.local_unit_vectors()
+    #     corners = []
+    #     for i in (0, 1, 2, 3):
+    #         for path in itertools.combinations(unit_vectors, i):
+    #             corners.append(corner + sum(path))
+    #     return corners
 
     def local_unit_vectors(self):
         i_vector = glm.vec4(1, 0, 0, 0)

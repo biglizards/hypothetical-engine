@@ -1,15 +1,4 @@
-from editor import Editor, Drag
-from game import Game
+from enginelib.editor import Editor
 
-
-class CustomEditor(Editor, Drag):
-    pass
-
-
-class CustomGame(Game):
-    pass
-
-
-game = CustomEditor(width=1200, height=800)
-
+game = Editor(width=1200, height=800)
 game.run(True)

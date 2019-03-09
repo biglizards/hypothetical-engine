@@ -5,8 +5,8 @@ import json
 import warnings
 from warnings import warn
 
-from game import Entity
-from script import Script
+from enginelib.game import Entity
+from enginelib.script import Script
 
 
 def custom_formatwarning(msg, *args, **kwargs):
