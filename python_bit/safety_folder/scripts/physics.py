@@ -21,7 +21,7 @@ class Physics(script.Script):
         for other_entity in self.game.entities:
             if other_entity is self.parent:
                 continue
-            if two_cubes_intersect(self.parent, other_entity):
+            if two_entities_intersect(self.parent, other_entity):
                 # don't
                 self.parent.position -= self.parent.velocity * delta_t
                 self.parent.velocity = glm.vec3(0, 0, 0)

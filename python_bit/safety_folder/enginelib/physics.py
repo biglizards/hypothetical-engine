@@ -5,11 +5,11 @@ from enginelib.game import Entity
 from enginelib import cube
 
 
-def generate_aabb(entity: Entity):
-    model_mat = entity.generate_model_mat(ignore_orientation=True)
-    aabb_min = model_mat * glm.vec4(cube.aabb_min, 1)
-    aabb_max = model_mat * glm.vec4(cube.aabb_max, 1)
-    return aabb_min, aabb_max
+# def generate_aabb(entity: Entity):
+#     model_mat = entity.generate_model_mat(ignore_orientation=True)
+#     aabb_min = model_mat * glm.vec4(cube.aabb_min, 1)
+#     aabb_max = model_mat * glm.vec4(cube.aabb_max, 1)
+#     return aabb_min, aabb_max
 
 
 def aabb_intersect(min1, max1, min2, max2):
@@ -18,20 +18,37 @@ def aabb_intersect(min1, max1, min2, max2):
            min1.z <= max2.z and max1.z >= min2.z
 
 
-def two_cubes_intersect(cube1, cube2):
-    if glm.length(cube1.position - cube2.position) > 6:  # obtained by pythag, todo use bounding spheres
+def two_entities_intersect(entity1, entity2):
+    if not all(entity.do_collisions for entity in (entity1, entity2)):
         return False
-    if not all(cube.do_collisions for cube in (cube1, cube2)):
-        return False
-    corners1 = cube1.get_corners()
-    corners2 = cube2.get_corners()
-    return unaligned_intersect(corners1, cube1.model_mat, corners2, cube2.model_mat)
+
+    if glm.length(entity1.position - entity2.position) \
+            > entity1.bounding_radius + entity2.bounding_radius:
+        return False  # bounding spheres dont intersect
+
+    for mesh1 in entity1.meshes:
+        if glm.length(entity1.position + mesh1.centre - entity2.position) \
+                > mesh1.bounding_radius + entity2.bounding_radius:
+            continue  # the meshes sphere doesnt intersect with entity2's
+
+        for mesh2 in entity2.meshes:
+            if glm.length(entity1.position + mesh1.centre - entity2.position - mesh2.centre) \
+                    > mesh1.bounding_radius + mesh2.bounding_radius:
+                continue
+            # both bounding spheres intersect -- the two meshes need to be checked to each other
+            if two_meshes_intersect(mesh1, mesh2, entity1, entity2):
+                return True
+
+
+def two_meshes_intersect(mesh1, mesh2, entity1, entity2):
+    return unaligned_intersect(mesh1.corners, entity1.model_mat, mesh2.corners, entity2.model_mat)
 
 
 def unaligned_intersect(corners1, model_mat1, corners2, model_mat2):
-    """ adapted from explanation at
+    """
+    adapted from explanation at
     https://gamedev.stackexchange.com/questions/44500/how-many-and-which-axes-to-use-for-3d-obb-collision-with-sat
-    According to that, this is sufficient to show they do (or don't) intersect
+    According to that, this is sufficient to show two OBB do (or don't) intersect
     """
     i_vector = glm.vec4(1, 0, 0, 0)
     j_vector = glm.vec4(0, 1, 0, 0)
@@ -49,7 +66,7 @@ def unaligned_intersect(corners1, model_mat1, corners2, model_mat2):
     # generate all cross products of local unit vectors
     for unit_vector_1, unit_vector_2 in itertools.product(local_vectors_1, local_vectors_2):
         axis = glm.cross(unit_vector_1, unit_vector_2)
-        if axis == glm.vec3(0, 0, 0):
+        if axis == glm.vec3(0, 0, 0):  # vectors were the same, so skip it
             continue
         if intersects_on_projection(corners1, corners2, axis) is False:
             return False

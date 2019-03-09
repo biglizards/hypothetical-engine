@@ -1,11 +1,20 @@
 from cpython cimport array
 cimport assimp
 import os
+from itertools import zip_longest
 
 IF FALSE:
     # this is a hack to get code inspection working
     include "util.pxi"
 
+def grouper(iterable, n, fillvalue=None):
+    """Collect data into fixed-length chunks or blocks"""
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
+    args = [iter(iterable)] * n
+    return zip_longest(*args, fillvalue=fillvalue)
+
+
+# noinspection PyAttributeOutsideInit
 cdef class Mesh:
     """
     a mesh has
@@ -15,6 +24,11 @@ cdef class Mesh:
      - a hitbox maybe?
     """
     cdef unsigned int VAO, VBO, EBO
+    cdef public raw_data
+    cdef public data_format
+    cdef public corners
+    cdef readonly bounding_radius
+    cdef readonly centre
     cdef public dict textures
     cdef int no_of_indices
     cdef bint indexed
@@ -25,6 +39,11 @@ cdef class Mesh:
         self.EBO = 0
         self.textures = {}   # unit : texture
 
+        self.raw_data = py_data
+        self.data_format = data_format
+        self.calculate_bounding_box()
+        self.calculate_bounding_sphere()
+
         if textures is not None:
             for unit, texture in enumerate(textures):
                 self.add_texture(texture, unit)
@@ -33,6 +52,54 @@ cdef class Mesh:
 
     def __init__(self, py_data, data_format, indices=None, *args, **kwargs):
         pass
+    
+    def get_vertices(self):
+        for data in grouper(self.raw_data, sum(self.data_format)):
+            yield data[:3]
+
+    cpdef calculate_bounding_box(self):
+        minimum = glm.vec3(float('inf'))
+        maximum = glm.vec3(float('-inf'))
+        for x, y, z in self.get_vertices():
+            if x > maximum.x:
+                maximum.x = x
+            elif x < minimum.x:
+                minimum.x = x
+            if y > maximum.y:
+                maximum.y = y
+            elif y < minimum.y:
+                minimum.y = y
+            if z > maximum.z:
+                maximum.z = z
+            elif z < minimum.z:
+                minimum.z = z
+
+        corners = []
+        x = (minimum, maximum)
+        for a, b, c in itertools.product([0, 1], repeat=3):
+            corners.append(glm.vec3(x[a][0], x[b][1], x[c][2]))
+
+        self.corners = corners
+        return corners
+
+    cpdef calculate_bounding_sphere(self):
+        # set centre to average of all vertices   todo (maybe it'd be better to use centre of aabb?)
+        centre = glm.vec3(0)
+        vertices = list(self.get_vertices())
+        for vert in vertices:
+            centre += vert
+        centre /= len(vertices)
+
+        # calculate radius -- greatest distance from centre
+        cdef r = 0
+        for vert in vertices:
+            if glm.length(vert-centre) > r:
+                r = glm.length(vert-centre)
+
+        self.bounding_radius = r
+        self.centre = centre
+        return centre, r
+
 
     cdef buffer_packed_data(self, py_data, data_format, indices=None):
         """
@@ -81,7 +148,6 @@ cdef class Mesh:
             self.indexed = False
             self.no_of_indices = len(data) / sum(data_format)
 
-
     cpdef void bind(self):
         glBindVertexArray(self.VAO)
 
@@ -105,7 +171,7 @@ cdef class Mesh:
         else:
             glDrawArrays(mode, 0, self.no_of_indices)
 
-
+# noinspection PyAttributeOutsideInit
 cdef class Model:
     """
     A model has
@@ -115,12 +181,15 @@ cdef class Model:
     cdef public object meshes
     cdef public ShaderProgram shader_program
 
+    cdef readonly bounding_radius
+
     def __cinit__(self, *args, **kwargs):
         pass
 
     def __init__(self, meshes, vert_path, frag_path, geo_path=None):
         self.meshes = meshes
         self.shader_program = ShaderProgram(vert_path, frag_path, geo_path)
+        self.calculate_bounding_sphere()
 
     cpdef draw(self, unsigned int mode=GL_TRIANGLES):
         if not self.meshes:  # todo consider removing
@@ -128,6 +197,22 @@ cdef class Model:
 
         for mesh in self.meshes:
             mesh.draw(self.shader_program, mode=mode)
+
+    cpdef recalculate_bounding_sphere(self):
+        for mesh in self.meshes:
+            mesh.calculate_bounding_sphere()
+        self.calculate_bounding_sphere()
+
+    cpdef calculate_bounding_sphere(self):
+        # centre is implicitly the origin
+        cdef r = 0
+        for mesh in self.meshes:
+            mesh_r = mesh.centre + mesh.bounding_radius
+            if mesh_r > r:
+                r = mesh_r
+
+        self.bounding_radius = r
+        return r
 
 
 cpdef load_model(path_str, flip_on_load=True):
@@ -183,7 +268,7 @@ cdef process_mesh(assimp.aiMesh* mesh, const assimp.aiScene* scene, path, flip_o
         data_zip = zip(vertices, normals)
         data_format = (3, 3)
     for coords in data_zip:
-        data.extend(sum(coords, ()))
+        data.extend(sum(coords, ()))  # flatten the tuple of tuples into a single tuple
 
     cdef assimp.aiMaterial* material = scene.mMaterials[mesh.mMaterialIndex]
     diff_textures = load_textures_from_material(material, assimp.aiTextureType_DIFFUSE, path, "diffuse", flip_on_load)
