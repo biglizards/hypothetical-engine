@@ -231,7 +231,8 @@ class Editor(Click, Drag):
             advanced_layout.set_anchor(spacer, engine.Anchor(1, advanced_layout.row_count - 1, 3, 1))
             advanced_layout.append_row()
             delete_button = engine.Button(name="delet this", parent=popup_button.popup,
-                                          callback=lambda: (script.remove(), self.create_object_gui(entity)))
+                                          callback=lambda script=script: (script.remove(),
+                                                                          self.create_object_gui(entity)))
             advanced_layout.set_anchor(delete_button, engine.Anchor(1, advanced_layout.row_count - 1, 1, 1))
 
         # end bit
@@ -279,8 +280,8 @@ class Editor(Click, Drag):
         for cls, name in self.scripts.items():
             name = name if name is not None else cls.__name__
             button = engine.Button(name, parent=scroll_panel,
-                                   callback=lambda: (self.create_script(entity, cls),
-                                                     self.create_object_gui(entity))
+                                   callback=lambda cls=cls: (self.create_script(entity, cls),
+                                                             self.create_object_gui(entity))
                                    )
             button.fixed_height = 20
 
