@@ -1,4 +1,5 @@
 import inspect
+from collections import defaultdict
 from functools import wraps
 
 
@@ -53,15 +54,14 @@ def every_n_ms(n, **args):
     n /= 1000  # convert from ms to seconds
 
     def decorator(method):
-        time_elapsed = 0.0  # using a list so we can assign to it/update it from within the wrapped method
+        time_elapsed = defaultdict(float)  # format {self: time}
 
         @wraps(method)
         def wrapper(self, delta_t, *args, **kwargs):
-            nonlocal time_elapsed  # in order to write to variable in outer scope
-            time_elapsed += delta_t
-            if time_elapsed > n:
-                method(self, time_elapsed, *args, **kwargs)
-                time_elapsed = 0
+            time_elapsed[self] += delta_t
+            if time_elapsed[self] > n:
+                method(self, time_elapsed[self], *args, **kwargs)
+                time_elapsed[self] = 0
         wrapper.hook_name = 'on_frame'
         wrapper.hook_args = args
         return wrapper
