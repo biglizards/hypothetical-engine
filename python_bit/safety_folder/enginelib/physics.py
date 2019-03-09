@@ -23,17 +23,17 @@ def two_entities_intersect(entity1, entity2):
         return False
 
     if glm.length(entity1.position - entity2.position) \
-            > entity1.bounding_radius + entity2.bounding_radius:
+            > (entity1.bounding_radius * max(entity1.scalar)) + (entity2.bounding_radius * max(entity2.scalar)):
         return False  # bounding spheres dont intersect
 
     for mesh1 in entity1.meshes:
         if glm.length(entity1.position + mesh1.centre - entity2.position) \
-                > mesh1.bounding_radius + entity2.bounding_radius:
+                > (mesh1.bounding_radius * max(entity1.scalar)) + (entity2.bounding_radius * max(entity2.scalar)):
             continue  # the meshes sphere doesnt intersect with entity2's
 
         for mesh2 in entity2.meshes:
             if glm.length(entity1.position + mesh1.centre - entity2.position - mesh2.centre) \
-                    > mesh1.bounding_radius + mesh2.bounding_radius:
+                    > (mesh1.bounding_radius * max(entity1.scalar)) + (mesh2.bounding_radius * max(entity2.scalar)):
                 continue
             # both bounding spheres intersect -- the two meshes need to be checked to each other
             if two_meshes_intersect(mesh1, mesh2, entity1, entity2):
@@ -41,7 +41,9 @@ def two_entities_intersect(entity1, entity2):
 
 
 def two_meshes_intersect(mesh1, mesh2, entity1, entity2):
-    return unaligned_intersect(mesh1.corners, entity1.model_mat, mesh2.corners, entity2.model_mat)
+    corners1 = [glm.vec3(entity1.model_mat * glm.vec4(corner, 1)) for corner in mesh1.corners]
+    corners2 = [glm.vec3(entity2.model_mat * glm.vec4(corner, 1)) for corner in mesh2.corners]
+    return unaligned_intersect(corners1, entity1.model_mat, corners2, entity2.model_mat)
 
 
 def unaligned_intersect(corners1, model_mat1, corners2, model_mat2):
