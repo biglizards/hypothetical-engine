@@ -2938,7 +2938,7 @@
             "@type": "entity",
             "@class_module": "enginelib.game",
             "@class_name": "Entity",
-            "vert_path": "shaders/fuckme.vert",
+            "vert_path": "shaders/standard.vert",
             "frag_path": "shaders/highlight.frag",
             "position": {
                 "@type": "vec3",
@@ -2991,7 +2991,7 @@
             "@type": "entity",
             "@class_module": "enginelib.game",
             "@class_name": "Entity",
-            "vert_path": "shaders/fuckme.vert",
+            "vert_path": "shaders/standard.vert",
             "frag_path": "shaders/basichighlight.frag",
             "position": {
                 "@type": "vec3",
@@ -3043,7 +3043,7 @@
             "@type": "entity",
             "@class_module": "classes.autospin",
             "@class_name": "AutoSpin",
-            "vert_path": "shaders/fuckme.vert",
+            "vert_path": "shaders/standard.vert",
             "frag_path": "shaders/basichighlight.frag",
             "position": {
                 "@type": "vec3",
