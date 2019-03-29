@@ -256,7 +256,7 @@ cdef process_mesh(assimp.aiMesh* mesh, const assimp.aiScene* scene, path, flip_o
     indices = []
     for face in mesh.mFaces[:mesh.mNumFaces]:
         if face.mNumIndices != 3:
-            print("WARNING: Non triangle detected. May fuck up rendering")
+            print("WARNING: Non triangle detected. May mess up rendering")
         for index in face.mIndices[:face.mNumIndices]:
             indices.append(index)
 
