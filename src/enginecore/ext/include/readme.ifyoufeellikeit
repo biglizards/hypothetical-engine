@@ -1,0 +1,9 @@
+So these files aren't the original source, i've taken out the header files
+(and also the licence where relevent, and sometimes also the source, although 
+the source might be header only anyway). Not sure if that's a good idea, 
+but something about just having a copy of the source on my repo doesn't sit 
+well with me (even if i have the right to).
+
+Also i slightly changed the nanogui header to supress warnings, but that change
+isn't strictly neccerssary (ie you could replace it with the original file and
+everything would still work).
