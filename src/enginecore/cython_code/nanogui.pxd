@@ -49,6 +49,8 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
 
     cdef cppclass Vector2i:
         Vector2i(int, int) except +
+        int x() except +
+        int y() except +
 
     cdef cppclass Widget:
         Widget(Widget *parent) except +
@@ -207,10 +209,15 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         PopupButton(Widget *parent) except +
         PopupButton(Widget *parent, const string &caption) except +
         PopupButton(Widget *parent, const string &caption, int buttonIcon) except +
-        Widget* popup() except +
+        Popup* popup() except +
         void setSide(PopupSide popupSide) except +
         PopupSide side() except +
 
+    cdef cppclass Popup(Window):
+        void setAnchorPos(const Vector2i &anchorPos)
+        const Vector2i &anchorPos()
+        void setAnchorHeight(int anchorHeight)
+        int anchorHeight() const
 
 
     Images loadImageDirectory(NVGcontext *ctx, const string &path) except +
