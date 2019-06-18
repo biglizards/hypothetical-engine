@@ -397,8 +397,9 @@ cdef class PopupButton(Widget):  # doesnt inherit from button since there isn't 
         self.popup_button = new nanogui.PopupButton(parent.widget, to_bytes(caption), button_icon)
         self.widget = self.popup_button
 
-        cdef Widget popup = Widget(parent=self)
+        cdef Popup popup = Popup(parent=self)
         popup.widget = self.popup_button.popup()
+        popup.popup = self.popup_button.popup()
         self._popup = popup
 
         self.side = side
@@ -418,6 +419,27 @@ cdef class PopupButton(Widget):  # doesnt inherit from button since there isn't 
     @side.setter
     def side(self, int value):
         self.popup_button.setSide(<nanogui.PopupSide>value)
+
+
+cdef class Popup(Widget):
+    cdef nanogui.Popup* popup
+
+    @property
+    def anchor_pos(self):
+        cdef const nanogui.Vector2i* pos = &self.popup.anchorPos()
+        return pos.x(), pos.y()
+
+    @anchor_pos.setter
+    def anchor_pos(self, value):
+        self.popup.setAnchorPos(nanogui.Vector2i(value[0], value[1]))
+
+    @property
+    def anchor_height(self):
+        return self.popup.anchorHeight()
+
+    @anchor_height.setter
+    def anchor_height(self, int height):
+        self.popup.setAnchorHeight(height)
 
 cdef class Label(Widget):
     def __cinit__(self, Widget parent, caption, font="sans-bold", font_size=-1):
