@@ -9,7 +9,7 @@ from openal import oalOpen
 from enginelib import util
 from enginelib.level import save, load
 from enginelib.game import Game, Entity
-import scripts.editor_scripts
+import enginelib.editor_scripts
 
 
 class Click(Game):
@@ -75,7 +75,7 @@ class Editor(Click, Drag):
         super().__init__(*args, **kwargs)
 
         self.add_callback('on_click_entity', self.on_entity_click, editor=True)
-        self.add_global_script(scripts.editor_scripts.EditorScripts)
+        self.add_global_script(enginelib.editor_scripts.EditorScripts)
         self.make_entity_list()
         self.create_tool_window()
 
