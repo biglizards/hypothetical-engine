@@ -53,8 +53,17 @@ def extract_entity_data(data, game):
     return args, kwargs, entity_class
 
 
+# oh no, globals. But dont worry, they're only used in load_entity_class, and also at the end of load_level.
+# i could pass these through the call stack, or make this into a class, but this way is neater imo.
+is_reloading = False
+reloaded_modules = set()
+
+
 def load_entity_class(module_name, class_name):
     module = importlib.import_module(module_name)
+    if module not in reloaded_modules:
+        module = importlib.reload(module)
+        reloaded_modules.add(module)
     return getattr(module, class_name)
 
 
@@ -101,3 +110,6 @@ def load_level(location, game):
     for entity in entity_dict.values():
         handle_item(entity, game)
 
+    global is_reloading, reloaded_modules
+    is_reloading = True
+    reloaded_modules.clear()
