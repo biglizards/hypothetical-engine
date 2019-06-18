@@ -59,7 +59,6 @@ cdef class Window:
         self.width = width
         self.height = height
         self.handle_gui_callbacks = True
-        glfwSwapInterval(0)
 
         # set callbacks
         self.key_callback = None  # todo why is this here, either remove it or add all the others. dont be inconsistent
@@ -140,6 +139,15 @@ cdef class Window:
         cdef int x, y
         x, y = self.cursor_location
         return self.gui.screen.findWidget(nanogui.Vector2i(x, y)) is not self.gui.screen
+
+    cpdef void set_swap_interval(self, int interval):
+        """a wrapper around glfwSwapInterval. Sets the number of screen updates between frames, aka vsync.
+        set to 0 to disable"""
+        glfwSwapInterval(interval)
+
+    cpdef void set_vsync(self, bint status):
+        """a more user friendly way to interact with glfwSwapInterval"""
+        glfwSwapInterval(1 if status else 0)
 
 # instead of creating a custom wrapper in c++ using lambdas (which i very well could, like
 # in the nanogui wrapper), since every glfw function returns a pointer to the window, and there
