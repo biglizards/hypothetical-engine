@@ -143,9 +143,9 @@ class Editor(Click, Drag):
         for key, item in entity.__dict__.items():  # key is name of attr, item is attr itself
             if key.startswith('_') or key in getattr(entity, 'property_blacklist', []):
                 continue
-            elif isinstance(item, glm.vec3):
+            elif isinstance(item, glm.vec3) or (isinstance(item, tuple) and len(item) == 3):
                 helper.add_group(key)
-                self.xyz_section(widget, item, entity, key, helper)
+                self.xyz_section(widget, item, entity, key, helper, width=60)
             elif isinstance(item, glm.quat):
                 helper.add_group(key)
                 self.xyz_section(widget, item, entity, key, helper, width=54)
@@ -153,7 +153,10 @@ class Editor(Click, Drag):
                 # helper.add_group(key)
 
                 def setter(new_val, _old_val, key=key, entity=entity):
-                    entity.__dict__[key] = new_val
+                    # entity.__dict__[key] = new_val
+                    # i remember there was some kind of bug where this didnt work, but i cant figure out
+                    # what it was
+                    setattr(entity, key, new_val)
 
                 def getter(key=key, entity=entity):
                     return entity.__dict__[key]
