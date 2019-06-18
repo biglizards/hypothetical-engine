@@ -470,6 +470,10 @@ class Editor(Click, Drag):
             self.remove_entity(self.entities[0])
         while self.overlay_entities:
             self.remove_entity(self.overlay_entities[0])
+        # reload all the modules
+        self.scripts = {}
+        self.entity_classes = {}
+
         load.load_level('save.json', game=self)
 
     def toggle_mode(self):
