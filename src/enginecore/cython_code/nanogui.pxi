@@ -2,9 +2,7 @@ cimport nanogui
 from nanogui cimport FormWidget
 from libcpp cimport bool as c_bool
 from libcpp.string cimport string
-from libcpp.pair cimport pair
 from libcpp.vector cimport vector
-import inspect
 
 
 def file_dialog(save):
@@ -94,7 +92,6 @@ cdef class Widget:
     def focused_recursive(self):
         return self.focused() \
                or any(widget.focused_recursive() for widget in self.children)
-
 
     @property
     def layout(self):
@@ -298,7 +295,6 @@ cdef class FormHelper:
     cpdef set_window_unsafe(self, Widget window):
         self.helper.setWindow(<nanogui.Window*>window.widget)
 
-
     cpdef GuiWindow window(self):
         cdef nanogui.Window* window = self.helper.window()
         cdef GuiWindow gui_window
@@ -306,28 +302,25 @@ cdef class FormHelper:
             if gui_window.window is window:
                 return gui_window
 
-    cpdef add_variable(self, name, variable_type, linked_var=None, getter=None, setter=None):
+    cpdef add_variable(self, name, variable_type, getter=None, setter=None):
         """
         a wrapper function for creating the [Type]Widget class
         """
         name = to_bytes(name)
         widget = None
-        if linked_var is not None and not isinstance(linked_var, str):
-            raise ValueError("linked_var must be of type str (you probably passed the variable directly)")
         if variable_type is int:
-            widget = IntWidget(self, name, getter, setter, linked_var)
+            widget = IntWidget(self, name, getter, setter)
         elif variable_type is bool:
-            widget = BoolWidget(self, name, getter, setter, linked_var)
+            widget = BoolWidget(self, name, getter, setter)
         elif variable_type is float:
-            ext_locals = get_locals()
-            widget = FloatWidget(self, name, getter, setter, linked_var)
+            widget = FloatWidget(self, name, getter, setter)
         elif variable_type is str:
-            widget = StringWidget(self, name, getter, setter, linked_var)
+            widget = StringWidget(self, name, getter, setter)
         self.widgets.append(widget)
         return widget
 
-    cpdef add_combobox(self, name, items, linked_var=None, getter=None, setter=None):
-        widget = ComboBoxWidget(self, name, list(map(to_bytes, items)), getter, setter, linked_var)
+    cpdef add_combobox(self, name, items, getter=None, setter=None):
+        widget = ComboBoxWidget(self, name, list(map(to_bytes, items)), getter, setter)
         self.widgets.append(widget)
         return widget
 
@@ -523,10 +516,6 @@ cdef class TextBox(Widget):
     def placeholder(self, value):
         self.textBox.setPlaceholder(to_bytes(value))
 
-"""
-Thing To Note: if i setCallback in textWidget, then it works fine for everything else as well, 
-just the type is still str, which i can deal with, since i cant really be bothered to wrap every box individually rn
-"""
 
 cdef class FloatBox(TextBox):
     cdef nanogui.FloatBox[double]* floatBox
@@ -590,31 +579,17 @@ cdef class ImagePanel(Widget):
 
 widgets = {}  # <uintptr_t>&Widget : Widget
 
-def get_locals():
-    # TODO change name from locals to globals
-    # for, uhh, reasons, locals() is only sometimes mutable
-    # as in, it's only mutable when it returns module level vars
-    # which is the same thing globals() returns - so i'm just using that instead
-    return inspect.stack()[0][0].f_globals
-
 cdef class IntWidget:
     cdef readonly int value
     cdef FormWidget[int]* widget_ptr
     cdef public object getter
     cdef public object setter
-    cdef object ext_locals
-    cdef str linked_var
 
-    def __cinit__(IntWidget self, FormHelper helper, name, getter=None, setter=None, linked_var=None, *args, **kwargs):
+    def __cinit__(IntWidget self, FormHelper helper, name, getter=None, setter=None, *args, **kwargs):
         cdef uintptr_t self_ptr = <uintptr_t><void*>self
         widgets[self_ptr] = self
         self.getter = getter
         self.setter = setter
-        if linked_var:
-            self.ext_locals = get_locals()
-            self.linked_var = linked_var
-        else:
-            self.linked_var = ""
         self.widget_ptr = cengine.add_variable[int](helper.helper, name, self.setter_callback,
                                                     self.getter_callback, self_ptr)
 
@@ -630,8 +605,6 @@ cdef class IntWidget:
         cdef IntWidget self = widgets[self_ptr]
         cdef int old_value = self.value
         self.value = new_value
-        if self.linked_var:
-            self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
             error_safe_call(self.setter, new_value, old_value)
 
@@ -640,20 +613,12 @@ cdef class FloatWidget:
     cdef FormWidget[double]* widget_ptr
     cdef public object getter
     cdef public object setter
-    cdef object ext_locals
-    cdef str linked_var
 
-    def __cinit__(FloatWidget self, FormHelper helper, name, getter=None, setter=None, linked_var=None,
-                  *args, **kwargs):
+    def __cinit__(FloatWidget self, FormHelper helper, name, getter=None, setter=None, *args, **kwargs):
         cdef uintptr_t self_ptr = <uintptr_t><void*>self
         widgets[self_ptr] = self
         self.getter = getter
         self.setter = setter
-        if linked_var:
-            self.ext_locals = get_locals()
-            self.linked_var = linked_var
-        else:
-            self.linked_var = ""
         self.widget_ptr = cengine.add_variable[double](helper.helper, name, self.setter_callback,
                                                        self.getter_callback, self_ptr)
 
@@ -669,8 +634,6 @@ cdef class FloatWidget:
         cdef FloatWidget self = widgets[self_ptr]
         cdef double old_value = self.value
         self.value = new_value
-        if self.linked_var:
-            self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
             error_safe_call(self.setter, new_value, old_value)
 
@@ -679,24 +642,17 @@ cdef class StringWidget(Widget):
     cdef FormWidget[string]* widget_ptr
     cdef public object getter
     cdef public object setter
-    cdef object ext_locals
-    cdef str linked_var
 
-    def __cinit__(StringWidget self, FormHelper helper, name, getter=None, setter=None, linked_var=None, *args, **kwargs):
+    def __cinit__(StringWidget self, FormHelper helper, name, getter=None, setter=None, *args, **kwargs):
         cdef uintptr_t self_ptr = <uintptr_t><void*>self
         widgets[self_ptr] = self
         self.getter = getter
         self.setter = setter
-        if linked_var:
-            self.ext_locals = get_locals()
-            self.linked_var = linked_var
-        else:
-            self.linked_var = ""
         self.widget_ptr = cengine.add_variable[string](helper.helper, name, self.setter_callback,
                                                     self.getter_callback, self_ptr)
         self.widget = self.widget_ptr
 
-    def __init__(StringWidget self, FormHelper helper, name, getter=None, setter=None, linked_var=None, *args, **kwargs):
+    def __init__(StringWidget self, FormHelper helper, name, getter=None, setter=None, *args, **kwargs):
         pass
 
     @staticmethod
@@ -711,8 +667,6 @@ cdef class StringWidget(Widget):
         cdef StringWidget self = widgets[self_ptr]
         cdef str old_value = self.value
         self.value = new_value
-        if self.linked_var:
-            self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
             error_safe_call(self.setter, self.value, old_value)
 
@@ -730,19 +684,12 @@ cdef class BoolWidget:
     cdef FormWidget[c_bool]* widget_ptr
     cdef public object getter
     cdef public object setter
-    cdef object ext_locals
-    cdef str linked_var
 
-    def __cinit__(BoolWidget self, FormHelper helper, name, getter=None, setter=None, linked_var=None, *args, **kwargs):
+    def __cinit__(BoolWidget self, FormHelper helper, name, getter=None, setter=None, *args, **kwargs):
         cdef uintptr_t self_ptr = <uintptr_t><void*>self
         widgets[self_ptr] = self
         self.getter = getter
         self.setter = setter
-        if linked_var:
-            self.ext_locals = get_locals()
-            self.linked_var = linked_var
-        else:
-            self.linked_var = ""
         self.widget_ptr = cengine.add_variable[c_bool](helper.helper, name, self.setter_callback,
                                                        self.getter_callback, self_ptr)
 
@@ -758,8 +705,6 @@ cdef class BoolWidget:
         cdef BoolWidget self = widgets[self_ptr]
         cdef bint old_value = self.value
         self.value = new_value
-        if self.linked_var:
-            self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
             error_safe_call(self.setter, new_value, old_value)
 
@@ -775,21 +720,13 @@ cdef class ComboBoxWidget:
     cdef public object getter
     cdef public object setter
     cdef public object items
-    cdef object ext_locals
-    cdef str linked_var
 
-    def __cinit__(ComboBoxWidget self, FormHelper helper, name, items, getter=None, setter=None,
-                  linked_var=None, *args, **kwargs):
+    def __cinit__(ComboBoxWidget self, FormHelper helper, name, items, getter=None, setter=None, *args, **kwargs):
         cdef uintptr_t self_ptr = <uintptr_t><void*>self
         widgets[self_ptr] = self
         self.items = items
         self.getter = getter
         self.setter = setter
-        if linked_var:
-            self.ext_locals = get_locals()
-            self.linked_var = linked_var
-        else:
-            self.linked_var = ""
         self.widget_ptr = cengine.add_variable[DummyEnum](helper.helper, name, self.setter_callback,
                                                     self.getter_callback, self_ptr)
         self.widget_ptr.setItems(items)
@@ -810,8 +747,6 @@ cdef class ComboBoxWidget:
         cdef ComboBoxWidget self = widgets[self_ptr]
         old_value = self.value
         self.index = new_index
-        if self.linked_var:
-            self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
             error_safe_call(self.setter, self.value, old_value)
 
