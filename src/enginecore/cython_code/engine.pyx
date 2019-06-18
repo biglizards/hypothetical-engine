@@ -37,7 +37,19 @@ cpdef set_gui_callbacks(Gui gui, Window window):
     cengine.set_callbacks(gui.screen, window.window)
 
 cpdef poll_events():
+    """
+    An unreasonably complex wrapper around glfwPollEvents for what it is. 
+    Processes any events in the event queue, and calls the appropriate function.
+    
+    WARNING: if any functions called raise an error, the event queue will be cleared, but some events
+    may not be processed. This is because glfwPollEvents is a C function, so exceptions cannot
+    propagate through it. If an exception is raised, it is stored, and any more events in the queue
+    are ignored. This prevents code from being called while user data is potentially in an error state.
+    (and also ensures that a maximum of one exception is raised per call to poll_events)
+    """
     glfwPollEvents()
+    while glfw_event_errors:
+        raise glfw_event_errors.pop()
 
 cpdef wait_until_finished():
     glFlush()
