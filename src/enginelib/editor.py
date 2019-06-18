@@ -79,6 +79,8 @@ class Editor(Click, Drag):
         self.make_entity_list()
         self.create_tool_window()
 
+        self.gui.update_layout()
+
     def dispatch(self, name: str, *args):
         # call the functions which should fire even in editor mode
         funcs = self.dispatches.get(name, [])
