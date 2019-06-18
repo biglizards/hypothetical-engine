@@ -483,6 +483,7 @@ class Editor(Click, Drag):
 
     def toggle_mode(self):
         self.mode = 'game' if self.mode == 'editor' else 'editor'
+        self.dispatch('on_game_start')
 
     def create_entity(self, *args, entity_class=Entity, **kwargs):
         if kwargs.get('model_path') and kwargs.get('model_path') not in self.models:

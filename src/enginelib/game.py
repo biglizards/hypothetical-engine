@@ -274,11 +274,13 @@ class Game(engine.Window):
 
     def run(self, print_fps=False):
         frame_count = 0
-        time_since_last_fps_print = time.time()
-        last_frame_time = time.time()
+        time_since_last_fps_print = time.perf_counter()
+        last_frame_time = time.perf_counter()
+
+        self.dispatch('on_game_start')
 
         while not self.should_close():
-            time_time = time.time()
+            time_time = time.perf_counter()
             delta_t = (time_time - last_frame_time) % 0.1  # if the game freezes, just ignore it
             last_frame_time = time_time
 
