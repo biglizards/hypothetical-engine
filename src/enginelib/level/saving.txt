@@ -24,9 +24,8 @@ option 1:
 class MyEntity(Entity):
     def __init__(self, game, arg1, arg2, arg3=None):
         super().__init__(...)
-        self.arg1 = arg1
-        self.arg2_but_with_a_different_name = arg2
         self.thing_obtained_from_arg3 = SomeOtherClass(arg3)
+
         self.save_overrides = {}
         game.add_callback('on_save', self.on_save)
 
