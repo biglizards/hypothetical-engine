@@ -357,6 +357,16 @@ cdef class ScrollPanel(Widget):
 
 buttons = {}  #
 
+def error_safe_call(function, *args, default=None):
+    if glfw_event_errors:
+        return default
+    try:
+        return function(*args)
+    except Exception as e:
+        glfw_event_errors.append(e)
+        return default
+
+
 cdef class Button(Widget):
     cdef nanogui.Button* button_ptr
     cdef object callback
@@ -378,7 +388,7 @@ cdef class Button(Widget):
     @staticmethod
     cdef void _callback(void* _self):
         cdef Button self = <Button>_self
-        self.callback()
+        error_safe_call(self.callback)
 
     @property
     def text(self):
@@ -494,7 +504,7 @@ cdef class TextBox(Widget):
     cdef c_bool _callback(void* _self, const string& value):
         cdef TextBox self = <TextBox>_self
         if self.callback:
-            self.callback(value.decode())
+            error_safe_call(self.callback, value.decode())
         return True
 
     @property
@@ -530,7 +540,7 @@ cdef class FloatBox(TextBox):
     cdef c_bool float_callback(void* _self, double value):
         cdef FloatBox self = <FloatBox>_self
         if self.callback:
-            self.callback(value)
+            error_safe_call(self.callback, value)
         return True
 
     @property
@@ -572,7 +582,7 @@ cdef class ImagePanel(Widget):
     @staticmethod
     cdef void _callback(void* _self, int selected):
         cdef ImagePanel self = <ImagePanel>_self
-        self.callback(selected)
+        error_safe_call(self.callback, selected)
 
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@ it's just widgets from here on down
@@ -612,7 +622,7 @@ cdef class IntWidget:
     cdef int getter_callback(uintptr_t self_ptr):
         cdef IntWidget self = widgets[self_ptr]
         if self.getter is not None:
-            self.value = self.getter()
+            self.value = error_safe_call(self.getter, default=self.value)
         return self.value
 
     @staticmethod
@@ -623,7 +633,7 @@ cdef class IntWidget:
         if self.linked_var:
             self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
-            self.setter(new_value, old_value)
+            error_safe_call(self.setter, new_value, old_value)
 
 cdef class FloatWidget:
     cdef readonly double value
@@ -651,7 +661,7 @@ cdef class FloatWidget:
     cdef double getter_callback(uintptr_t self_ptr):
         cdef FloatWidget self = widgets[self_ptr]
         if self.getter is not None:
-            self.value = self.getter()
+            self.value = error_safe_call(self.getter, default=self.value)
         return self.value
 
     @staticmethod
@@ -662,7 +672,7 @@ cdef class FloatWidget:
         if self.linked_var:
             self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
-            self.setter(new_value, old_value)
+            error_safe_call(self.setter, new_value, old_value)
 
 cdef class StringWidget(Widget):
     cdef string c_value
@@ -693,7 +703,7 @@ cdef class StringWidget(Widget):
     cdef string getter_callback(uintptr_t self_ptr):
         cdef StringWidget self = widgets[self_ptr]
         if self.getter is not None:
-            self.value = self.getter()
+            self.value = error_safe_call(self.getter, default=self.value)
         return self.c_value
 
     @staticmethod
@@ -704,7 +714,7 @@ cdef class StringWidget(Widget):
         if self.linked_var:
             self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
-            self.setter(self.value, old_value)
+            error_safe_call(self.setter, self.value, old_value)
 
     @property
     def value(self):
@@ -740,7 +750,7 @@ cdef class BoolWidget:
     cdef c_bool getter_callback(uintptr_t self_ptr):
         cdef BoolWidget self = widgets[self_ptr]
         if self.getter is not None:
-            self.value = self.getter()
+            self.value = error_safe_call(self.getter, default=self.value)
         return self.value
 
     @staticmethod
@@ -751,7 +761,7 @@ cdef class BoolWidget:
         if self.linked_var:
             self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
-            self.setter(new_value, old_value)
+            error_safe_call(self.setter, new_value, old_value)
 
 cdef extern from *:
     """enum DummyEnum { };"""
@@ -788,10 +798,10 @@ cdef class ComboBoxWidget:
     cdef DummyEnum getter_callback(uintptr_t self_ptr):
         cdef ComboBoxWidget self = widgets[self_ptr]
         if self.getter is not None:
-            getter_result = self.getter()
+            getter_result = error_safe_call(self.getter)
             if isinstance(getter_result, int):
                 self.index = getter_result
-            else:
+            elif getter_result is not None:  # todo should None be allowed as a value? what would that mean?
                 self.value = getter_result
         return self.index
 
@@ -803,7 +813,7 @@ cdef class ComboBoxWidget:
         if self.linked_var:
             self.ext_locals[self.linked_var] = self.value
         if self.setter is not None:
-            self.setter(self.value, old_value)
+            error_safe_call(self.setter, self.value, old_value)
 
     @property
     def value(self):

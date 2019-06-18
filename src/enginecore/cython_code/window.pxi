@@ -166,11 +166,17 @@ window_objects_by_pointer = {}
 cdef Window get_window(GLFWwindow* window_ptr):
     return window_objects_by_pointer[<uintptr_t>window_ptr]()
 
+glfw_event_errors = []
+
 def abstract_callback(Window window, object callback_func, object gui_callback_func, *args):
-    if window.handle_gui_callbacks or callback_func is None:
-        gui_callback_func(*args)
-    if callback_func is not None and not (window.handle_gui_callbacks and window.gui.focused()):
-        callback_func(window, *args)
+    if glfw_event_errors: return
+    try:
+        if window.handle_gui_callbacks or callback_func is None:
+            gui_callback_func(*args)
+        if callback_func is not None and not (window.handle_gui_callbacks and window.gui.focused()):
+            callback_func(window, *args)
+    except Exception as e:
+        glfw_event_errors.append(e)
 
 cdef void key_callback(GLFWwindow* window_ptr, int key, int scancode, int action, int mods):
     cdef Window window = get_window(window_ptr)

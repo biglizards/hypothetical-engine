@@ -272,7 +272,16 @@ class Game(engine.Window):
         self.projection = glm.perspective(glm.radians(self.fov), self.width / self.height, self.near, self.far)
         self.dispatch('on_resize', *args[1:])
 
-    def run(self, print_fps=False):
+    def run(self, *args, **kwargs):
+        """A wrapper around self._run, but calls it with a try-finally,
+        so the indentation doesn't get too out of hand"""
+
+        try:
+            self._run(*args, **kwargs)
+        finally:
+            openal.oalQuit()
+
+    def _run(self, print_fps=False):
         frame_count = 0
         time_since_last_fps_print = time.perf_counter()
         last_frame_time = time.perf_counter()
