@@ -194,10 +194,13 @@ cdef void drop_file_callback(GLFWwindow* window_ptr, int count, const char** fil
     # this one has different from default behavior - that is, if a file is dropped, always tell the user,
     # and call the gui unless the "i'll handle it manually" flag is set
     cdef Window window = get_window(window_ptr)
-    if window.handle_gui_callbacks:
-        window.gui.handle_drop(count, to_list(count, filenames))
-    if window.drop_file_callback is not None:
-        window.drop_file_callback(window, to_list(count, filenames))
+    try:
+        if window.handle_gui_callbacks:
+            window.gui.handle_drop(count, to_list(count, filenames))
+        if window.drop_file_callback is not None:
+            window.drop_file_callback(window, to_list(count, filenames))
+    except Exception as e:
+        glfw_event_errors.append(e)
 
 cdef void scroll_callback(GLFWwindow* window_ptr, double x, double y):
     cdef Window window = get_window(window_ptr)
@@ -218,27 +221,33 @@ cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, 
 cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, int modifiers):
     cdef Window window = get_window(window_ptr)
     cdef int x, y
-    if window.handle_gui_callbacks or window.mouse_button_callback is None:
-        window.gui.handle_mouse_button(button, action, modifiers)
-    # todo try to simplify logic, it's getting a bit out of hand
-    if window.mouse_button_callback is not None and not (window.handle_gui_callbacks and window.gui.focused()):
-        if action != MOUSE_DOWN:
-            window.mouse_button_callback(window, button, action, modifiers)
-        elif not window.gui_under_mouse():
-            window.mouse_button_callback(window, button, action, modifiers)
+    try:
+        if window.handle_gui_callbacks or window.mouse_button_callback is None:
+            window.gui.handle_mouse_button(button, action, modifiers)
+        # todo try to simplify logic, it's getting a bit out of hand
+        if window.mouse_button_callback is not None and not (window.handle_gui_callbacks and window.gui.focused()):
+            if action != MOUSE_DOWN:
+                window.mouse_button_callback(window, button, action, modifiers)
+            elif not window.gui_under_mouse():
+                window.mouse_button_callback(window, button, action, modifiers)
+    except Exception as e:
+        glfw_event_errors.append(e)
 
 
 cdef void resize_callback(GLFWwindow* window_ptr, int width, int height):
     cdef Window window = get_window(window_ptr)
-    # always handle resize changes
-    old_width, old_height = window.width, window.height
-    glViewport(0, 0, width, height)
-    window.width = width
-    window.height = height
-    if window.resize_callback is not None:
-        window.resize_callback(window, old_width, old_height)
-    else:
-        window.gui.handle_resize(width, height)
+    try:
+        # always handle resize changes
+        old_width, old_height = window.width, window.height
+        glViewport(0, 0, width, height)
+        window.width = width
+        window.height = height
+        if window.resize_callback is not None:
+            window.resize_callback(window, old_width, old_height)
+        else:
+            window.gui.handle_resize(width, height)
+    except Exception as e:
+        glfw_event_errors.append(e)
 
 
 

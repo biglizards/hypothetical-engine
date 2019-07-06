@@ -44,7 +44,6 @@ class Entity(engine.Model):
         if not (meshes is None) ^ (model_path is None):
             raise RuntimeError("exactly one of 'meshes' and 'model_path' must be passed to Entity")
         if meshes is None:
-            print("loading", id)
             meshes = engine.load_model(model_path, flip_on_load=flip_textures)
 
         super().__init__(meshes, vert_path, frag_path, geo_path)

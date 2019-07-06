@@ -13,9 +13,6 @@ IF WINDOWS:
 cimport cengine
 from cengine cimport GLFWwindow, set_callbacks
 cimport nanogui
-import glm
-from libc.time cimport clock, CLOCKS_PER_SEC
-from libc.stdint cimport uintptr_t
 
 include "crash_handler.pxi"
 include "gl_declarations.pxi"

@@ -1,5 +1,6 @@
 from math import inf
 import itertools
+import glm
 
 cdef struct min_and_max:
     double min_val

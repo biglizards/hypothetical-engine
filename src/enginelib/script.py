@@ -10,6 +10,7 @@ class Script:
         self.parent = parent
         self.game = game
         self.savable_attributes = {}
+        self.property_blacklist = ['parent', 'game', 'savable_attributes', 'property_blacklist']
         # note: args and kwargs are set in editor.add_script, not here, since we dont get args from subclasses etc.
         self._args = []
         self._kwargs = {}
@@ -64,6 +65,8 @@ def every_n_ms(n, **args):
                 time_elapsed[self] = 0
         wrapper.hook_name = 'on_frame'
         wrapper.hook_args = args
+        wrapper.func = method
+        # testing out a new thing
         return wrapper
     return decorator
 
