@@ -113,25 +113,25 @@ class Editor(Click, Drag):
 
     @staticmethod
     def xyz_section(gui_window, vector, entity, key, helper, width=60):
-        xyz_section = engine.Widget(gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
-        gui_window.layout.append_row(0)
-        gui_window.layout.set_anchor(xyz_section, engine.Anchor(1, gui_window.layout.row_count - 1, 3, 1))
+        xyz_section = engine.Widget(parent=gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
+        with xyz_section:
+            gui_window.layout.append_row(0)
+            gui_window.layout.set_anchor(xyz_section, engine.Anchor(1, gui_window.layout.row_count - 1, 3, 1))
 
-        for i, value in enumerate(vector):
-            def setter(new_val, i=i, key=key, entity=entity):  # the keyword args save the value (otherwise all
-                entity.__dict__[key][i] = new_val              # functions would use the last value in the loop)
+            for i, value in enumerate(vector):
+                def setter(new_val, i=i, key=key, entity=entity):  # the keyword args save the value (otherwise all
+                    entity.__dict__[key][i] = new_val              # functions would use the last value in the loop)
 
-            def getter(i=i, key=key, entity=entity):
-                return entity.__dict__[key][i]
+                def getter(i=i, key=key, entity=entity):
+                    return entity.__dict__[key][i]
 
-            if len(vector) <= 3:  # sometimes, eg quats, it's more, but there's not enough space for labels then
-                letter = ['x', 'y', 'z'][i]
-                engine.Label(xyz_section, letter)
-            box = engine.FloatBox(parent=xyz_section, value=value, spinnable=(len(vector) <= 3), callback=setter)
-            box.font_size = 17.5
-            helper.add_manual_getter(box, getter)  # todo refactor this mess out
-            box.fixed_width = width
-            box.alignment = 0  # todo replace with named constant (and/or thing in init)
+                if len(vector) <= 3:  # sometimes, eg quats, it's more, but there's not enough space for labels then
+                    letter = ['x', 'y', 'z'][i]
+                    engine.Label(letter)
+                box = engine.FloatBox(value=value, callback=setter, spinnable=(len(vector) <= 3),
+                                      font_size=17.5, fixed_width=width, alignment=0)
+                # todo replace alignment (above) with named constant
+                helper.add_manual_getter(box, getter)  # todo refactor this mess out
 
     def populate_properties_window(self, entity: Entity, helper, widget):
         if isinstance(entity, Entity):  # scripts also use this, so we need to check it's an entity
@@ -154,8 +154,9 @@ class Editor(Click, Drag):
 
                 def setter(new_val, _old_val, key=key, entity=entity):
                     # entity.__dict__[key] = new_val
-                    # i remember there was some kind of bug where this didnt work, but i cant figure out
-                    # what it was
+                    # i remember there was some kind of bug where the above didnt work,
+                    # but i cant figure out what it was
+                    # i guess it bypasses __setattr__ but i dont want that
                     setattr(entity, key, new_val)
 
                 def getter(key=key, entity=entity):
@@ -194,15 +195,14 @@ class Editor(Click, Drag):
         new_gui = helper.add_window(0, 0, 'entity properties')
 
         # swap the layout to a GroupLayout
-        layout = new_gui.layout
+        old_layout = new_gui.layout
         new_gui.layout = engine.GroupLayout(margin=0, spacing=0)
         # wrap the window in a scroll panel
-        scroll_panel_holder = engine.ScrollPanel(new_gui)
-        scroll_panel_holder.fixed_height = (self.height-30) * 0.9
+        scroll_panel_holder = engine.ScrollPanel(new_gui, fixed_height=(self.height-30) * 0.9)  # todo magic numbers, where do they come from
         scroll_panel = engine.Widget(scroll_panel_holder, layout=engine.GroupLayout(margin=0, spacing=0))
         # create the two main segments for the window: the helper bit with all the attributes in,
         # and the scripts section with all the scripts in
-        helper_section = engine.Widget(scroll_panel, layout=layout)  # uses AdvancedLayout from earlier
+        helper_section = engine.Widget(scroll_panel, layout=old_layout)  # uses AdvancedLayout from earlier
         # the helper_section layout also has a margin of 10, so we set that here so they match
         script_section = engine.Widget(scroll_panel, layout=engine.GroupLayout(margin=10))
         # set the helpers "window" to the correct widget
@@ -210,34 +210,37 @@ class Editor(Click, Drag):
 
         self.populate_properties_window(entity, helper, widget=helper_section)
 
-        if entity.model_path is not None:
-            engine.Label(caption="Model", parent=script_section, font_size=20)
-            model_name = self.models.get(entity.model_path)
-            model_name = model_name if model_name is not None else entity.model_path
-            engine.Label(caption=f'selected: {model_name}', parent=script_section)
-            model_changer = engine.PopupButton(caption="Change Model", parent=script_section, side=0)
-            self.make_model_editor(entity, model_changer.popup)
+        with script_section:
+            if entity.model_path is not None:
+                engine.Label("Model", font_size=20)
+                # get the model name
+                model_name = self.models.get(entity.model_path)
+                model_name = model_name if model_name is not None else entity.model_path
+                engine.Label(f'selected: {model_name}')
+                model_changer = engine.PopupButton("Change Model", side=0)
+                self.make_model_editor(entity, model_changer.popup)
 
-        engine.Button(parent=script_section, name="delete this", callback=lambda: self.remove_entity(entity))
+            engine.Button("delete this", callback=lambda: self.remove_entity(entity))
 
-        engine.Label(caption="Scripts", parent=script_section, font_size=20)
-        script_adder = engine.PopupButton(caption="Add script", parent=script_section, side=0)
-        self.make_script_adder(entity, script_adder.popup)
-        for script in entity.scripts:
-            self.make_property_edit_button(parent=script_section, caption=script.__class__.__name__, helper=helper,
-                                           entity=entity, thing=script, remove_callback=script.remove)
+            engine.Label("Scripts", font_size=20)
+            script_adder = engine.PopupButton("Add script", side=0)
+            self.make_script_adder(entity, script_adder.popup)
+            for script in entity.scripts:
+                self.make_property_edit_button(caption=script.__class__.__name__, helper=helper,
+                                               entity=entity, thing=script, remove_callback=script.remove)
 
-        if hasattr(entity, 'audio_sources'):
-            engine.Label(caption="Audio", parent=script_section, font_size=20)
-            audio_adder = engine.PopupButton(caption="Add audio", parent=script_section, side=0)
-            self.make_audio_adder(entity, window=audio_adder.popup)
-            for name, source in entity.audio_sources.items():
-                self.make_property_edit_button(parent=script_section, caption=name, helper=helper, entity=entity,
-                                               thing=source, remove_callback=lambda: 1/0)
+            if hasattr(entity, 'audio_sources'):
+                engine.Label("Audio", font_size=20)
+                audio_adder = engine.PopupButton("Add audio", side=0)
+                self.make_audio_adder(entity, window=audio_adder.popup)
+                for name, source in entity.audio_sources.items():
+                    self.make_property_edit_button(caption=name, helper=helper, entity=entity,
+                                                   thing=source, remove_callback=lambda: 1/0)
 
         # end bit
         self.selected_gui = new_gui
         self.gui.update_layout()
+        # put the window on the right hand side, with a bit of breathing room
         new_gui.set_position(self.width - new_gui.width - 10, 10)
         new_gui.fixed_width = new_gui.width
 
@@ -279,11 +282,11 @@ class Editor(Click, Drag):
         delete_button = engine.Button(name="delete this", parent=parent, callback=on_press)
         layout.set_anchor(delete_button, engine.Anchor(1, layout.row_count - 1, 1, 1))
 
-    def make_property_edit_button(self, parent, caption, helper, entity, thing, remove_callback):
+    def make_property_edit_button(self, caption, helper, entity, thing, remove_callback):
         # parent: script_section
         # caption: script.__class__.__name__
         # create popup button
-        popup_button = engine.PopupButton(parent=parent, caption=caption, side=0)
+        popup_button = engine.PopupButton(caption=caption, side=0)
         advanced_layout = engine.AdvancedGridLayout([10, 0, 10, 0])
         popup_button.popup.layout = advanced_layout
         # populate popup with properties
@@ -461,14 +464,14 @@ class Editor(Click, Drag):
 
     def create_tool_window(self):
         tool_window = engine.GuiWindow(240, 10, 'tools', gui=self.gui, layout=engine.GroupLayout())
-        engine.Button(parent=tool_window, name='save', callback=lambda: save.save_level('save.json', editor=self))
-        engine.Button(parent=tool_window, name='reload', callback=self.reload_level)
-        mode_box = engine.TextBox(parent=tool_window, value=f'mode: {self.mode}', editable=False)
-        engine.Button(parent=tool_window, name='toggle mode',
-                      callback=lambda: (self.toggle_mode(),
-                                        setattr(mode_box, 'value', f'mode: {self.mode}'),
-                                        )
-                      )
+        with tool_window:
+            engine.Button('save', callback=lambda: save.save_level('save.json', editor=self))
+            engine.Button('reload', callback=self.reload_level)
+            mode_box = engine.TextBox(value=f'mode: {self.mode}', editable=False)
+            engine.Button('toggle mode',
+                          callback=lambda: (self.toggle_mode(),
+                                            setattr(mode_box, 'value', f'mode: {self.mode}')))
+            engine.Button('throw error', callback=lambda: 1/0)
 
     def reload_level(self):
         while self.entities:
