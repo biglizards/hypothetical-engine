@@ -5,6 +5,7 @@ from collections import defaultdict
 from typing import Iterable
 
 import engine
+import openal
 
 from enginelib import script
 from enginelib.camera import Camera
