@@ -153,9 +153,9 @@ cdef class Window:
 # in the nanogui wrapper), since every glfw function returns a pointer to the window, and there
 # is a one to one correspondence between Window objects and GLFWWindows, I just store them
 # in a dict instead - this saves having to write a custom wrapper for every callback function
+# also of note -- there's very rarely any more than one (glfw) window object
 window_objects_by_pointer = {}
 
-#
 #cdef void key_callback(GLFWwindow* window_ptr, int key, int scancode, int action, int mods):
 #    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
 #    if window.key_callback is not None:

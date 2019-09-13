@@ -25,6 +25,7 @@ include "texture.pxi"
 include "nanogui.pxi"
 include "physics.pxi"
 
+# todo remove, i never used this
 IF DEBUG == 1:
     print("yes it's debug")
 ELSE:

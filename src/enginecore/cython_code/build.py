@@ -56,9 +56,11 @@ ext_modules = [Extension(name="engine",
 
 setup(
     name='engine',
-    #packages=['.'],
+    # packages=['enginelib', 'enginelib.level'],
+    # package_dir={'enginelib': '../../enginelib'},
     cmdclass={'build_ext': my_build_ext} if linux else {},
-    install_requires=['pyglm'],
+    install_requires=['pyglm', 'pyopenal'],
+    zip_safe=False,
     ext_modules=cythonize(
         ext_modules,
         #build_dir="build",
@@ -66,17 +68,8 @@ setup(
         compiler_directives={'embedsignature': True, 'binding': True, 'language_level': 3, 'linetrace': False},
         annotate=False,
         quiet=False,
-        force=False,
+        force=True,
       ),
-    zip_safe=False,
+    script_args=['install'],
+    # options={'build': {'build_lib': '../..'}},
 )
-
-# print('copying file to ../../enginelib')
-# files = glob.glob('engine.cpython*')
-# if len(files) > 1:
-#     raise RuntimeError(f'Too many compiled files detected, please delete the extra ones:\n{files}')
-# elif len(files) == 0:
-#     raise RuntimeError('No compiled file detected! Please open an issue about this.')
-#
-# shutil.copy(files[0], f'../tests/{files[0]}')
-# shutil.move(files[0], f'../../enginelib/{files[0]}')
