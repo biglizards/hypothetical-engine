@@ -1,4 +1,4 @@
-# cs-proj
+# hypothetical-engine
 
 this is a work in progress
 
