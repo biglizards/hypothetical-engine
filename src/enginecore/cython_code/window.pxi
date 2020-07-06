@@ -167,16 +167,41 @@ cdef Window get_window(GLFWwindow* window_ptr):
     return window_objects_by_pointer[<uintptr_t>window_ptr]()
 
 glfw_event_errors = []
+glfw_ignored_events = []
+glfw_ignored_events_mouse = []
+glfw_ignored_events_resize = []
 
-def abstract_callback(Window window, object callback_func, object gui_callback_func, *args):
-    if glfw_event_errors: return
+def abstract_callback(Window window, object callback_func, object gui_callback_func, *args,
+                      bint always_call_callback_func = False):
+    if glfw_event_errors:
+        # if an (as yet un-raised) error occurred in a previous event, we want to raise the error before continuing
+        # so store the current event for later
+        glfw_ignored_events.append((window, callback_func, gui_callback_func, args, always_call_callback_func))
+        return
+
     try:
-        if window.handle_gui_callbacks or callback_func is None:
-            gui_callback_func(*args)
-        if callback_func is not None and not (window.handle_gui_callbacks and window.gui.focused()):
-            callback_func(window, *args)
+        even_more_abstract_callback(window, callback_func, gui_callback_func, *args,
+                                    always_call_callback_func=always_call_callback_func)
     except Exception as e:
         glfw_event_errors.append(e)
+
+def even_more_abstract_callback(Window window, object callback_func, object gui_callback_func, *args,
+                                bint always_call_callback_func=False, bint additional_criteria=True):
+    """This function is far too abstract, since it attempts to fit the subtly different criteria of each callback type"""
+    if window.handle_gui_callbacks or callback_func is None:
+        gui_callback_func(*args)
+
+    should_call_user_callback = (callback_func is not None
+                                 and
+                                 (
+                                         not window.handle_gui_callbacks
+                                         or not window.gui.focused()
+                                         or always_call_callback_func
+                                 )
+                                 and additional_criteria)
+    if should_call_user_callback:
+        callback_func(window, *args)
+
 
 cdef void key_callback(GLFWwindow* window_ptr, int key, int scancode, int action, int mods):
     cdef Window window = get_window(window_ptr)
@@ -194,13 +219,8 @@ cdef void drop_file_callback(GLFWwindow* window_ptr, int count, const char** fil
     # this one has different from default behavior - that is, if a file is dropped, always tell the user,
     # and call the gui unless the "i'll handle it manually" flag is set
     cdef Window window = get_window(window_ptr)
-    try:
-        if window.handle_gui_callbacks:
-            window.gui.handle_drop(count, to_list(count, filenames))
-        if window.drop_file_callback is not None:
-            window.drop_file_callback(window, to_list(count, filenames))
-    except Exception as e:
-        glfw_event_errors.append(e)
+    abstract_callback(window, window.drop_file_callback, window.gui.handle_drop, count, to_list(count, filenames),
+                      always_call_callback_func=True)
 
 cdef void scroll_callback(GLFWwindow* window_ptr, double x, double y):
     cdef Window window = get_window(window_ptr)
@@ -220,6 +240,11 @@ cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, 
 
 cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, int modifiers):
     cdef Window window = get_window(window_ptr)
+    # awful hack
+    if glfw_event_errors:
+        glfw_ignored_events_mouse.append((<uintptr_t>window_ptr, button, action, modifiers))
+        return
+
     cdef int x, y
     try:
         if window.handle_gui_callbacks or window.mouse_button_callback is None:
@@ -236,6 +261,11 @@ cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, 
 
 cdef void resize_callback(GLFWwindow* window_ptr, int width, int height):
     cdef Window window = get_window(window_ptr)
+    # awful hack
+    if glfw_event_errors:
+        glfw_ignored_events_resize.append((<uintptr_t>window_ptr, width, height))
+        return
+
     try:
         # always handle resize changes
         old_width, old_height = window.width, window.height

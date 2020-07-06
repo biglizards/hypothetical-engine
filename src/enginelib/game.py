@@ -272,6 +272,10 @@ class Game(engine.Window):
         self.projection = glm.perspective(glm.radians(self.fov), self.width / self.height, self.near, self.far)
         self.dispatch('on_resize', *args[1:])
 
+    def on_error(self, e):
+        print("oh boy an error")
+        raise e
+
     def run(self, *args, **kwargs):
         """A wrapper around self._run, but calls it with a try-finally,
         so the indentation doesn't get too out of hand"""
@@ -307,7 +311,11 @@ class Game(engine.Window):
             self.swap_buffers()
 
             # handle input
-            engine.poll_events()
+            try:
+                engine.poll_events()
+            except Exception as e:
+                self.on_error(e)
+
             self.camera.handle_input()
 
             # fps printer
