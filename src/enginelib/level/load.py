@@ -83,7 +83,9 @@ handlers = {
     'vec2': lambda x, _: glm.vec2(x['values']),
     'vec3': lambda x, _: glm.vec3(x['values']),
     'vec4': lambda x, _: glm.vec4(x['values']),
-    'quat': lambda x, _: glm.quat(x['values']),
+    # glm.quat does not accept lists as arguments in the latest version
+    'quat': lambda x, _: glm.quat(*x['values']),
+    # 'quat': lambda x, _: glm.quat(x['values'][-1], *x['values'][:-1]),
     'entity': handle_entity,
     'entity_ref': handle_entity_ref,
     'script': handle_script,

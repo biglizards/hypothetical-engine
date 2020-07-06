@@ -12,6 +12,8 @@ IF FALSE:
 
 
 from cengine cimport load_shader as c_load_shader
+import ctypes
+
 
 FRAGMENT_SHADER = GL_FRAGMENT_SHADER
 VERTEX_SHADER = GL_VERTEX_SHADER
@@ -23,7 +25,7 @@ cpdef unsigned int load_shader_from_file(path, unsigned int shader_type):
     return c_load_shader(shader_source, shader_type)
 
 cdef float* value_ptr(thing):
-    return <float*>(<uintptr_t>glm.value_ptr(thing).value)
+    return <float*>(<uintptr_t>ctypes.addressof(glm.value_ptr(thing).contents))
 
 cpdef load_shader_program(vert_path, frag_path, geometry_path=None):
     cdef unsigned int vert_shader, frag_shader, geometry_shader

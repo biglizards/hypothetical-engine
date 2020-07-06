@@ -232,7 +232,7 @@ cdef process_node(assimp.aiNode* node, const assimp.aiScene* scene, path, meshes
         mesh = scene.mMeshes[mesh_index]
         meshes.append(process_mesh(mesh, scene, path, flip_on_load))
     for child_node in node.mChildren[:node.mNumChildren]:
-        process_node(child_node, scene, path, meshes=meshes)
+        process_node(child_node, scene, path, meshes=meshes, flip_on_load=flip_on_load)
 
     return meshes
 
