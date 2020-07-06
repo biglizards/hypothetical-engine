@@ -38,14 +38,40 @@ cpdef poll_events():
     """
     An unreasonably complex wrapper around glfwPollEvents for what it is. 
     Processes any events in the event queue, and calls the appropriate function.
-    
-    WARNING: if any functions called raise an error, the event queue will be cleared, but some events
-    may not be processed. This is because glfwPollEvents is a C function, so exceptions cannot
-    propagate through it. If an exception is raised, it is stored, and any more events in the queue
-    are ignored. This prevents code from being called while user data is potentially in an error state.
-    (and also ensures that a maximum of one exception is raised per call to poll_events)
+    If an exception is raised in a handler, it is caught and re-raised in this function
     """
+    # Since glfwPollEvents is a C function and python exceptions cannot propagate through it
+    # if an error is raised in a python function, and it gets high enough it would reach C code,
+    # we catch it, then store any other events dispatched by glfwPollEvents (it can dispatch multiple per call)
+    # as a result, whenever we call this function, we may have 0 or more stored events
+    # (but any exceptions are handled at the end of this function, so there should be none to start with)
+
+    # general steps:
+    # 1. handle all events that got ignored last time (if any exist)
+    # 2. handle new events
+    # 3. either 1 or 0 exceptions should have been caught, if there is one, raise it
+
+    cdef GLFWwindow* window_ptr
+
+    for window, callback_func, gui_callback_func, args, always_call_callback_func in glfw_ignored_events:
+        # print("doing abstract callback,", len(glfw_ignored_events), window, callback_func, gui_callback_func, args,
+        #                   always_call_callback_func)
+        # note: this used to be a call to even_more_abstract_callback, which doesnt have error handling
+        # so if an ignored event raises an error, its error is also ignored. Not sure why this was the case
+        # so i changed it back to abstract_callback
+        abstract_callback(window, callback_func, gui_callback_func, *args,
+                          always_call_callback_func=always_call_callback_func)
+
+    for window_ptr_as_int, button, action, modifiers in glfw_ignored_events_mouse:
+        window_ptr = <GLFWwindow*>window_ptr_as_int
+        mouse_button_callback(window_ptr, button, action, modifiers)
+    for window_ptr_as_int, width, height in glfw_ignored_events_resize:
+        window_ptr = <GLFWwindow*>window_ptr_as_int
+        resize_callback(window_ptr, width, height)
+
     glfwPollEvents()
+
+    assert len(glfw_event_errors) < 2, "more than one exception was raised at the same time -- this is a bug"
     while glfw_event_errors:
         raise glfw_event_errors.pop()
 

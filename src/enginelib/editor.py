@@ -86,7 +86,10 @@ class Editor(Click, Drag):
         funcs = self.dispatches.get(name, [])
         for func in funcs:
             if self.should_run_function(func):
-                func(*args)
+                try:
+                    func(*args)
+                except Exception as e:
+                    self.on_error(e)
 
     def should_run_function(self, func):
         if self.mode == 'game':
