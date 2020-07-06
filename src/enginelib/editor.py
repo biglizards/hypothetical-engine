@@ -237,8 +237,8 @@ class Editor(Click, Drag):
                 audio_adder = engine.PopupButton("Add audio", side=0)
                 self.make_audio_adder(entity, window=audio_adder.popup)
                 for name, source in entity.audio_sources.items():
-                    self.make_property_edit_button(caption=name, helper=helper, entity=entity,
-                                                   thing=source, remove_callback=lambda: 1/0)
+                    self.make_property_edit_button(caption=name, helper=helper, entity=entity, thing=source,
+                                                   remove_callback=lambda name_=name: entity.remove_audio(name_))
 
         # end bit
         self.selected_gui = new_gui
@@ -339,7 +339,7 @@ class Editor(Click, Drag):
         for path, name in self.audio.items():
             name = name if name is not None else path
             button = engine.Button(name, parent=scroll_panel,
-                                   callback=lambda path_=path: (self.add_audio(entity, path_),
+                                   callback=lambda path_=path: (entity.add_audio(path_, name),
                                                                 self.create_object_gui(entity))
                                    )
             button.fixed_height = 20
@@ -489,6 +489,7 @@ class Editor(Click, Drag):
 
     def toggle_mode(self):
         self.mode = 'game' if self.mode == 'editor' else 'editor'
+        self.dispatch('on_mode_change', self.mode)
         self.dispatch('on_game_start')
 
     def create_entity(self, *args, entity_class=Entity, **kwargs):
