@@ -45,11 +45,11 @@ class Speaker(Entity):
         self.property_blacklist.extend(['audio_sources'])
 
         self.game.add_callback('on_game_start', self.on_game_start)
+        self.game.add_callback('on_mode_change', lambda _: self.pause_audio(), always_fire=True)
 
     @property
     def audio_source(self):
         if len(self.audio_sources) == 1:
-            print(2, self)
             return next(iter(self.audio_sources.values()))
         elif len(self.audio_sources) > 1:
             raise AttributeError(f'Source has {len(self.audio_sources)} sources, not 1 -- ambiguous')
@@ -59,6 +59,11 @@ class Speaker(Entity):
         source = oalOpen(path)
         source.path = path
         self.audio_sources[name] = source
+
+    def remove_audio(self, name):
+        source = self.audio_sources[name]
+        source.stop()
+        del self.audio_sources[name]
 
     @script.every_n_ms(1000)
     def update_source_vars(self, _delta_t=0):
@@ -74,11 +79,18 @@ class Speaker(Entity):
             raise RuntimeError(f"'name' was omitted, but this entity has multiple sources")
         self.audio_source.play()
 
+    def stop_audio(self):
+        for source in self.audio_sources.values():
+            source.stop()
+
+    def pause_audio(self):
+        for source in self.audio_sources.values():
+            source.pause()
+
     def remove(self):
         super().remove()
         self.game.remove_callback('on_game_start', self.on_game_start)
-        for source in self.audio_sources.values():
-            source.stop()
+        self.stop_audio()
 
     def on_game_start(self):
         if self.play_on_start:
