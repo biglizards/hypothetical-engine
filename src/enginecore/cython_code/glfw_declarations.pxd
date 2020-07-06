@@ -30,6 +30,8 @@ cdef extern from *:
 
     int glfwGetKey(GLFWwindow* window, int key)
     void glfwGetCursorPos(GLFWwindow* window, double* xpos, double* ypos)
+    void glfwGetWindowSize(GLFWwindow* window, int* width, int* height)
+    void glfwSetWindowSize(GLFWwindow* window, int width, int height)
 
     void glfwSetInputMode(GLFWwindow* window, int mode, int value)
     int glfwGetInputMode(GLFWwindow* window, int mode)

@@ -47,8 +47,6 @@ cdef class Window:
     cdef public object scroll_callback
     cdef public object resize_callback
 
-    cdef public int width
-    cdef public int height
     cdef public Gui gui
     cdef public bint handle_gui_callbacks
 
@@ -56,8 +54,6 @@ cdef class Window:
         byte_str = name.encode()
         cdef char* c_string = byte_str
         self.window = create_window(width, height, c_string)
-        self.width = width
-        self.height = height
         self.handle_gui_callbacks = True
 
         # set callbacks
@@ -128,6 +124,33 @@ cdef class Window:
         cdef double x, y
         glfwGetCursorPos(self.window, &x, &y)
         return ((x/self.width)-0.5)*2, ((y/self.height)-0.5)*-2
+
+    @property
+    def width(self):
+        width, _height = self.get_window_size()
+        return width
+
+    @width.setter
+    def width(self, value):
+        if not value > 0:
+            raise ValueError('width must be greater than 0')
+        glfwSetWindowSize(self.window, value, self.height)
+
+    @property
+    def height(self):
+        _width, height = self.get_window_size()
+        return height
+
+    @height.setter
+    def height(self, value):
+        if not value > 0:
+            raise ValueError('height must be greater than 0')
+        glfwSetWindowSize(self.window, self.width, value)
+
+    cpdef get_window_size(self):
+        cdef int width, height
+        glfwGetWindowSize(self.window, &width, &height)
+        return width, height
 
     cpdef read_pixel(self, int x, int y):
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1)  # i have no idea why this is needed
@@ -267,12 +290,9 @@ cdef void resize_callback(GLFWwindow* window_ptr, int width, int height):
 
     try:
         # always handle resize changes
-        old_width, old_height = window.width, window.height
         glViewport(0, 0, width, height)
-        window.width = width
-        window.height = height
         if window.resize_callback is not None:
-            window.resize_callback(window, old_width, old_height)
+            window.resize_callback(window, width, height)
         else:
             window.gui.handle_resize(width, height)
     except Exception as e:
