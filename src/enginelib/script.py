@@ -104,3 +104,7 @@ def on_resize(**kwargs):
 
 def on_frame(**kwargs):
     return basic_hook('on_frame', **kwargs)
+
+
+def on_click_entity(**kwargs):
+    return basic_hook('on_click_entity', **kwargs)

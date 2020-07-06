@@ -146,7 +146,8 @@ cdef class Window:
         glfwSwapInterval(interval)
 
     cpdef void set_vsync(self, bint status):
-        """a more user friendly way to interact with glfwSwapInterval"""
+        """Set vsync on or off (when on, limits framerate to the monitors refresh rate)
+         a more user friendly way to interact with glfwSwapInterval"""
         glfwSwapInterval(1 if status else 0)
 
 # instead of creating a custom wrapper in c++ using lambdas (which i very well could, like
@@ -251,9 +252,7 @@ cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, 
             window.gui.handle_mouse_button(button, action, modifiers)
         # todo try to simplify logic, it's getting a bit out of hand
         if window.mouse_button_callback is not None and not (window.handle_gui_callbacks and window.gui.focused()):
-            if action != MOUSE_DOWN:
-                window.mouse_button_callback(window, button, action, modifiers)
-            elif not window.gui_under_mouse():
+            if action != MOUSE_DOWN or not window.gui_under_mouse():
                 window.mouse_button_callback(window, button, action, modifiers)
     except Exception as e:
         glfw_event_errors.append(e)

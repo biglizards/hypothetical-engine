@@ -109,8 +109,9 @@ handlers = {int: lambda x: x,
             glm.vec3: lambda x: {'@type': 'vec3', 'values': list(x)},
             glm.vec4: lambda x: {'@type': 'vec4', 'values': list(x)},
             # in quaternions, args are given in (w, x, y, z), but list(x) = (x, y, z, w)
-            # oddly, however, if you pass a list, it reads in in (x, y, z, w) order, so quat(list(quat)) = quat
-            glm.quat: lambda x: {'@type': 'quat', 'values': list(x)},  # list(x)[-1:] + list(x)[:3]
+            # ~~oddly, however, if you pass a list, it reads in in (x, y, z, w) order, so quat(list(quat)) = quat~~
+            # update: this is no longer the case for the latest version of PyGLM
+            glm.quat: lambda x: {'@type': 'quat', 'values': [x.w, x.x, x.y, x.z]},  # list(x)[-1:] + list(x)[:3]
             }
 
 

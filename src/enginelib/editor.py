@@ -170,7 +170,7 @@ class Editor(Click, Drag):
             elif isinstance(item, (glm.mat4, glm.quat)):  # ignore matrices and quaternions
                 pass
             else:
-                warn(f'warning: unknown variable type {type(item)}: {key}', RuntimeWarning)
+                warn(f"warning: unknown variable type {type(item)} found in attribute '{key}' of {entity}", RuntimeWarning)
 
     def create_object_gui(self, entity: Entity):
         """
