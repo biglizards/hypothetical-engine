@@ -21,6 +21,10 @@ void setTextBoxCallback(nanogui::TextBox* textBox, void* self, bool(*callback)(v
 {
     textBox->setCallback([callback, self](const std::string& str) {return callback(self, str);});
 }
+void setTextBoxKeyCallback(CustomTextBox* textBox, void* self, bool(*callback)(void* self, const std::string& str))
+{
+    textBox->setKeyCallback([callback, self](const std::string& str) {return callback(self, str);});
+}
 
 
 nanogui::Button* add_button_(nanogui::FormHelper* helper, const char* name, void* self, void(*callback)(void* self))

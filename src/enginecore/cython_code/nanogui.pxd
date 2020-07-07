@@ -80,6 +80,8 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui":
         int childCount() except +
         const vector[Widget *] &children() except +
         bint focused() except +
+        void setFocused(bint focused) except +
+        void requestFocus() except +
 
         int fontSize() except +
         void setFontSize(int fontSize) except +
@@ -227,3 +229,8 @@ cdef extern from "nanogui/nanogui.h" namespace "nanogui::detail":
     cpdef cppclass FormWidget[T](Widget):
         T value() except +
         void setItems(const vector[string]& items) except +
+
+cdef extern from "../c/engine.h":
+    cdef cppclass CustomTextBox(TextBox):
+        # CustomTextBox(Widget *parent) except +
+        CustomTextBox(Widget *parent, const string &value) except +

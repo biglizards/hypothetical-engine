@@ -60,6 +60,9 @@ cdef class Widget:
         return self.focused() \
                or any(widget.focused_recursive() for widget in self.children)
 
+    def request_focus(self):
+        self.widget.requestFocus()
+
     @property
     def layout(self):
         if self._layout:
@@ -174,8 +177,9 @@ cdef class Button(Widget):
 cdef class PopupButton(Widget):  # doesnt inherit from button since there isn't a callback
     cdef nanogui.PopupButton* popup_button
     cdef Widget _popup
+    cdef object callback
 
-    def __cinit__(self, caption="untitled popup button", int button_icon=0, int side=0, Widget parent=None,
+    def __cinit__(self, caption="untitled popup button", int button_icon=0, int side=0, Widget parent=None, callback=None,
                   *args, **kwargs):
         if parent is None:
             parent = get_parent()
@@ -189,7 +193,16 @@ cdef class PopupButton(Widget):  # doesnt inherit from button since there isn't 
 
         self.side = side
 
-    def __init__(self, caption="untitled", int button_icon=0, int side=0, Widget parent=None, **kwargs):
+        if callback:
+            self.callback = callback
+            cengine.setButtonCallback(self.popup_button, <void*>self, self._callback)
+
+    @staticmethod
+    cdef void _callback(void* _self):
+        cdef PopupButton self = <PopupButton>_self
+        error_safe_call(self.callback)
+
+    def __init__(self, caption="untitled", int button_icon=0, int side=0, Widget parent=None, callback=None, **kwargs):
         super().__init__(parent, **kwargs)
 
     @property
@@ -237,17 +250,20 @@ cdef class Label(Widget):
 cdef class TextBox(Widget):
     cdef nanogui.TextBox* textBox
     cdef public object callback
+    cdef public object key_callback
 
     def __init__(self, value="", placeholder=None, bint editable=True, callback=None, spinnable=False,
-                 Widget parent=None, **kwargs):
+                 Widget parent=None, on_key_callback=None, **kwargs):
         if parent is None:
             parent = get_parent()
 
         if type(self) is TextBox:
-            self.textBox = new nanogui.TextBox(parent.widget, to_bytes(value))
+            self.textBox = new nanogui.CustomTextBox(parent.widget, to_bytes(value))
             cengine.setTextBoxCallback(self.textBox, <void*>self, self._callback)
+            cengine.setTextBoxKeyCallback(<nanogui.CustomTextBox*>self.textBox, <void*>self, self._key_callback)
 
         self.callback = callback
+        self.key_callback = on_key_callback
         self.editable = editable
         self.spinnable = spinnable
         if placeholder is not None:
@@ -286,6 +302,13 @@ cdef class TextBox(Widget):
         cdef TextBox self = <TextBox>_self
         if self.callback:
             error_safe_call(self.callback, value.decode())
+        return True
+
+    @staticmethod
+    cdef c_bool _key_callback(void* _self, const string& value):
+        cdef TextBox self = <TextBox>_self
+        if self.key_callback:
+            error_safe_call(self.key_callback, value.decode())
         return True
 
     @property

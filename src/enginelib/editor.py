@@ -249,8 +249,7 @@ class Editor(Click, Drag):
 
         self.property_window_helper = helper
 
-    @staticmethod
-    def make_resource_list(window, width=255, height=100):
+    def make_resource_list(self, window, width=255, height=100):
         def update_resource_list(text):
             if text == '':
                 for button in scroll_panel.children:
@@ -258,18 +257,23 @@ class Editor(Click, Drag):
                 return
             for button in scroll_panel.children:
                 button.visible = text.lower() in button.text.lower()
+            self.gui.update_layout()
 
         window.layout = engine.GroupLayout()
         if width > 0:
             window.fixed_width = width
         if height > 0:
             window.fixed_height = height
-        _search_box = engine.TextBox(parent=window, placeholder="search box",
-                                     callback=update_resource_list)
+        search_box = engine.TextBox(parent=window, placeholder="search box",
+                                    # callback=update_resource_list,
+                                    on_key_callback=update_resource_list
+                                    )
 
         scroll_panel_holder = engine.ScrollPanel(window)
         scroll_panel = engine.Widget(scroll_panel_holder, layout=engine.GroupLayout())
-        return scroll_panel
+        if height > 0:
+            scroll_panel_holder.fixed_height = height - 100
+        return scroll_panel, search_box
 
     def make_delete_button(self, entity, remove_callback, layout, parent, reload_gui=True):
         def on_press():
@@ -310,7 +314,7 @@ class Editor(Click, Drag):
                                                              path_placeholder='scripts.module',
                                                              name_placeholder='ScriptClassName', use_button=False))
 
-        scroll_panel = self.make_resource_list(window, height=200)
+        scroll_panel, _ = self.make_resource_list(window, height=200)
         for cls, name in self.scripts.items():
             name = name if name is not None else cls.__name__
             button = engine.Button(name, parent=scroll_panel,
@@ -335,7 +339,7 @@ class Editor(Click, Drag):
                                                              path_placeholder='path/to/audio.wav',
                                                              name_placeholder='audio name', use_button=True))
 
-        scroll_panel = self.make_resource_list(window, height=200)
+        scroll_panel, _ = self.make_resource_list(window, height=200)
         for path, name in self.audio.items():
             name = name if name is not None else path
             button = engine.Button(name, parent=scroll_panel,
@@ -362,7 +366,7 @@ class Editor(Click, Drag):
                                                              path_placeholder='path/to/file',
                                                              name_placeholder='model name'))
 
-        scroll_panel = self.make_resource_list(window, width=-1, height=-1)
+        scroll_panel, _ = self.make_resource_list(window, width=-1, height=-1)
         for path, name in self.models.items():
             name = name if name is not None else path
             button = engine.Button(name, parent=scroll_panel, callback=lambda path_=path: set_entity_model(path_))
@@ -381,14 +385,14 @@ class Editor(Click, Drag):
                                                              path_placeholder='classes.module',
                                                              name_placeholder='EntityClassName', use_button=False))
 
-        scroll_panel = self.make_resource_list(window, height=200)
+        scroll_panel, search_box = self.make_resource_list(window, height=200)
         for cls, name in self.entity_classes.items():
             name = name if name is not None else cls.__name__
             button = engine.Button(name, parent=scroll_panel,
                                    callback=lambda entity_class=cls: create_new_entity(entity_class))
             button.fixed_height = 20
 
-        return window
+        return search_box
 
     def make_file_import(self, callback=None, name="file loader", path_placeholder='', name_placeholder='',
                          use_button=True):
@@ -432,9 +436,10 @@ class Editor(Click, Drag):
                                             vert_path='shaders/fuckme.vert', frag_path='shaders/basichighlight.frag')
             self.select_entity(new_entity)
 
-        add_entity_button = engine.PopupButton(parent=entity_list_window, caption="create entity", side=0)
+        add_entity_button = engine.PopupButton(callback=lambda *args: search_box.request_focus(),
+                                               parent=entity_list_window, caption="create entity", side=0)
         add_entity_button.side = 1  # the chevron is the wrong way round if i dont do this
-        self.make_entity_class_editor(add_entity_button.popup, create_new_entity)
+        search_box = self.make_entity_class_editor(add_entity_button.popup, create_new_entity)
 
         scroll_panel_holder = engine.ScrollPanel(entity_list_window)
         scroll_panel_holder.fixed_height = 150
