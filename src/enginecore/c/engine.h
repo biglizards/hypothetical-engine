@@ -44,5 +44,26 @@ nanogui::Button* add_button_(nanogui::FormHelper* helper, const char* name, void
 void setButtonCallback(nanogui::Button* button, void* self, void(*callback)(void* self));
 void setTextBoxCallback(nanogui::TextBox* textBox, void* self, bool(*callback)(void* self, const std::string& str));
 
+class CustomTextBox : public nanogui::TextBox {
+    public:
+//        CustomTextBox(nanogui::Widget* parent) {nanogui::TextBox(parent);}
+        CustomTextBox(nanogui::Widget* parent, const std::string &value = "Untitled")
+            : nanogui::TextBox(parent, value) {}
+        // todo cleanup this -- it doesnt need to return bool
+        void setKeyCallback(const std::function<bool(const std::string& str)> &callback) {
+            keyCallback = callback;
+        }
+        virtual bool keyboardEvent(int key, int scancode, int action, int modifiers) {
+            bool rv = nanogui::TextBox::keyboardEvent(key, scancode, action, modifiers);
+            if (keyCallback)
+                keyCallback(mValueTemp);
+            return rv;
+        }
+    private:
+        std::function<bool(const std::string &str)> keyCallback;
+};
+
+void setTextBoxKeyCallback(CustomTextBox* textBox, void* self, bool(*callback)(void* self, const std::string& str));
+
 
 #endif // ENGINE_H_INCLUDED
