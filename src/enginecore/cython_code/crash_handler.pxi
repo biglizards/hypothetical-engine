@@ -7,14 +7,13 @@ ELIF WINDOWS:
 
 IF LINUX:
     pass  # use default error handling
-          # todo make always do a core dump
 ELIF WINDOWS:
     cdef extern from "windows.h":
         ctypedef struct CONTEXT
         ctypedef struct EXCEPTION_POINTERS:
             CONTEXT* ContextRecord
         void SetUnhandledExceptionFilter(long (__stdcall )(EXCEPTION_POINTERS *))
-    cdef extern from "crash.c":
+    cdef extern from "../c/crash.c":
         void create_dump(void* context, char* filename)
 
     unhandled_exception_message = """

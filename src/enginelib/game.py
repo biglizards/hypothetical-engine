@@ -1,3 +1,6 @@
+import sys
+import traceback
+
 import glm
 import itertools
 import time
@@ -9,8 +12,7 @@ import openal
 
 from enginelib import script
 from enginelib.camera import Camera
-# TODO remove data, data_format once model loading is added
-from enginelib.level import load
+from enginelib.level import load, reload
 from enginelib.util import multiply_vec3
 
 
@@ -38,6 +40,17 @@ def grouper(iterable, n, fillvalue=None):
 
 
 class Entity(engine.Model):
+    def __new__(cls, *args, **kwargs):
+        """Called when creating a new entity instance. If the class has been reloaded, use the newer version instead"""
+        # note: without this, calling super with a reloaded class always raises an error
+        new_cls = load.loader.get_newer_class(cls)
+        obj = engine.Model.__new__(new_cls)
+        if cls is not new_cls:
+            # __init__ is not automatically called if we return the "wrong" class, so call it manually
+            obj.__init__(*args, **kwargs)
+
+        return obj
+
     def __init__(self, game, vert_path, frag_path, geo_path=None, meshes=None, model_path=None, position=None,
                  orientation=None, scalar=None, velocity=None, do_gravity=False, do_collisions=False,
                  should_render=True, scripts=None, id='', flip_textures=True, **kwargs):
@@ -75,15 +88,46 @@ class Entity(engine.Model):
             for add_script in scripts:  # scripts is a list of partials of game.add_script
                 add_script(entity=self)
 
-        # todo remove, use mesh.draw(shader) instead
         self._click_shader = engine.ShaderProgram(vert_path, 'shaders/clickHack.frag')
+        self.save_overrides = {}
 
         # if anything was added as a hook, set the callback for it automatically
         script.add_hook_callbacks(self, self.game, add_everything=False)
 
+    def on_save(self):
+        self.save_overrides.update(self.get_shaders())
+
+    def get_shaders(self):
+        vert_path, frag_path, geo_path = self.shader_program.paths
+        return {
+                'vert_path': vert_path,
+                'frag_path': frag_path,
+                'geo_path': geo_path,
+            }
+
+    def super(self, cls):
+        # ok this is a bit of a long story
+        # when you reload an object, and that object calls super(CLS, self), the definition of CLS changes
+        # but the self stays as being the old object, so super complains the instance is unrelated to the class
+        # obviously this is dumb and doesnt work so todo fix this
+        import inspect
+        ret_next = False
+        for mro_cls in inspect.getmro(cls):
+            if ret_next:
+                return mro_cls
+            if mro_cls == cls:
+                ret_next = True
+        raise ValueError("no classes lower than passed class in MRO!")
+
     def remove(self):
         """this function is called when the entity is removed, and can be overridden to perform cleanup"""
         pass
+
+    def set_shader(self, shader_path, shader_type):
+        """changes the shader of a given type"""
+        paths = self.get_shaders()
+        paths[shader_type] = shader_path
+        self.shader_program = engine.ShaderProgram(**paths)
 
     @property
     def id(self):
@@ -106,34 +150,21 @@ class Entity(engine.Model):
             self.model_mat = model_mat
         return model_mat
 
-    def set_transform_matrix(self):
+    def set_transform_matrix(self, shader_program=None):
         """this is essentially the "prepare your shaders" function, so if the vertex shaders change,
         (eg the transformMat is renamed to mvp, etc) then this function can be updated accordingly.
         A user would only need to care about this if they were modifying shaders"""
+        if shader_program is None:
+            shader_program = self.shader_program
+
         projection_times_view = self.game.projection * self.game.camera.view_matrix()
         transformation_matrix = projection_times_view * self.generate_model_mat()
-        self.shader_program.set_trans_mat(transformation_matrix)
+        shader_program.set_trans_mat(transformation_matrix)
         return transformation_matrix
 
     def get_vertices(self):
         for mesh in self.meshes:
             yield from mesh.get_vertices()
-
-    # def get_corners(self):
-    #     # todo have the corner not be hard-coded
-    #     #  - it'd only need to be generated once, at load-time, when calculating the OABB
-    #     # todo scale unit vectors by length of each side of the bounding box
-    #     #  - this can also be pre-calculated
-    #
-    #     # generate two opposite corners
-    #     corner = multiply_vec3(glm.vec3(-.5, -.5, -.5), self.model_mat)
-    #     # generate the local unit vectors (note: these vectors may not be normalised, but that's fine)
-    #     unit_vectors = self.local_unit_vectors()
-    #     corners = []
-    #     for i in (0, 1, 2, 3):
-    #         for path in itertools.combinations(unit_vectors, i):
-    #             corners.append(corner + sum(path))
-    #     return corners
 
     def local_unit_vectors(self):
         i_vector = glm.vec4(1, 0, 0, 0)
@@ -148,17 +179,17 @@ class ManualEntity(Entity):
     def __init__(self, game, data, indices, data_format, textures, *args, **kwargs):
         mesh = engine.Mesh(data, data_format, indices)
 
-        for i, (texture, texture_name) in enumerate(textures):  # todo raise error if too many textures (either 8 or 16)
+        for i, (texture, texture_name) in enumerate(textures):
             if isinstance(texture, str):
                 texture = engine.Texture(texture)
             mesh.add_texture(texture, i)
 
-        super().__init__(game, meshes=[mesh], *args, **kwargs)
+        super(ManualEntity, self).__init__(game, meshes=[mesh], *args, **kwargs)
 
 
 class Game(engine.Window):
     def __init__(self, *args, camera=None, save_name=None, background_colour=None, projection=None, fov=75, near=0.1, far=100,
-                 **kwargs):
+                 everything_is_reloadable=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.entities = []
         self.entities_by_id = {}
@@ -166,12 +197,21 @@ class Game(engine.Window):
         self.entity_lists = [self.entities, self.overlay_entities]
         self.dispatches = defaultdict(list)
         self.global_scripts = []
+        self.make_everything_reloadable = everything_is_reloadable
+        if self.make_everything_reloadable:
+            # make self re-loadable
+            load.loader.make_everything_reloadable = True
+            load.loader.add_to_reload_cache(type(self), force_reload=False)
+            reload.reloadable_class(type(self))
+            reload.reloadable_class(type(camera) if camera else Camera)
+            # load.loader.add_to_reload_cache(type(camera) if camera else Camera)
+            load.loader.make_everything_reloadable = True
 
         self.camera = camera(self) if camera else Camera(self)
-        self.save_name = save_name if save_name else 'save.json'
+        self.save_name = save_name if save_name else self.save_name
         self.background_colour = background_colour or (0.3, 0.5, 0.8, 1)
         self.projection = projection or glm.perspective(glm.radians(fov), self.width / self.height, near, far)
-        self.near, self.far, self.fov = near, far, fov  # todo set these to properties that update self.projection
+        self.near, self.far, self.fov = near, far, fov
 
         self.resize_callback = self._resize_callback  # for some reason, this is needed. Dont ask.
 
@@ -184,7 +224,8 @@ class Game(engine.Window):
                                      'on_scroll': 'scroll_callback',
                                      # 'on_resize': 'resize_callback',  # replaced manually
                                      })
-        load.load_level('save.json', game=self)
+
+        load.load_level(self.save_name, game=self)
 
     @property
     def all_entities(self):
@@ -203,7 +244,6 @@ class Game(engine.Window):
             entity.scripts[0].remove()
         entity.remove()  # call custom handler to do custom cleanup
 
-    # @wraps(Entity) todo why was this here, i dont think it needs to be
     def create_entity(self, *args, entity_class=Entity, overlay=False, id, **kwargs):
         assert id not in self.entities_by_id, 'entities must be unique'
         new_entity = entity_class(game=self, id=id, *args, **kwargs)
@@ -254,7 +294,12 @@ class Game(engine.Window):
         self.dispatches[name].append(func)
 
     def remove_callback(self, name, func):
-        self.dispatches[name].remove(func)
+        try:
+            self.dispatches[name].remove(func)
+        except ValueError:
+            self.dispatches[name] = list(filter(lambda x: not (x.__self__ is func.__self__
+                                                               and x.__name__ == func.__name__),
+                                                self.dispatches[name]))
 
     def _set_default_callbacks(self, events):
         """sets the default callbacks for events, given a dict in the format
@@ -273,8 +318,10 @@ class Game(engine.Window):
         self.dispatch('on_resize', *args[1:])
 
     def on_error(self, e):
-        print("oh boy an error")
-        raise e
+        tb = ''.join(x for x in traceback.format_exception(etype=type(e),
+                                                           value=e,
+                                                           tb=e.__traceback__) if 'return inner.f(self' not in x)
+        print(tb, file=sys.stderr)
 
     def run(self, *args, **kwargs):
         """A wrapper around self._run, but calls it with a try-finally,
@@ -282,6 +329,10 @@ class Game(engine.Window):
 
         try:
             self._run(*args, **kwargs)
+        except TypeError as e:
+            if e.args == ('super(type, obj): obj must be an instance or subtype of type',):
+                raise TypeError("You reloaded a class which uses super() outside of __init__ - "
+                                "try self.super(CLASS_NAME) instead")
         finally:
             openal.oalQuit()
 

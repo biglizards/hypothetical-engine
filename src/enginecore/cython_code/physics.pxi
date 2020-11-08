@@ -1,3 +1,5 @@
+# Of note: this file isn't actually used, and it's now out of date anyway
+
 from math import inf
 import itertools
 import glm
@@ -26,7 +28,7 @@ cpdef multiply_vec3(vec, mat):
 
 
 cpdef bint two_cubes_intersect(cube1, cube2):
-    if glm.length(cube1.position - cube2.position) > 6:  # obtained by pythag, todo use bounding spheres
+    if glm.length(cube1.position - cube2.position) > 6:  # obtained by pythag
         return False
     corners1 = gen_corners(cube1.model_mat)
     corners2 = gen_corners(cube2.model_mat)

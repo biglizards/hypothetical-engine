@@ -76,7 +76,7 @@ class BasicCamera(BaseCamera):
     def rotate_camera_with_clamping(self, delta_x, delta_y):
         """Since the camera glitches out if you look too far up or down (ie bending over backwards)
            it is restricted to not be able to do that
-           TODO allow that to happen
+           TODO allow that to happen (for space games or whatever)
          """
         angle = math.acos(glm.dot(self.front, self.up))
         if not (angle <= delta_y or angle - delta_y >= math.pi):

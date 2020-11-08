@@ -1,6 +1,8 @@
 from libc.stdlib cimport malloc, free
 from libc.string cimport strcpy, strlen
 from cpython.string cimport PyString_AsString
+import glm
+import itertools
 
 cdef bytes to_bytes(some_string):
     if isinstance(some_string, bytes):

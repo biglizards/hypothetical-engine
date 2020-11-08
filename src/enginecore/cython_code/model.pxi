@@ -1,5 +1,5 @@
 from cpython cimport array
-cimport assimp
+cimport includes.assimp as assimp
 import os
 from itertools import zip_longest
 
@@ -192,11 +192,20 @@ cdef class Model:
         self.calculate_bounding_sphere()
 
     cpdef draw(self, unsigned int mode=GL_TRIANGLES):
-        if not self.meshes:  # todo consider removing
+        if not self.meshes:
             raise RuntimeError('Model was not properly init! Was super() called?')
 
         for mesh in self.meshes:
             mesh.draw(self.shader_program, mode=mode)
+
+    cpdef draw_with_shader(self, ShaderProgram shader_program, unsigned int mode=GL_TRIANGLES):
+        if not self.meshes:
+            raise RuntimeError('Model was not properly init! Was super() called?')
+
+        for mesh in self.meshes:
+            print("drawing")
+            mesh.draw(shader_program, mode=mode)
+
 
     cpdef recalculate_bounding_sphere(self):
         for mesh in self.meshes:
@@ -256,7 +265,7 @@ cdef process_mesh(assimp.aiMesh* mesh, const assimp.aiScene* scene, path, flip_o
     indices = []
     for face in mesh.mFaces[:mesh.mNumFaces]:
         if face.mNumIndices != 3:
-            print("WARNING: Non triangle detected. May fuck up rendering")
+            print("WARNING: Non triangle detected. May mess up rendering")
         for index in face.mIndices[:face.mNumIndices]:
             indices.append(index)
 

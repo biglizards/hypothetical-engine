@@ -1,4 +1,4 @@
-cimport nanogui
+cimport includes.nanogui as nanogui
 
 from contextvars import ContextVar
 

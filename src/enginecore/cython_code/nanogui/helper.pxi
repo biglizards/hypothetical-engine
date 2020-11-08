@@ -2,7 +2,7 @@ from libcpp.string cimport string
 from libcpp cimport bool as c_bool
 from libc.stdint cimport uintptr_t
 
-from nanogui cimport FormWidget
+from includes.nanogui cimport FormWidget
 
 
 cdef class FormHelper:

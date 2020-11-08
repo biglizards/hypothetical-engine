@@ -49,7 +49,6 @@ class CustomTextBox : public nanogui::TextBox {
 //        CustomTextBox(nanogui::Widget* parent) {nanogui::TextBox(parent);}
         CustomTextBox(nanogui::Widget* parent, const std::string &value = "Untitled")
             : nanogui::TextBox(parent, value) {}
-        // todo cleanup this -- it doesnt need to return bool
         void setKeyCallback(const std::function<bool(const std::string& str)> &callback) {
             keyCallback = callback;
         }

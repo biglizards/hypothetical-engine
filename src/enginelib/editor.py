@@ -4,12 +4,11 @@ import os
 from warnings import warn
 
 import engine
-from openal import oalOpen
+import openal
 
 from enginelib import util
 from enginelib.level import save, load
 from enginelib.game import Game, Entity
-import enginelib.editor_scripts
 
 
 class Click(Game):
@@ -71,11 +70,14 @@ class Editor(Click, Drag):
         self.scripts = {}
         self.entity_classes = {}
         self.audio = {}
+        self.frag_shaders = {}
+        self.vert_shaders = {}
 
         super().__init__(*args, **kwargs)
 
         self.add_callback('on_click_entity', self.on_entity_click, editor=True)
-        self.add_global_script(enginelib.editor_scripts.EditorScripts)
+
+        self.add_global_script(load.loader.load_class('enginelib.editor_scripts', 'EditorScripts'))
         self.make_entity_list()
         self.create_tool_window()
 
@@ -100,7 +102,6 @@ class Editor(Click, Drag):
     def on_entity_click(self, entity):
         if util.is_clickable(entity):
             self.select_entity(entity)
-        # todo have separate logic for axes etc. Maybe entity.on_click_in_editor()
 
     def select_entity(self, entity: Entity or None):
         target_entity = entity
@@ -133,10 +134,11 @@ class Editor(Click, Drag):
                     engine.Label(letter)
                 box = engine.FloatBox(value=value, callback=setter, spinnable=(len(vector) <= 3),
                                       font_size=17.5, fixed_width=width, alignment=0)
-                # todo replace alignment (above) with named constant
-                helper.add_manual_getter(box, getter)  # todo refactor this mess out
+                helper.add_manual_getter(box, getter)
 
     def populate_properties_window(self, entity: Entity, helper, widget):
+        ignore_types = (openal.ctypes.c_uint, openal.Buffer, glm.mat4, glm.quat)
+
         if isinstance(entity, Entity):  # scripts also use this, so we need to check it's an entity
             helper.add_group(f'Entity class: {entity.__class__.__name__}')
             # add 'id' at the top (it's a property so i need to do this manually)
@@ -167,7 +169,7 @@ class Editor(Click, Drag):
 
                 helper.add_variable(key, type(item), setter=setter, getter=getter)
 
-            elif isinstance(item, (glm.mat4, glm.quat)):  # ignore matrices and quaternions
+            elif isinstance(item, ignore_types):  # ignore matrices and quaternions
                 pass
             else:
                 warn(f"warning: unknown variable type {type(item)} found in attribute '{key}' of {entity}", RuntimeWarning)
@@ -185,6 +187,7 @@ class Editor(Click, Drag):
         4. iterate over the scripts of the object:
           a. create a popup button
           b. iterate over the __dict__ of the script, same as 3.
+        5. Special cases for audio and shaders
         """
         if self.selected_gui is not None:
             self.selected_gui.dispose()
@@ -201,7 +204,7 @@ class Editor(Click, Drag):
         old_layout = new_gui.layout
         new_gui.layout = engine.GroupLayout(margin=0, spacing=0)
         # wrap the window in a scroll panel
-        scroll_panel_holder = engine.ScrollPanel(new_gui, fixed_height=(self.height-30) * 0.9)  # todo magic numbers, where do they come from
+        scroll_panel_holder = engine.ScrollPanel(new_gui, fixed_height=(self.height-30) * 0.9)
         scroll_panel = engine.Widget(scroll_panel_holder, layout=engine.GroupLayout(margin=0, spacing=0))
         # create the two main segments for the window: the helper bit with all the attributes in,
         # and the scripts section with all the scripts in
@@ -239,6 +242,21 @@ class Editor(Click, Drag):
                 for name, source in entity.audio_sources.items():
                     self.make_property_edit_button(caption=name, helper=helper, entity=entity, thing=source,
                                                    remove_callback=lambda name_=name: entity.remove_audio(name_))
+
+            # keep shaders at the bottom
+            shader_adder = engine.PopupButton("Configure Shaders", side=0)
+            with shader_adder.popup:
+                shader_adder.popup.layout = engine.GroupLayout()
+                a = engine.PopupButton("Vertex", side=0)
+                self.make_shader_adder(entity, window=a.popup, shader_type='vert_path', asset_dict=self.vert_shaders)
+                b = engine.PopupButton("Fragment", side=0)
+                self.make_shader_adder(entity, window=b.popup, shader_type='frag_path', asset_dict=self.frag_shaders)
+                # self.make_shader_adder(entity, window=engine.PopupButton("Geometry", side=0).popup, shader_type='geo_path')
+            # self.make_shader_adder(entity, window=shader_adder.popup, shader_type='vert_path')
+            # self.make_audio_adder(entity, window=audio_adder.popup)
+            # for name, source in entity.audio_sources.items():
+            #     self.make_property_edit_button(caption=name, helper=helper, entity=entity, thing=source,
+            #                                    remove_callback=lambda name_=name: entity.remove_audio(name_))
 
         # end bit
         self.selected_gui = new_gui
@@ -305,8 +323,8 @@ class Editor(Click, Drag):
 
     def make_script_adder(self, entity, window):
         def import_script(path=None, name=None):
-            module = importlib.import_module(path)
-            self.create_script(entity, getattr(module, name))
+            class_object = load.loader.load_class(path, name)
+            self.create_script(entity, class_object)
             self.create_object_gui(entity)
 
         engine.Button(name="Import new script", parent=window,
@@ -329,9 +347,9 @@ class Editor(Click, Drag):
         def load_audio(path=None, name=None):
             if path == '':
                 return None
+            entity.add_audio(path, name)
             if path not in self.audio:
                 self.audio[path] = name
-            entity.add_audio(path, name)
             self.create_object_gui(entity)
 
         engine.Button(name="Import new audio", parent=window,
@@ -349,6 +367,31 @@ class Editor(Click, Drag):
             button.fixed_height = 20
 
         return window
+
+    def make_shader_adder(self, entity, window, shader_type, asset_dict):
+        def load_shader(path=None):
+            if path == '':
+                return None
+            entity.set_shader(path, shader_type)
+            if path not in asset_dict:
+                asset_dict[path] = path.split('/')[-1]
+            self.create_object_gui(entity)
+
+        engine.Button(name="Import new " + shader_type, parent=window,
+                      callback=lambda: load_shader(engine.file_dialog(True))
+                      )
+
+        scroll_panel, _ = self.make_resource_list(window, height=200)
+        for path, name in asset_dict.items():
+            name = name if name is not None else path
+            button = engine.Button(name, parent=scroll_panel,
+                                   callback=lambda path_=path: (entity.set_shader(path_, shader_type),
+                                                                self.create_object_gui(entity))
+                                   )
+            button.fixed_height = 20
+
+        return window
+
 
     def make_model_editor(self, entity, window):
         def set_entity_model(path=None, name=None):
@@ -422,7 +465,6 @@ class Editor(Click, Drag):
         entity_list_window.fixed_width = 225
 
         def create_new_entity(cls):
-            # todo refactor this mess out
             # select a unique id, keep guessing until you find one
             id = 'new_entity'
             i = len(self.entities)
@@ -433,7 +475,7 @@ class Editor(Click, Drag):
                 id = f'new_entity{i}'
 
             new_entity = self.create_entity(model_path='resources/cube/cube.obj', id=id, entity_class=cls,
-                                            vert_path='shaders/fuckme.vert', frag_path='shaders/basichighlight.frag')
+                                            vert_path='shaders/basic.vert', frag_path='shaders/basichighlight.frag')
             self.select_entity(new_entity)
 
         add_entity_button = engine.PopupButton(callback=lambda *args: search_box.request_focus(),
@@ -473,15 +515,15 @@ class Editor(Click, Drag):
     def create_tool_window(self):
         tool_window = engine.GuiWindow(240, 10, 'tools', gui=self.gui, layout=engine.GroupLayout())
         with tool_window:
-            engine.Button('save', callback=lambda: save.save_level('save.json', editor=self))
-            engine.Button('reload', callback=self.reload_level)
+            engine.Button('save', callback=lambda: save.save_level(self.save_name, editor=self))
+            engine.Button('reload', callback=self.soft_reload_level)
             mode_box = engine.TextBox(value=f'mode: {self.mode}', editable=False)
             engine.Button('toggle mode',
                           callback=lambda: (self.toggle_mode(),
                                             setattr(mode_box, 'value', f'mode: {self.mode}')))
             engine.Button('throw error', callback=lambda: 1/0)
 
-    def reload_level(self):
+    def hard_reload_level(self):
         while self.entities:
             self.remove_entity(self.entities[0])
         while self.overlay_entities:
@@ -490,7 +532,11 @@ class Editor(Click, Drag):
         self.scripts = {}
         self.entity_classes = {}
 
-        load.load_level('save.json', game=self)
+        load.load_level(self.save_name, game=self)
+
+    def soft_reload_level(self):
+        load.loader.reload()
+        self.entity_classes = {load.loader.get_newer_class(cls): val for cls, val in self.entity_classes.items()}
 
     def toggle_mode(self):
         self.mode = 'game' if self.mode == 'editor' else 'editor'
@@ -516,7 +562,8 @@ class Editor(Click, Drag):
     def create_script(self, entity, script_class, *args, **kwargs):
         if script_class not in self.scripts:
             self.scripts[script_class] = None  # none means "no custom name set"
-        script = super(Editor, self).create_script(entity=entity, script_class=script_class, *args, **kwargs)
+        # script = super(Editor, self).create_script(entity=entity, script_class=script_class, *args, **kwargs)
+        script = Entity.super(self, Editor).create_script(self, entity=entity, script_class=script_class, *args, **kwargs)
         script._args = args
         script._kwargs = kwargs
         return script

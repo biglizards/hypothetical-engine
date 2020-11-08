@@ -65,6 +65,7 @@ setup(
         ext_modules,
         #build_dir="build",
         #include_path=['engine'],
+        # for reasons i'm not entirely sure about, having linetrace on breaks the debugger
         compiler_directives={'embedsignature': True, 'binding': True, 'language_level': 3, 'linetrace': False},
         annotate=False,
         quiet=False,
