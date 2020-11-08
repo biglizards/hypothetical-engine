@@ -203,7 +203,6 @@ cdef class Model:
             raise RuntimeError('Model was not properly init! Was super() called?')
 
         for mesh in self.meshes:
-            print("drawing")
             mesh.draw(shader_program, mode=mode)
 
 

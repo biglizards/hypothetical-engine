@@ -134,11 +134,9 @@ cdef class Window:
 
     @width.setter
     def width(self, value):
-        print("start width", self.width)
         if not value > 0:
             raise ValueError('width must be greater than 0')
         glfwSetWindowSize(self.window, value, self.height)
-        print("end width", self.width)
 
     @property
     def height(self):
@@ -147,11 +145,9 @@ cdef class Window:
 
     @height.setter
     def height(self, value):
-        print("start height", self.height)
         if not value > 0:
             raise ValueError('height must be greater than 0')
         glfwSetWindowSize(self.window, self.width, value)
-        print("end height", self.height)
 
     cpdef get_window_size(self):
         cdef int width, height

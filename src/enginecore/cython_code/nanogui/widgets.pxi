@@ -28,7 +28,6 @@ cdef class Widget:
 
         # if any arguments were passed for which we have a setter, set them
         # currently the setters are just stored in a list, so remember to update them
-        # print("I am a", type(self), "and setters is", self.setters)
         for key, value in kwargs.items():
             if key in self.setters:
                 setattr(self, key, value)
