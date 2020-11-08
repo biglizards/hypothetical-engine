@@ -10,26 +10,24 @@ IF WINDOWS:
         """
         pass  # force windows header to be included early
 
-cimport cengine
-from cengine cimport GLFWwindow, set_callbacks
-cimport nanogui
+cimport includes.cengine as cengine
+from includes.cengine cimport GLFWwindow, set_callbacks
+cimport includes.nanogui as nanogui
 
 include "crash_handler.pxi"
-include "gl_declarations.pxi"
-include "glfw_declarations.pxd"
+include "includes/gl_declarations.pxi"
+include "includes/glfw_declarations.pxd"
 include "util.pxi"
 include "shader.pxi"
 include "model.pxi"
 include "window.pxi"
 include "texture.pxi"
 include "nanogui.pxi"
-include "physics.pxi"
 
-# todo remove, i never used this
-IF DEBUG == 1:
-    print("yes it's debug")
-ELSE:
-    print("not debug")
+# the physics module is now pure python (the speedup is only around 20% so I'm not too fussed)
+# include "physics.pxi"
+
+include "tests/test_window.pxi"
 
 cpdef set_gui_callbacks(Gui gui, Window window):
     cengine.set_callbacks(gui.screen, window.window)

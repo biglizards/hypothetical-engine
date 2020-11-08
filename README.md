@@ -43,7 +43,15 @@ We support a simple physics and collision engine by default (provided via a scri
 
 ![physics.gif](https://github.com/biglizards/hypothetical-engine/raw/master/resources/physics.gif)
 
-### Audio (WIP)
-Audio importing and playing (including positional audio) works on my machine. I will convey this to you using a static image:
+### Audio
+Audio importing and playing (including positional audio) is possible. I will convey this to you using a static image:
 
 ![audio.png](https://github.com/biglizards/hypothetical-engine/raw/master/resources/audio.png)
+
+## Attributions
+Who Likes to Party by Kevin MacLeod
+Link: https://incompetech.filmmusic.io/song/4627-who-likes-to-party
+License: http://creativecommons.org/licenses/by/4.0/
+
+Blender-chan model by SearKitchen
+https://sketchfab.com/3d-models/blender-chan-6835f0d60e0c4813812c0247e3b73da7

@@ -7,11 +7,11 @@ IF I HAD ONE
 IF FALSE:
     # this is a hack to get code inspection working
     include "util.pxi"
-    include "gl_declarations.pxi"
+    include "includes/gl_declarations.pxi"
     include "texture.pxi"
 
 
-from cengine cimport load_shader as c_load_shader
+from includes.cengine cimport load_shader as c_load_shader
 import ctypes
 
 
@@ -20,7 +20,6 @@ VERTEX_SHADER = GL_VERTEX_SHADER
 GEOMETRY_SHADER = GL_GEOMETRY_SHADER
 
 cpdef unsigned int load_shader_from_file(path, unsigned int shader_type):
-    # TODO implement in python
     shader_source = open(path, 'rb').read()
     return c_load_shader(shader_source, shader_type)
 

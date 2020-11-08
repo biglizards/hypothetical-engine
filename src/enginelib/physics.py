@@ -2,7 +2,6 @@ import glm
 import itertools
 from math import inf
 from enginelib.game import Entity
-from enginelib import cube
 
 
 # def generate_aabb(entity: Entity):

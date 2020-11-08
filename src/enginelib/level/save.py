@@ -79,7 +79,7 @@ def handle_entity(entity):
 
 
 def handle_entity_ref(entity):
-    if hasattr(entity, 'game'):  # todo refactor to allow this to access `game`
+    if hasattr(entity, 'game'):
         assert entity in entity.game.all_entities
     return {'@type': 'entity_ref', 'id': entity.id}
 
@@ -114,6 +114,8 @@ handlers = {int: lambda x: x,
             glm.quat: lambda x: {'@type': 'quat', 'values': [x.w, x.x, x.y, x.z]},  # list(x)[-1:] + list(x)[:3]
             }
 
+assets = ['models', 'audio', 'frag_shaders', 'vert_shaders']
+
 
 def save_level(location, editor):
     editor.dispatch('on_save')
@@ -126,9 +128,12 @@ def save_level(location, editor):
         processed_entities[entity_obj['id']] = entity_obj
     save_file['entities'] = processed_entities
 
-    save_file['models'] = handle_item(editor.models)
     save_file['scripts'] = [handle_cls(cls, name, 'script_cls') for cls, name in editor.scripts.items()]
     save_file['entity_classes'] = [handle_cls(cls, name, 'entity_cls') for cls, name in editor.entity_classes.items()]
+
+    for asset in assets:
+        assert asset not in save_file, f"asset {asset} attempted to overwrite existing key in save file"
+        save_file[asset] = handle_item(getattr(editor, asset))
 
     with open(location, 'w') as f:
         json.dump(save_file, f, indent=4)

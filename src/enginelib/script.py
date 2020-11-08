@@ -2,6 +2,8 @@ import inspect
 from collections import defaultdict
 from functools import wraps
 
+from enginelib.level import load
+
 
 class Script:
     """The base class for script objects. Stores the references to the parent (the entity that owns the script) and the
@@ -16,6 +18,17 @@ class Script:
         self._kwargs = {}
         add_hook_callbacks(self, self.game, add_everything=True)
 
+    def __new__(cls, *args, **kwargs):
+        """Called when creating a new script instance. If the class has been reloaded, use the newer version instead"""
+        # note: without this, calling super with a reloaded class always raises an error
+        new_cls = load.loader.get_newer_class(cls)
+        obj = object.__new__(new_cls)
+        if cls is not new_cls:
+            # __init__ is not automatically called if we return the "wrong" class, so call it manually
+            obj.__init__(*args, **kwargs)
+
+        return obj
+
     def remove(self):
         remove_hook_callbacks(self, self.game, remove_everything=True)
         self.parent.scripts.remove(self)
@@ -27,7 +40,6 @@ def iterate_over_methods_and_call_function_if_they_are_a_hook(self, function, do
             continue
 
         if hasattr(method, 'hook_name') and hasattr(method, 'hook_args'):  # if it's wrapped (eg with `basic_hook`)
-            # todo either find a use for hook_args or get rid of it
             function(method.hook_name, method)
         elif do_everything:
             function(name, method)  # if it isn't decorated, add it as a callback anyway, there's no cost

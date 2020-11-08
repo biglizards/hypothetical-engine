@@ -1,0 +1,6 @@
+This is not quite the standard Cython set-up -- normally, each file would be compiled individually, with header files
+for exporting functions. When statically including stateful libraries, however, that is not an option, as only the file
+who created the OpenGL state (ie window.pyx) can see it, with other files segfaulting whenever they try to do anything.
+
+To get around this, most files are textually included (a la c), which is _mostly_ fine, but has the usual quirks
+around include order and more often than not the IDE can't auto-complete functions from seemingly disconnected files.

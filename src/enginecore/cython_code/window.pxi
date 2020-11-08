@@ -57,7 +57,6 @@ cdef class Window:
         self.handle_gui_callbacks = True
 
         # set callbacks
-        self.key_callback = None  # todo why is this here, either remove it or add all the others. dont be inconsistent
         window_objects_by_pointer[<uintptr_t>self.window] = weakref.ref(self)
 
         glfwSetCharCallback(self.window, char_callback)
@@ -108,6 +107,9 @@ cdef class Window:
         cdef unsigned int cursor_mode = cursor_caputre_modes[mode]
         glfwSetInputMode(self.window, GLFW_CURSOR, cursor_mode)
 
+    cpdef void focus(self):
+        glfwFocusWindow(self.window)
+
     @property
     def cursor_mode(self):
         cdef int mode = glfwGetInputMode(self.window, GLFW_CURSOR)
@@ -132,9 +134,11 @@ cdef class Window:
 
     @width.setter
     def width(self, value):
+        print("start width", self.width)
         if not value > 0:
             raise ValueError('width must be greater than 0')
         glfwSetWindowSize(self.window, value, self.height)
+        print("end width", self.width)
 
     @property
     def height(self):
@@ -143,9 +147,11 @@ cdef class Window:
 
     @height.setter
     def height(self, value):
+        print("start height", self.height)
         if not value > 0:
             raise ValueError('height must be greater than 0')
         glfwSetWindowSize(self.window, self.width, value)
+        print("end height", self.height)
 
     cpdef get_window_size(self):
         cdef int width, height
@@ -180,13 +186,6 @@ cdef class Window:
 # also of note -- there's very rarely any more than one (glfw) window object
 window_objects_by_pointer = {}
 
-#cdef void key_callback(GLFWwindow* window_ptr, int key, int scancode, int action, int mods):
-#    cdef Window window = window_objects_by_pointer[<uintptr_t>window_ptr]
-#    if window.key_callback is not None:
-#        window.key_callback(window, key, scancode, action, mods)
-#    else:  # default
-#        window.gui.handle_key(key, scancode, action, mods)
-
 cdef Window get_window(GLFWwindow* window_ptr):
     return window_objects_by_pointer[<uintptr_t>window_ptr]()
 
@@ -204,27 +203,19 @@ def abstract_callback(Window window, object callback_func, object gui_callback_f
         return
 
     try:
-        even_more_abstract_callback(window, callback_func, gui_callback_func, *args,
-                                    always_call_callback_func=always_call_callback_func)
+        if window.handle_gui_callbacks or callback_func is None:
+            gui_callback_func(*args)
+
+        should_call_user_callback = (callback_func is not None
+                                     and (
+                                             not window.handle_gui_callbacks
+                                             or not window.gui.focused()
+                                             or always_call_callback_func
+                                     ))
+        if should_call_user_callback:
+            callback_func(window, *args)
     except Exception as e:
         glfw_event_errors.append(e)
-
-def even_more_abstract_callback(Window window, object callback_func, object gui_callback_func, *args,
-                                bint always_call_callback_func=False, bint additional_criteria=True):
-    """This function is far too abstract, since it attempts to fit the subtly different criteria of each callback type"""
-    if window.handle_gui_callbacks or callback_func is None:
-        gui_callback_func(*args)
-
-    should_call_user_callback = (callback_func is not None
-                                 and
-                                 (
-                                         not window.handle_gui_callbacks
-                                         or not window.gui.focused()
-                                         or always_call_callback_func
-                                 )
-                                 and additional_criteria)
-    if should_call_user_callback:
-        callback_func(window, *args)
 
 
 cdef void key_callback(GLFWwindow* window_ptr, int key, int scancode, int action, int mods):
@@ -250,21 +241,10 @@ cdef void scroll_callback(GLFWwindow* window_ptr, double x, double y):
     cdef Window window = get_window(window_ptr)
     abstract_callback(window, window.scroll_callback, window.gui.handle_scroll, x, y)
 
-'''
-cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, int modifiers):
-    # this one also has different from default behaviour - obviously you can click anywhere if the gui is focused,
-    # since that's how you de-focus the gui.
-    # todo think about making this style an abstract callback as well (and letting the user chose?)
-    cdef Window window = get_window(window_ptr)
-    if window.handle_gui_callbacks:
-        window.gui.handle_mouse_button(button, action, modifiers)
-    if window.mouse_button_callback is not None:
-        window.mouse_button_callback(window, button, action, modifiers)
-'''
+# the below 2 callbacks couldn't easily be fit into `abstract_callback` without making it even more complex
 
 cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, int modifiers):
     cdef Window window = get_window(window_ptr)
-    # awful hack
     if glfw_event_errors:
         glfw_ignored_events_mouse.append((<uintptr_t>window_ptr, button, action, modifiers))
         return
@@ -283,7 +263,6 @@ cdef void mouse_button_callback(GLFWwindow* window_ptr, int button, int action, 
 
 cdef void resize_callback(GLFWwindow* window_ptr, int width, int height):
     cdef Window window = get_window(window_ptr)
-    # awful hack
     if glfw_event_errors:
         glfw_ignored_events_resize.append((<uintptr_t>window_ptr, width, height))
         return
@@ -310,5 +289,3 @@ cdef set_gl_enables():
     glEnable(GL_BLEND)
     glEnable(GL_DEPTH_TEST)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-# TODO make the call_gui_event_handlers thing consistently there or not there

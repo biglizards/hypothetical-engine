@@ -88,7 +88,7 @@ class Speaker(Entity):
             source.pause()
 
     def remove(self):
-        super().remove()
+        self.super(Speaker).remove()
         self.game.remove_callback('on_game_start', self.on_game_start)
         self.stop_audio()
 
