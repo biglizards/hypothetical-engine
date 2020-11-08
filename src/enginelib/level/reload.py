@@ -76,8 +76,6 @@ class Loader:
                     # it is a nice sane reasonable attribute that's in __dict__ and means it
                     setattr(cls, attr_name, getattr(new_cls, attr_name))
 
-            # print("done", [(x,y) for (x,y) in ignored if x not in ['__dir__', '__format__', '__init_subclass__', '__new__', '__reduce__', '__reduce_ex__', '__sizeof__', '__subclasshook__', '__weakref__']])
-
     def handle_module(self, module_name, module, force_reload):
         if module_name not in self.loaded_modules:
             # even if this is the first time seeing a module, it might already have been loaded
@@ -128,7 +126,6 @@ def reloadable(f, original_class=None):
         new_f = getattr(inner.original_class, inner.f.__name__).f
         if new_f.__qualname__ != inner.f.__qualname__:
             # uh oh we've got the wrong function
-            print("yikes that's not right", self, inner.f)
             raise ValueError("TODO: have inheritance play nicely with reloading")
         else:
             inner.f = new_f

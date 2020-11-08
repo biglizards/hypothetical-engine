@@ -20,7 +20,6 @@ class DotCorners(Script):
                 # if not any(x > 2 for x in corner):
                 #     continue
                 dot.position = corner
-                # print(dot.position)
                 transformation_matrix = proj_times_view * dot.generate_model_mat()
                 dot.shader_program.set_trans_mat(transformation_matrix)
                 dot.draw()

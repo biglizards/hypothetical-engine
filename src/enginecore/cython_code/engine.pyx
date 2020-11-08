@@ -52,11 +52,6 @@ cpdef poll_events():
     cdef GLFWwindow* window_ptr
 
     for window, callback_func, gui_callback_func, args, always_call_callback_func in glfw_ignored_events:
-        # print("doing abstract callback,", len(glfw_ignored_events), window, callback_func, gui_callback_func, args,
-        #                   always_call_callback_func)
-        # note: this used to be a call to even_more_abstract_callback, which doesnt have error handling
-        # so if an ignored event raises an error, its error is also ignored. Not sure why this was the case
-        # so i changed it back to abstract_callback
         abstract_callback(window, callback_func, gui_callback_func, *args,
                           always_call_callback_func=always_call_callback_func)
 
