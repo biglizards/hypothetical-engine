@@ -8,10 +8,12 @@ import openal
 
 from enginelib import util
 from enginelib.level import save, load
-from enginelib.game import Game, Entity
+from enginelib.entity import Entity
+from enginelib.game import Game
 
 
 class Click(Game):
+    """a mixin that detects when a given entity is clicked on, and dispatches an event"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_callback('on_click', self.dispatch_click_entity, always_fire=True)
@@ -25,6 +27,7 @@ class Click(Game):
 
 
 class Drag(Game):
+    """a mixin that adds a callback for clicking and dragging the mouse"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.is_dragging = False
@@ -58,6 +61,7 @@ class Drag(Game):
 
 # noinspection PyShadowingNames
 class Editor(Click, Drag):
+    """The main editor class. Contains A LOT of GUI code"""
     def __init__(self, *args, **kwargs):
         self.mode = 'editor'
         self.selected_object = None
@@ -84,6 +88,7 @@ class Editor(Click, Drag):
         self.gui.update_layout()
 
     def dispatch(self, name: str, *args):
+        """calls all functions registered as listening to a given hook"""
         # call the functions which should fire even in editor mode
         funcs = self.dispatches.get(name, [])
         for func in funcs:
@@ -98,6 +103,51 @@ class Editor(Click, Drag):
             return not (hasattr(func, 'hook_args') and func.hook_args.get('editor'))
         elif self.mode == 'editor':
             return hasattr(func, 'hook_args') and (func.hook_args.get('editor') or func.hook_args.get('always_fire'))
+
+    def hard_reload_level(self):
+        while self.entities:
+            self.remove_entity(self.entities[0])
+        while self.overlay_entities:
+            self.remove_entity(self.overlay_entities[0])
+        # reload all the modules
+        self.scripts = {}
+        self.entity_classes = {}
+
+        load.load_level(self.save_name, game=self)
+
+    def soft_reload_level(self):
+        load.loader.reload()
+        self.entity_classes = {load.loader.get_newer_class(cls): val for cls, val in self.entity_classes.items()}
+
+    def toggle_mode(self):
+        self.mode = 'game' if self.mode == 'editor' else 'editor'
+        self.dispatch('on_mode_change', self.mode)
+        self.dispatch('on_game_start')
+
+    def create_entity(self, *args, entity_class=Entity, **kwargs):
+        if kwargs.get('model_path') and kwargs.get('model_path') not in self.models:
+            self.models[kwargs.get('model_path')] = None  # none means "no custom name set"
+        if entity_class not in self.entity_classes:
+            self.entity_classes[entity_class] = None  # none means "no custom name set"
+
+        entity = super().create_entity(*args, entity_class=entity_class, **kwargs)
+        entity._args = args
+        entity._kwargs = kwargs
+        return entity
+
+    def remove_entity(self, entity):
+        super().remove_entity(entity)
+        if self.selected_object is entity:
+            self.select_entity(None)
+
+    def create_script(self, entity, script_class, *args, **kwargs):
+        if script_class not in self.scripts:
+            self.scripts[script_class] = None  # none means "no custom name set"
+        # script = super(Editor, self).create_script(entity=entity, script_class=script_class, *args, **kwargs)
+        script = Entity.super(self, Editor).create_script(self, entity=entity, script_class=script_class, *args, **kwargs)
+        script._args = args
+        script._kwargs = kwargs
+        return script
 
     def on_entity_click(self, entity):
         if util.is_clickable(entity):
@@ -115,8 +165,14 @@ class Editor(Click, Drag):
             entity.shader_program.set_value('highlightAmount', 0.3)
         self.selected_object = entity
 
+    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    # all code below this point is GUI creation code
+    # it's not very good, but that's because it is impossible to write nice looking GIU creation code
+    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
     @staticmethod
     def xyz_section(gui_window, vector, entity, key, helper, width=60):
+        """creates a section for editing the individual components of a vector"""
         xyz_section = engine.Widget(parent=gui_window, layout=engine.BoxLayout(orientation=0, spacing=6))
         with xyz_section:
             gui_window.layout.append_row(0)
@@ -137,6 +193,7 @@ class Editor(Click, Drag):
                 helper.add_manual_getter(box, getter)
 
     def populate_properties_window(self, entity: Entity, helper, widget):
+        """iterates over all attributes of an entity, and creates GUI widgets for displaying/editing them"""
         ignore_types = (openal.ctypes.c_uint, openal.Buffer, glm.mat4, glm.quat)
 
         if isinstance(entity, Entity):  # scripts also use this, so we need to check it's an entity
@@ -392,7 +449,6 @@ class Editor(Click, Drag):
 
         return window
 
-
     def make_model_editor(self, entity, window):
         def set_entity_model(path=None, name=None):
             if path == '':
@@ -522,48 +578,3 @@ class Editor(Click, Drag):
                           callback=lambda: (self.toggle_mode(),
                                             setattr(mode_box, 'value', f'mode: {self.mode}')))
             engine.Button('throw error', callback=lambda: 1/0)
-
-    def hard_reload_level(self):
-        while self.entities:
-            self.remove_entity(self.entities[0])
-        while self.overlay_entities:
-            self.remove_entity(self.overlay_entities[0])
-        # reload all the modules
-        self.scripts = {}
-        self.entity_classes = {}
-
-        load.load_level(self.save_name, game=self)
-
-    def soft_reload_level(self):
-        load.loader.reload()
-        self.entity_classes = {load.loader.get_newer_class(cls): val for cls, val in self.entity_classes.items()}
-
-    def toggle_mode(self):
-        self.mode = 'game' if self.mode == 'editor' else 'editor'
-        self.dispatch('on_mode_change', self.mode)
-        self.dispatch('on_game_start')
-
-    def create_entity(self, *args, entity_class=Entity, **kwargs):
-        if kwargs.get('model_path') and kwargs.get('model_path') not in self.models:
-            self.models[kwargs.get('model_path')] = None  # none means "no custom name set"
-        if entity_class not in self.entity_classes:
-            self.entity_classes[entity_class] = None  # none means "no custom name set"
-
-        entity = super().create_entity(*args, entity_class=entity_class, **kwargs)
-        entity._args = args
-        entity._kwargs = kwargs
-        return entity
-
-    def remove_entity(self, entity):
-        super().remove_entity(entity)
-        if self.selected_object is entity:
-            self.select_entity(None)
-
-    def create_script(self, entity, script_class, *args, **kwargs):
-        if script_class not in self.scripts:
-            self.scripts[script_class] = None  # none means "no custom name set"
-        # script = super(Editor, self).create_script(entity=entity, script_class=script_class, *args, **kwargs)
-        script = Entity.super(self, Editor).create_script(self, entity=entity, script_class=script_class, *args, **kwargs)
-        script._args = args
-        script._kwargs = kwargs
-        return script

@@ -1,5 +1,5 @@
 from enginelib.editor import Editor
-from enginelib.game import ManualEntity
+from enginelib.entity import ManualEntity
 import glm
 from enginelib import util
 

@@ -1,4 +1,4 @@
-from enginelib.game import Entity
+from enginelib.entity import Entity
 from scripts.spin import CrateSpinner
 
 

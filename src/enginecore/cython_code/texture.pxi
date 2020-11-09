@@ -43,8 +43,6 @@ texture_cache = {}
 cdef class Texture:
     """
     a super thin wrapper around texture objects
-    maybe i'll add to it more later
-    maybe i wont
     """
     cdef unsigned int texture
     cdef public object name

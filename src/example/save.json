@@ -2,7 +2,7 @@
     "entities": {
         "crate0": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -252,7 +252,7 @@
         },
         "crate1": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -496,7 +496,7 @@
         },
         "crate2": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -746,7 +746,7 @@
         },
         "crate3": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -990,7 +990,7 @@
         },
         "crate4": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -1240,7 +1240,7 @@
         },
         "crate5": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -1484,7 +1484,7 @@
         },
         "crate6": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -1734,7 +1734,7 @@
         },
         "crate7": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -1984,7 +1984,7 @@
         },
         "crate8": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -2234,7 +2234,7 @@
         },
         "crate9": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -2484,7 +2484,7 @@
         },
         "floor_crate": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -2728,7 +2728,7 @@
         },
         "dot": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity",
             "data": [
                 -0.5,
@@ -2972,7 +2972,7 @@
         },
         "capsule": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "Entity",
             "vert_path": "shaders/basic.vert",
             "frag_path": "shaders/highlight.frag",
@@ -2987,9 +2987,9 @@
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    -0.5357644557952881,
-                    0.3776789903640747,
-                    0.7553579807281494,
+                    -0.8583660125732422,
+                    0.2295464128255844,
+                    0.4590928256511688,
                     0.0
                 ]
             },
@@ -3040,9 +3040,9 @@
             "orientation": {
                 "@type": "quat",
                 "values": [
-                    0.6298637986183167,
-                    0.3473787009716034,
-                    0.6947574019432068,
+                    0.43325018882751465,
+                    0.40308377146720886,
+                    0.8061675429344177,
                     0.0
                 ]
             },
@@ -3128,7 +3128,7 @@
         },
         "new_entity16": {
             "@type": "entity",
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "Entity",
             "vert_path": "shaders/basic.vert",
             "frag_path": "shaders/basichighlight.frag",
@@ -3389,9 +3389,9 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    -2.6849308013916016,
-                    1.9612914323806763,
-                    -5.535097599029541
+                    -3.799999952316284,
+                    -2.0,
+                    -12.300000190734863
                 ]
             },
             "orientation": {
@@ -3421,7 +3421,7 @@
             },
             "do_gravity": false,
             "do_collisions": false,
-            "should_render": true,
+            "should_render": false,
             "id": "_engine_axis0",
             "scripts": [],
             "model_path": null
@@ -3643,9 +3643,9 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    -2.6849308013916016,
-                    1.9612914323806763,
-                    -5.535097599029541
+                    -3.799999952316284,
+                    -2.0,
+                    -12.300000190734863
                 ]
             },
             "orientation": {
@@ -3675,7 +3675,7 @@
             },
             "do_gravity": false,
             "do_collisions": false,
-            "should_render": true,
+            "should_render": false,
             "id": "_engine_axis1",
             "scripts": [],
             "model_path": null
@@ -3897,9 +3897,9 @@
             "position": {
                 "@type": "vec3",
                 "values": [
-                    -2.6849308013916016,
-                    1.9612914323806763,
-                    -5.535097599029541
+                    -3.799999952316284,
+                    -2.0,
+                    -12.300000190734863
                 ]
             },
             "orientation": {
@@ -3929,7 +3929,7 @@
             },
             "do_gravity": false,
             "do_collisions": false,
-            "should_render": true,
+            "should_render": false,
             "id": "_engine_axis2",
             "scripts": [],
             "model_path": null
@@ -3959,13 +3959,13 @@
         {
             "@type": "entity_cls",
             "@name": null,
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "ManualEntity"
         },
         {
             "@type": "entity_cls",
             "@name": null,
-            "@class_module": "enginelib.game",
+            "@class_module": "enginelib.entity",
             "@class_name": "Entity"
         },
         {

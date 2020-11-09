@@ -3,7 +3,7 @@ from openal import oalOpen
 
 import enginelib.level.save as save
 from enginelib import script
-from enginelib.game import Entity, savable_args
+from enginelib.entity import Entity, savable_args
 
 save.handlers[openal.Source] = lambda source: source.path
 

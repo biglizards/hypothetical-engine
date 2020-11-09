@@ -3,6 +3,23 @@ from libcpp cimport bool as c_bool
 
 
 cdef class Widget:
+    """
+    A widget is, simply, a thing. It can be a button, or a label, or a text box, or even a collection of widgets.
+    This class defines a great number of attributes, and allows them to be set either at creation time or afterwords.
+    Widgets are not normally expected to be directly created, but sometimes are for layout reasons.
+
+    In general, see the nanogui documentation to see what each widget does.
+    https://nanogui.readthedocs.io/en/latest/index.html
+
+    For brevity, widgets can be entered, allowing you to omit the parent when creating them.
+
+    eg:
+        root_widget = create_gui_window(...)
+        with Widget(layout=...):
+            Label("example", font_size=46)  # parent is implicitly the unnamed widget above
+            label = Label("button pressed!", visible=False)
+            Button("click me!", callback=lambda: setattr(label, 'visible', True))
+    """
     cdef nanogui.Widget* widget
     cdef Layout _layout
     cdef readonly list children
@@ -334,7 +351,8 @@ cdef class FloatBox(TextBox):
             parent = get_parent()
         self.floatBox = new nanogui.FloatBox[double](parent.widget, <double>value)
         self.textBox = self.floatBox
-        cengine.setFloatBoxCallback[double](<nanogui.FloatBox[double] *>self.textBox, <void*>self, self.float_callback)
+        cengine.setMetaCallback[nanogui.FloatBox[double], double, c_bool](
+            <nanogui.FloatBox[double] *>self.textBox, <void*>self, self.float_callback)
         super().__init__(editable=True, callback=callback, spinnable=spinnable, parent=parent, **kwargs)
 
     @staticmethod

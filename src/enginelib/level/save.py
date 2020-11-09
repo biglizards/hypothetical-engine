@@ -5,7 +5,7 @@ import json
 import warnings
 from warnings import warn
 
-from enginelib.game import Entity
+from enginelib.entity import Entity
 from enginelib.script import Script
 
 
