@@ -24,6 +24,7 @@ cpdef unsigned int load_shader_from_file(path, unsigned int shader_type):
     return c_load_shader(shader_source, shader_type)
 
 cdef float* value_ptr(thing):
+    """gets a raw pointer to a vector or matrix"""
     return <float*>(<uintptr_t>ctypes.addressof(glm.value_ptr(thing).contents))
 
 cpdef load_shader_program(vert_path, frag_path, geometry_path=None):

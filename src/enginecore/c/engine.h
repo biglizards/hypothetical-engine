@@ -13,11 +13,12 @@ GLuint load_shader(const char* shaderSource, GLenum shaderType);
 void set_callbacks(nanogui::Screen* screen, GLFWwindow* window);
 
 
+// the NanoGUI helper allows you to add arbitrary variables to a UI
+// this function is called in helper.pxi to do so
 template <typename T>
 using setterFunc = void(*)(const T&, uintptr_t PyWidget);
 template <typename T>
 using getterFunc = T(*)(uintptr_t PyWidget);
-
 template <typename T>
 nanogui::detail::FormWidget<T>* add_variable(nanogui::FormHelper* helper, const char* name,
                                              setterFunc<T> setter, getterFunc<T> getter, uintptr_t PyWidget)
@@ -27,12 +28,7 @@ nanogui::detail::FormWidget<T>* add_variable(nanogui::FormHelper* helper, const 
                                  );
 }
 
-template <typename Scalar>
-void setFloatBoxCallback(nanogui::FloatBox<Scalar>* floatBox, void* self, bool(*callback)(void* self, Scalar value))
-{
-    floatBox->setCallback([callback, self](Scalar value) {return callback(self, value);});
-}
-
+// set callback on types that support callbacks (eg TestBox, FloatBox). Should also support non-box types.
 template <typename BoxType, typename T, typename R=bool>
 void setMetaCallback(BoxType* box, void* self, R(*callback)(void* self, T value))
 {
@@ -44,9 +40,9 @@ nanogui::Button* add_button_(nanogui::FormHelper* helper, const char* name, void
 void setButtonCallback(nanogui::Button* button, void* self, void(*callback)(void* self));
 void setTextBoxCallback(nanogui::TextBox* textBox, void* self, bool(*callback)(void* self, const std::string& str));
 
+// there is no callback for a key being pressed in a text box, so we make one ourselves.
 class CustomTextBox : public nanogui::TextBox {
     public:
-//        CustomTextBox(nanogui::Widget* parent) {nanogui::TextBox(parent);}
         CustomTextBox(nanogui::Widget* parent, const std::string &value = "Untitled")
             : nanogui::TextBox(parent, value) {}
         void setKeyCallback(const std::function<bool(const std::string& str)> &callback) {

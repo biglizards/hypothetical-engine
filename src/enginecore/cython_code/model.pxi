@@ -21,7 +21,7 @@ cdef class Mesh:
      - vertex (and texture) co-ords
      - texture co-ords
      - texture data
-     - a hitbox maybe?
+     - a hitbox (currently automatically approximated)
     """
     cdef unsigned int VAO, VBO, EBO
     cdef public raw_data
@@ -83,7 +83,7 @@ cdef class Mesh:
         return corners
 
     cpdef calculate_bounding_sphere(self):
-        # set centre to average of all vertices   todo (maybe it'd be better to use centre of aabb?)
+        # set centre to average of all vertices   todo maybe it'd be better to use centre of aabb?
         centre = glm.vec3(0)
         vertices = list(self.get_vertices())
         for vert in vertices:
@@ -205,7 +205,6 @@ cdef class Model:
         for mesh in self.meshes:
             mesh.draw(shader_program, mode=mode)
 
-
     cpdef recalculate_bounding_sphere(self):
         for mesh in self.meshes:
             mesh.calculate_bounding_sphere()
@@ -224,14 +223,25 @@ cdef class Model:
 
 
 cpdef load_model(path_str, flip_on_load=True):
+    """
+    Given a path, attempt to load that model. 
+    The flip_on_load is because most, but not all, texture are stored backwards.
+    """
+
     cdef bytes path = to_bytes(path_str)
     cdef assimp.Importer importer
+
+    # a scene contains (among other things) a tree of nodes, which contains some number of meshes
+    # here, we just flatten that tree to put all the meshes in a bag, since that's what Model expects
     cdef const assimp.aiScene* scene = importer.ReadFile(path, assimp.aiProcess_Triangulate | assimp.aiProcess_FlipUVs)
+
     if scene is NULL or (scene.mFlags & assimp.AI_SCENE_FLAGS_INCOMPLETE) or not scene.mRootNode:
         raise RuntimeError("ERROR [MODEL]: " + importer.GetErrorString().decode())
+
     return process_node(scene.mRootNode, scene, path, meshes=None, flip_on_load=flip_on_load)
 
 cdef process_node(assimp.aiNode* node, const assimp.aiScene* scene, path, meshes=None, flip_on_load=True):
+    """traverse the tree depth first (pre-order), adding all the meshes as we go"""
     cdef assimp.aiMesh* mesh
     cdef assimp.aiNode* child_node
     meshes = meshes if meshes is not None else []
@@ -245,6 +255,7 @@ cdef process_node(assimp.aiNode* node, const assimp.aiScene* scene, path, meshes
     return meshes
 
 cdef process_mesh(assimp.aiMesh* mesh, const assimp.aiScene* scene, path, flip_on_load=True):
+    """loads the data from the mesh and converts it into a Mesh object"""
     cdef assimp.aiVector3D* ai_vector
     cdef assimp.aiFace* face
 

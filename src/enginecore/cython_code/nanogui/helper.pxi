@@ -6,6 +6,18 @@ from includes.nanogui cimport FormWidget
 
 
 cdef class FormHelper:
+    """
+    the form helper is a utility class provided to simplify the process of making list-like guis, eg for allowing
+    the editing of the attributes of an object.
+
+    example:
+        my_object.foo = 2
+
+        helper = engine.FormHelper(self.gui)
+        new_gui = helper.add_window(0, 0, 'entity properties')
+        helper.add_variable("foo", int, getter=lambda: return my_object.foo,
+                            setter=lambda x: setattr(my_object, 'foo', x))
+    """
     cdef nanogui.FormHelper* helper
     cdef Gui gui
     cdef object widgets

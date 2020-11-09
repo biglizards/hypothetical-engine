@@ -17,15 +17,16 @@
 
 nanogui::Screen* gl_screen = NULL;
 
+// callbacks must be callable, but Cython can't easily create lambdas like this
 void setTextBoxCallback(nanogui::TextBox* textBox, void* self, bool(*callback)(void* self, const std::string& str))
 {
     textBox->setCallback([callback, self](const std::string& str) {return callback(self, str);});
 }
+
 void setTextBoxKeyCallback(CustomTextBox* textBox, void* self, bool(*callback)(void* self, const std::string& str))
 {
     textBox->setKeyCallback([callback, self](const std::string& str) {return callback(self, str);});
 }
-
 
 nanogui::Button* add_button_(nanogui::FormHelper* helper, const char* name, void* self, void(*callback)(void* self))
 {
@@ -34,71 +35,6 @@ nanogui::Button* add_button_(nanogui::FormHelper* helper, const char* name, void
 
 void setButtonCallback(nanogui::Button* button, void* self, void(*callback)(void* self)) {
     button->setCallback([callback, self]() {callback(self);});
-}
-
-void framebuffer_size_callback(GLFWwindow*, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
-const char* load_shader_file(const char* path)
-{
-    std::string shaderSourceString;
-
-    std::ifstream shaderFile;
-    shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);  // raise exception on failure
-
-    shaderFile.open(path);
-    std::stringstream buffer;
-    buffer << shaderFile.rdbuf();
-
-    return buffer.str().c_str();
-}
-
-void set_callbacks(nanogui::Screen* screen_, GLFWwindow* window)
-{
-    gl_screen = screen_;
-    glfwSetCursorPosCallback(window,
-        [](GLFWwindow *, double x, double y) {
-            gl_screen->cursorPosCallbackEvent(x, y);
-        }
-    );
-
-    glfwSetMouseButtonCallback(window,
-        [](GLFWwindow *, int button, int action, int modifiers) {
-            gl_screen->mouseButtonCallbackEvent(button, action, modifiers);
-        }
-    );
-
-    glfwSetKeyCallback(window,
-        [](GLFWwindow *, int key, int scancode, int action, int mods) {
-            gl_screen->keyCallbackEvent(key, scancode, action, mods);
-        }
-    );
-
-    glfwSetCharCallback(window,
-        [](GLFWwindow *, unsigned int codepoint) {
-            gl_screen->charCallbackEvent(codepoint);
-        }
-    );
-
-    glfwSetDropCallback(window,
-        [](GLFWwindow *, int count, const char **filenames) {
-            gl_screen->dropCallbackEvent(count, filenames);
-        }
-    );
-
-    glfwSetScrollCallback(window,
-        [](GLFWwindow *, double x, double y) {
-            gl_screen->scrollCallbackEvent(x, y);
-       }
-    );
-
-    //glfwSetFramebufferSizeCallback(window,
-    //    [](GLFWwindow *, int width, int height) {
-    //        gl_screen->resizeCallbackEvent(width, height);
-    //    }
-    //);
 }
 
 GLuint load_shader(const char* shaderSource, GLenum shaderType)

@@ -24,13 +24,10 @@ include "window.pxi"
 include "texture.pxi"
 include "nanogui.pxi"
 
-# the physics module is now pure python (the speedup is only around 20% so I'm not too fussed)
+# the physics module is now pure python (the speedup was only around 20% so I'm not too fussed)
 # include "physics.pxi"
 
 include "tests/test_window.pxi"
-
-cpdef set_gui_callbacks(Gui gui, Window window):
-    cengine.set_callbacks(gui.screen, window.window)
 
 cpdef poll_events():
     """
